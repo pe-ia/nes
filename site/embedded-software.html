@@ -1,0 +1,1064 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Embedded Software · NES Study</title>
+  <meta name="description" content="Interactive study page for the NES lecture on embedded software: embedded operating systems, scheduling, interrupts, timers, power modes, C tricks, bitwise operations, flashing and debugging.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3162b'/%3E%3Cpath d='M7 21h5V11h8v10h5' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/embedded-software.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn" type="button" data-nav-toggle aria-label="Open contents">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Contents
+  </button>
+  <span class="topbar-progress"><span data-progress-answered>0 / 0</span> answered</span>
+</header>
+<div class="scrim"></div>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Lecture contents">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">NES</span>
+      <span class="brand-text"><b>NES Study</b><span>Networked Embedded Systems</span></span>
+    </a>
+
+    <div class="progress-card">
+      <div class="progress-row"><span>Questions answered</span><b data-progress-answered>0 / 0</b></div>
+      <div class="progress-bar"><span data-progress-bar></span></div>
+      <div class="progress-sub"><span>Right on first try: <b data-progress-first>0</b></span><button class="link-btn" type="button" data-quiz-reset>Reset</button></div>
+    </div>
+
+    <nav class="toc" data-toc></nav>
+
+    <div class="sidebar-foot">
+      <a class="icon-btn" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        All lectures
+      </a>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Theme
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+
+      <div class="hero">
+        <div class="crumbs"><a href="index.html">NES Study</a> / Week 3: Embedded Software</div>
+        <h1>Embedded Software</h1>
+        <p class="hero-lead">The code that lives inside the device: what an embedded operating system does, how software talks to hardware through registers, interrupts and timers, how it saves energy, and the C tricks every firmware developer uses.</p>
+        <div class="hero-meta">
+          <span class="chip">25 topics</span>
+          <span class="chip">12 interactive labs</span>
+          <span class="chip">57 questions</span>
+          <span class="chip">Slides: X. Fafoutis and M. Pavan, DTU Compute</span>
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 1</span><h2>Embedded software and operating systems</h2></div>
+
+      <!-- 01 -->
+      <section class="topic" id="embedded-software" data-part="Software and OS" data-short="Embedded software">
+        <header class="topic-head">
+          <span class="topic-num">01</span>
+          <div><h2>Embedded software</h2><p class="kicker">Software that lives close to the hardware</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The program in your washing machine is not an app you install and update every week. It was written for <strong>that exact machine</strong>, knows its motor, valves and buttons, and stays the same for years.</p>
+              <p>That is embedded software. Because it sits between the fixed hardware and easily changed software, it is also called <strong>firmware</strong>: it is "firmer".</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Embedded software is software that runs on the <strong>processor of an embedded system</strong>.</li>
+                <li>It is typically <strong>closer to the hardware</strong> than normal software: tied to particular hardware, built around hardware constraints and limitations (little RAM, little flash, a slow CPU, a battery), and busy controlling sensors, actuators and peripherals.</li>
+                <li>It is also known as <strong>firmware</strong>: it does not change as easily or as frequently as software on general purpose computers.</li>
+                <li>It is most commonly written in <strong>C</strong>, which gives direct access to memory and registers with very little overhead.</li>
+                <li>The figure shows what one such chip contains. The CC2650 is a <em>System-on-Chip</em>: a main CPU (ARM Cortex-M3), memory, a radio, and a collection of peripherals (timers, UART, I&sup2;C, SPI, ADC, watchdog, RTC) that the firmware has to drive.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/embedded-software/cc2650-block.png" alt="Block diagram of the CC26xx wireless MCU: main CPU, RF core, general peripherals and sensor controller" width="1073" height="1406"></div>
+              <figcaption><b>Slide 5.</b> Inside a CC26xx wireless MCU. Source: CC2650 datasheet, Texas Instruments.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="embedded-software"></div>
+      </section>
+
+      <!-- 02 -->
+      <section class="topic" id="dev-stages" data-part="Software and OS" data-short="Development stages">
+        <header class="topic-head">
+          <span class="topic-num">02</span>
+          <div><h2>Stages of embedded software development</h2><p class="kicker">Write here, run there</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>You cannot open a code editor on a thermostat. So you write and build the program on a normal computer, then <strong>copy the result into the device</strong>, and only there can you see whether it works.</p>
+              <p>It is like writing a letter at your desk and posting it: the place where you write is not the place where it is read. If something is wrong, you go back to the desk.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The <strong>development environment is not the execution environment</strong>. Development takes place on a normal computer.</li>
+                <li><strong>Source &rarr; Build:</strong> a cross-compiler on the computer produces an executable binary for the target CPU.</li>
+                <li><strong>Flash:</strong> the binary is installed on the embedded device. This is called <em>programming</em> or <em>flashing</em> the device.</li>
+                <li><strong>Test:</strong> debugging and testing take place on the embedded device itself, with its real peripherals and timing.</li>
+                <li><strong>Deploy:</strong> the device goes into the field. The arrows going back in the figure are the point: whenever a stage reveals a problem you return to the source and go around again.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/dev-stages.png" alt="Source, Build, Flash, Test, Deploy boxes in a row with feedback arrows back to Source" width="1300" height="190"></div>
+              <figcaption><b>Slide 6.</b> Source, build, flash, test, deploy, with feedback loops back to the source.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="dev-stages"></div>
+      </section>
+
+      <!-- 03 -->
+      <section class="topic" id="embedded-os" data-part="Software and OS" data-short="Embedded OS">
+        <header class="topic-head">
+          <span class="topic-num">03</span>
+          <div><h2>Embedded operating systems</h2><p class="kicker">Do you even need one?</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>An operating system is a <strong>building manager</strong>: it decides who uses which room when, and it hides the plumbing so tenants just turn a tap. Handy, but a manager costs money and space.</p>
+              <p>A tiny device can skip the manager and let the one tenant do everything himself (<strong>bare metal</strong>): nothing is wasted, but nothing is reusable either. An <strong>embedded OS</strong> is a very lean manager built for very small buildings.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The operating system <strong>manages and abstracts hardware resources</strong>. In the figure it sits between the hardware and the programs.</li>
+                <li>Traditional operating systems (Linux, Windows) are often <strong>not suitable</strong> for embedded systems: they assume megabytes of RAM, a memory management unit and plenty of power.</li>
+                <li><strong>Without an OS (bare metal):</strong> the application talks directly to the hardware. Maximum efficiency, but no flexibility.</li>
+                <li><strong>An embedded OS provides:</strong>
+                  <ul>
+                    <li>hardware abstractions,</li>
+                    <li>APIs and drivers for common peripherals,</li>
+                    <li>intuitive programming models such as multithreading.</li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/os-layers.png" alt="Layers: hardware at the bottom, operating system in kernel mode, user interface program and applications in user mode" width="1300" height="743"></div>
+              <figcaption><b>Slides 7 and 8.</b> Where an OS sits in a general purpose computer. Source: Modern Operating Systems, Tanenbaum and Bos.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="embedded-os"></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="topic" id="os-requirements" data-part="Software and OS" data-short="OS requirements">
+        <header class="topic-head">
+          <span class="topic-num">04</span>
+          <div><h2>Requirements for an embedded OS</h2><p class="kicker">Small, portable, frugal, punctual, secure</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Imagine packing for a month-long hike with a small backpack. Everything must be <strong>light</strong>, work in <strong>any terrain</strong>, <strong>sip</strong> rather than gulp your supplies, keep you <strong>on schedule</strong>, and not get stolen. An embedded OS has the same five worries.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Small memory footprint:</strong> as low as kilobytes in some low-end embedded systems.</li>
+                <li><strong>Support for heterogeneous hardware:</strong> a large variety of architectures (8-bit, 16-bit, 32-bit), of available RAM and flash, and of network interfaces (wired, wireless).</li>
+                <li><strong>Energy efficiency:</strong> the OS must duty cycle the CPU, radio and peripherals, or provide an API so the application can.</li>
+                <li><strong>Real-time capabilities:</strong> timely execution is crucial for time-sensitive applications. An <strong>RTOS</strong> (Real-Time OS) is an OS that can guarantee <strong>worst-case execution times</strong>. Real-time means predictable, not fast.</li>
+                <li><strong>Security:</strong> confidentiality, authentication, data integrity, access control, and so on.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="os-requirements"></div>
+      </section>
+
+      <!-- 05 -->
+      <section class="topic" id="os-modules" data-part="Software and OS" data-short="OS modules">
+        <header class="topic-head">
+          <span class="topic-num">05</span>
+          <div><h2>Modules of an embedded OS</h2><p class="kicker">Only compile what you need</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A desktop OS is a furnished house: everything is already there, whether you use it or not. An embedded OS is a <strong>box of building blocks</strong>. You pick the blocks your product needs, and only those are built into the final program.</p>
+              <p>No Bluetooth in your product? Then not a single byte of Bluetooth code ends up in the device.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Embedded operating systems are designed to be <strong>modular</strong>: kernel (scheduler, tasks, locks), device drivers, a low-power network stack, supporting libraries, and a hardware abstraction layer on top of the hardware.</li>
+                <li>The <strong>application is compiled together with the OS</strong> into a single image. There is no separate "install the OS, then install the app".</li>
+                <li>The developer decides which modules to include, through the <strong>build system</strong> (<code>make</code>) and <strong>preprocessor statements</strong> (<code>#ifdef</code>).</li>
+                <li>The executable binary includes only the absolutely necessary code. Supporting code for other CPUs, drivers for peripherals that are not present and protocols that are not used are not included.</li>
+              </ul>
+              <pre class="code"><code><span class="k">#ifdef</span> WITH_COAP        <span class="c">/* set by the build system */</span>
+  coap_init();          <span class="c">/* compiled only if CoAP is selected */</span>
+<span class="k">#endif</span></code></pre>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/os-modules.png" alt="Embedded OS architecture: applications on top, supporting libraries, device drivers, low-power network stack and kernel in the middle, hardware abstraction layer and hardware below" width="1009" height="1038"></div>
+              <figcaption><b>Slide 10.</b> Typical modules of an embedded OS. Source: doi.org/10.1109/JIOT.2015.2505901.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="modules"></div>
+        <div class="quiz" data-quiz="os-modules"></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="topic" id="os-models" data-part="Software and OS" data-short="Event-driven, threads, RTOS">
+        <header class="topic-head">
+          <span class="topic-num">06</span>
+          <div><h2>Event-driven, multi-threading and real-time operating systems</h2><p class="kicker">Three ways to organise the work</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p><strong>Event-driven</strong> is one receptionist handling whatever comes in, one thing at a time: phone rings, handle it; doorbell, handle it. Very cheap, but awkward for long jobs.</p>
+              <p><strong>Multi-threading</strong> is several employees, each with their own desk, sharing one phone in turns. More natural to organise, but desks take space and handing over the phone takes time.</p>
+              <p>An <strong>RTOS</strong> is an emergency dispatch centre: every call is <em>guaranteed</em> to be answered within a fixed time, and strict rules make sure of it.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt" style="width:100%;font-family:var(--font);font-size:14px">
+                  <thead><tr><th style="text-align:left"></th><th style="text-align:left">Event-driven</th><th style="text-align:left">Multi-threading</th><th style="text-align:left">Real-time (RTOS)</th></tr></thead>
+                  <tbody>
+                    <tr><td style="text-align:left"><strong>How it runs</strong></td><td style="text-align:left">All processing is triggered by an external event (from peripherals, or timer events scheduled by the CPU). Roughly an infinite loop that handles events.</td><td style="text-align:left">Each thread runs in its own context and manages its own stack. The scheduler performs context switching.</td><td style="text-align:left">Built so that real-time guarantees hold, in terms of worst-case execution time.</td></tr>
+                    <tr><td style="text-align:left"><strong>Memory</strong></td><td style="text-align:left">Everything (OS and apps) runs in the same context and address space, like one single program.</td><td style="text-align:left">One stack per thread.</td><td style="text-align:left">Depends on the design.</td></tr>
+                    <tr><td style="text-align:left"><strong>Strength</strong></td><td style="text-align:left">High efficiency in memory and processing.</td><td style="text-align:left">More natural programming model; the traditional approach in modern OS (e.g. Linux).</td><td style="text-align:left">Formal verification, certification and standardisation.</td></tr>
+                    <tr><td style="text-align:left"><strong>Weakness</strong></td><td style="text-align:left">Not all programs can easily be expressed as state machines.</td><td style="text-align:left">Memory overhead and run-time overhead.</td><td style="text-align:left">Strict constraints for developers; inflexible and difficult to port to new hardware.</td></tr>
+                    <tr><td style="text-align:left"><strong>Example</strong></td><td style="text-align:left">Contiki-NG</td><td style="text-align:left">RIOT</td><td style="text-align:left">FreeRTOS</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>The skeleton of an event-driven system, where each handler must finish quickly and return:</p>
+              <pre class="code"><code><span class="k">while</span> (1) {
+  event = next_event();      <span class="c">/* from a peripheral or a timer */</span>
+  <span class="k">if</span> (event == NONE) sleep();
+  <span class="k">else</span> handle(event);        <span class="c">/* runs to completion */</span>
+}</code></pre>
+              <p class="aside-note">Slides 11 to 13. The three categories are not mutually exclusive in practice: an RTOS usually also offers threads.</p>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="os-models"></div>
+      </section>
+
+      <!-- 07 -->
+      <section class="topic" id="scheduling" data-part="Software and OS" data-short="Scheduling">
+        <header class="topic-head">
+          <span class="topic-num">07</span>
+          <div><h2>Scheduling and priorities</h2><p class="kicker">Who gets the CPU, and when</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>One CPU, several tasks: someone has to decide whose turn it is. That is the <strong>scheduler</strong>.</p>
+              <p>A <strong>preemptive</strong> scheduler is a strict chairperson who cuts speakers off when their time is up. A <strong>cooperative</strong> one lets everyone talk until they choose to stop: efficient, unless someone never stops. With <strong>priorities</strong>, the fire alarm always gets to speak before the small talk.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The scheduler manages how the processor is shared among tasks: it decides <strong>when each task</strong> (process or thread) is executed.</li>
+                <li><strong>Preemptive scheduling:</strong> the scheduler can interrupt a running task to give the CPU to another. Fundamental for fairness in UI-based operating systems. Less efficient: more context switches, and the periodic timer prevents the system from going to sleep.</li>
+                <li><strong>Non-preemptive (cooperative) scheduling:</strong> each task executes until it voluntarily yields the CPU. More efficient, but vulnerable to errors: tasks must yield quickly or risk blocking important system functions.</li>
+                <li><strong>Tickless preemptive scheduling:</strong> preemption occurs on interrupts and when a task naturally blocks, not on a time basis. An efficient solution in the middle.</li>
+                <li><strong>Priority scheduling:</strong> every task has a priority level and the scheduler selects the task with the highest one. High priority tasks (typically system-level) always win over lower ones.</li>
+                <li>The lowest priority can suffer from <strong>starvation</strong> in busy systems. That is rarely the case in embedded systems, which spend a lot of time idle or asleep.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/priority-queues.png" alt="Four priority queues, priority 4 highest to priority 1 lowest, each with a list of runnable processes" width="1300" height="582"></div>
+              <figcaption><b>Slide 15.</b> One queue of runnable processes per priority level. Source: Modern Operating Systems, Tanenbaum and Bos.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="sched"></div>
+        <div class="quiz" data-quiz="scheduling"></div>
+      </section>
+
+      <!-- 08 -->
+      <section class="topic" id="sync" data-part="Software and OS" data-short="Thread synchronisation">
+        <header class="topic-head">
+          <span class="topic-num">08</span>
+          <div><h2>Multithreading and thread synchronisation</h2><p class="kicker">When two threads touch the same thing</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Two people share a whiteboard with a tally. Both look at it ("5"), both walk away to add one in their head, both come back and write "6". Two visitors arrived, but the tally only went up by one.</p>
+              <p>That is a <strong>race condition</strong>. The fix is a rule: whoever holds the marker may use the board, everyone else waits. The marker is a <strong>mutex</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Sources of parallelism:</strong> multicore CPUs; preemptive scheduling, which gives pseudo-parallel thread execution on one CPU; and the auxiliary processors and accelerators that embedded systems often incorporate (true parallelism).</li>
+                <li>Parallelism creates the risk of <strong>race conditions</strong> on shared memory and shared peripherals: the result depends on the exact interleaving.</li>
+                <li>In the figure, <code>counter++</code> is really three steps (read, increase, write back). If both threads read before either writes, one increment is lost.</li>
+                <li><strong>Thread synchronisation tools:</strong> the <strong>mutex</strong> (only one thread at a time inside the protected section) and the <strong>condition variable</strong> (a thread sleeps until another signals that a condition holds).</li>
+                <li><strong>Inter-Process Communication (IPC):</strong> messages. Instead of sharing memory, threads send each other data, which avoids the shared state altogether.</li>
+                <li>The same problem exists between the main code and an interrupt handler. There the classic cure is to briefly disable interrupts around the critical section.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/race-condition.png" alt="Table of two threads both reading 0, both increasing, both writing back 1" width="874" height="634"></div>
+              <figcaption><b>Slide 16.</b> A lost update: two increments, final value 1. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="race"></div>
+        <div class="quiz" data-quiz="sync"></div>
+      </section>
+
+      <!-- 09 -->
+      <section class="topic" id="choose-os" data-part="Software and OS" data-short="Choosing an OS">
+        <header class="topic-head">
+          <span class="topic-num">09</span>
+          <div><h2>The embedded OS landscape, and how to choose</h2><p class="kicker">There is no single best OS</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Choosing an embedded OS is like choosing a car. You do not ask "which is best?" but "does it fit my garage, can I get parts, is it certified for what I want to do, and can I get help when it breaks?"</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The two tables show how much the field varies: architecture (monolithic, microkernel, RTOS), scheduler (cooperative or preemptive), programming model (event-driven or multithreading), supported MCU families, RAM and flash needs, license and network stacks.</li>
+                <li>Names you will meet: <strong>Contiki / Contiki-NG</strong>, <strong>TinyOS</strong>, <strong>RIOT</strong>, <strong>FreeRTOS</strong>, <strong>OpenWSN</strong>, <strong>Zephyr</strong> (the OS under the nRF Connect SDK used in the lab).</li>
+                <li><strong>Selection criteria:</strong>
+                  <ul>
+                    <li><strong>Features:</strong> supported hardware (platforms, CPUs, peripherals, accelerators), supported software (communication protocols, file system, encryption libraries), tools (simulator, debugging tools).</li>
+                    <li><strong>Portability:</strong> vendor-based vs generic OS, open standards (POSIX).</li>
+                    <li><strong>Certification:</strong> real-time guarantees, networking interoperability.</li>
+                    <li><strong>License:</strong> proprietary, permissive, copyleft.</li>
+                    <li><strong>Documentation, support, community.</strong></li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/os-comparison.png" alt="Comparison table of embedded operating systems by architecture, scheduler, programming model, device class, MCU families, language, license and network stacks" width="1300" height="606"></div>
+              <figcaption><b>Slide 17.</b> Embedded OS compared by design. Click to enlarge. Source: doi.org/10.1109/JIOT.2015.2505901.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/os-hardware-table.png" alt="Table of supported MCUs, RAM, flash and protocols for Contiki, Contiki-NG, TinyOS, FreeRTOS, OpenWSN, RIOT and Zephyr" width="1300" height="616"></div>
+              <figcaption><b>Slide 18.</b> Supported MCUs, memory needs and protocols. Source: doi.org/10.1109/ACCESS.2022.3153521.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="choose-os"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 2</span><h2>Talking to the hardware</h2></div>
+
+      <!-- 10 -->
+      <section class="topic" id="registers" data-part="Hardware interaction" data-short="Peripherals and registers">
+        <header class="topic-head">
+          <span class="topic-num">10</span>
+          <div><h2>Embedded programming: peripherals and registers</h2><p class="kicker">Hardware is controlled by writing numbers to addresses</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Every peripheral has a small <strong>control panel</strong> made of registers. Some are indicator lamps you can only look at (status), some are buttons you can only press (command), and some are dials you can both read and turn (data and configuration).</p>
+              <p>Embedded programming is, to a large extent, reading lamps, pressing buttons and turning dials in the right order.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Embedded programming typically involves communication with peripherals: <strong>internal</strong> ones inside the System-on-Chip (SoC), and <strong>external</strong> ones on the same board.</li>
+                <li>A peripheral controller has a number of <strong>registers</strong> that the CPU reads and writes:
+                  <ul>
+                    <li><strong>Status registers</strong> (read-only): what state is the peripheral in?</li>
+                    <li><strong>Command registers</strong> (write-only): do something now.</li>
+                    <li><strong>Data / configuration registers</strong> (read/write): the data being moved and the settings.</li>
+                  </ul></li>
+                <li>Internal registers are usually <em>memory-mapped</em>: each one has a fixed address, so reading or writing it looks like accessing a variable through a pointer.</li>
+              </ul>
+              <pre class="code"><code><span class="c">/* a status register and a data register at fixed addresses (made-up numbers) */</span>
+<span class="k">#define</span> UART_STATUS (*(<span class="k">volatile</span> uint8_t *)0x40002000)
+<span class="k">#define</span> UART_DATA   (*(<span class="k">volatile</span> uint8_t *)0x40002004)
+
+<span class="k">if</span> (UART_STATUS &amp; (0x1&lt;&lt;0))   <span class="c">/* bit 0: a byte has arrived */</span>
+  byte = UART_DATA;</code></pre>
+              <ul>
+                <li>This is why <strong>bitwise operations</strong> matter (Part 3), and why <strong>fixed-point operations</strong> are used instead of floating point on CPUs without a floating-point unit.</li>
+                <li><strong>Static memory allocation is preferred:</strong> all memory is reserved at build time, so there is no heap to fragment or run out of while the device runs unattended.</li>
+              </ul>
+              <p class="aside-note">Slide 20.</p>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="registers"></div>
+      </section>
+
+      <!-- 11 -->
+      <section class="topic" id="interrupts" data-part="Hardware interaction" data-short="Events and interrupts">
+        <header class="topic-head">
+          <span class="topic-num">11</span>
+          <div><h2>Events and interrupts</h2><p class="kicker">Let the hardware tap you on the shoulder</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>You are reading a book and the doorbell rings. You put in a bookmark, answer the door, come back and continue reading exactly where you stopped.</p>
+              <p>An <strong>interrupt</strong> is the doorbell: a peripheral signals that something happened, the CPU pauses what it was doing, runs a short piece of code for that event (the <strong>interrupt handler</strong>), and then resumes.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Peripherals can be programmed to issue signals (<strong>interrupts</strong>) when specific events happen: a byte arrived, a timer reached its value, a conversion finished.</li>
+                <li>GPIOs can detect changes on a line, which is how interrupts from <strong>external</strong> peripherals are captured (a sensor pulling its INT pin).</li>
+                <li>The <strong>interrupt controller</strong> handles the interrupts of multiple devices.</li>
+                <li>An <strong>Interrupt Request (IRQ)</strong> is then sent to the CPU. It interrupts normal execution and executes the specified <strong>interrupt handler</strong>.</li>
+                <li>The sequence in the figure: (1) the device is finished, (2) the controller issues the interrupt, (3) the CPU acknowledges it.</li>
+                <li>Handlers should be short: they run while the rest of the program is paused. A common pattern is to set a flag in the handler and do the real work later in the main code.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/interrupt-flow.png" alt="Devices (disk, clock, keyboard, printer) connected to an interrupt controller, which signals the CPU; the CPU acknowledges" width="1300" height="454"></div>
+              <figcaption><b>Slide 21.</b> How an interrupt reaches the CPU. Source: Modern Operating Systems, Tanenbaum and Bos.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="interrupts"></div>
+      </section>
+
+      <!-- 12 -->
+      <section class="topic" id="io-software" data-part="Hardware interaction" data-short="Busy waiting vs interrupts">
+        <header class="topic-head">
+          <span class="topic-num">12</span>
+          <div><h2>I/O software: busy waiting vs interrupt-driven</h2><p class="kicker">Staring at the kettle, or waiting for the whistle</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p><strong>Busy waiting</strong> is standing in front of the kettle asking "is it boiling yet?" a million times a second. It works, but you get nothing else done and you wear yourself out.</p>
+              <p><strong>Interrupt-driven</strong> I/O is a kettle with a whistle: switch it on, take a nap, and let the whistle wake you.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <p>Example: send a string to a peripheral (a printer), one character at a time.</p>
+              <p><strong>With busy waiting:</strong> copy a character to the printer's data register, then read its status register in a <code>while</code> loop until the printer is done; repeat until the end.</p>
+              <pre class="code"><code><span class="k">for</span> (i = 0; i &lt; count; i++) {                <span class="c">/* loop on every character */</span>
+  <span class="hl"><span class="k">while</span> (*printer_status_reg != READY) ;</span>   <span class="c">/* loop until ready */</span>
+  *printer_data_register = p[i];              <span class="c">/* output one character */</span>
+}</code></pre>
+              <ul>
+                <li>Disadvantages: it <strong>occupies the CPU doing nothing</strong>, <strong>wastes energy</strong> and <strong>heats up the system</strong>.</li>
+              </ul>
+              <p><strong>Interrupt-driven:</strong> enable and configure interrupts, copy the first character to the data register, and put the CPU to sleep. When the peripheral is done it issues an interrupt, the handler wakes the CPU, copies the next character, and so on until the end.</p>
+              <pre class="code"><code><span class="c">/* interrupt handler: runs each time the printer is ready again */</span>
+<span class="k">void</span> printer_isr(<span class="k">void</span>) {
+  <span class="k">if</span> (i &lt; count)
+    *printer_data_register = p[i++];          <span class="c">/* next character */</span>
+  acknowledge_interrupt();
+}</code></pre>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/printer-io.png" alt="Three steps of printing a string: the string is copied to kernel space and characters are output one by one" width="1167" height="534"></div>
+              <figcaption><b>Slides 22 to 24.</b> Printing "ABCDEFGH": (a) the string in user space, (b) and (c) characters going out one at a time. Source: Modern Operating Systems, Tanenbaum and Bos.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="io"></div>
+        <div class="quiz" data-quiz="io-software"></div>
+      </section>
+
+      <!-- 13 -->
+      <section class="topic" id="timers" data-part="Hardware interaction" data-short="Timers">
+        <header class="topic-head">
+          <span class="topic-num">13</span>
+          <div><h2>Timers</h2><p class="kicker">Counting ticks of an oscillator</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A hardware timer is a <strong>car odometer driven by a metronome</strong>: every tick adds one. How fine you can measure depends on how fast the metronome ticks, and when the odometer runs out of digits it rolls over to zero.</p>
+              <p>To be woken at a certain moment you set an <strong>alarm mark</strong> on the odometer: "tell me when you reach this number."</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>An SoC typically has a fixed number of hardware timers: <strong>high-frequency</strong> timers and <strong>low-frequency</strong> timers (RTC, real-time clock). The CC2650 has 2 HF timers and 1 RTC.</li>
+                <li>A crystal <strong>oscillator</strong> provides the ticks; the counter register increments on each one (figure).</li>
+                <li><strong>Resolution</strong> depends on the frequency:
+                  <div class="formula">resolution = 1 / f <span class="eq-note">32 kHz: about 30.5 &micro;s &nbsp; 24 MHz: about 41.7 ns</span></div></li>
+                <li>A timer <strong>overflows</strong> periodically according to its size and frequency:
+                  <div class="formula">overflow period = 2<sup>bits</sup> / f <span class="eq-note">24-bit at 32 kHz: 512 s &nbsp; at 24 MHz: about 0.7 s</span></div></li>
+                <li>Each hardware timer has to support <strong>multiple software timers</strong>. The counter increments at its frequency and wraps at the maximum value. A <strong>COMPARE</strong> value can be set so that a clock interrupt is issued when the counter reaches it, and software updates COMPARE to arm the next software timer.</li>
+                <li>The trade-off between the two kinds: the HF timer is precise but overflows quickly and needs the power-hungry HF clock; the LF timer is coarse but runs for minutes and keeps going in sleep mode.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/timer-hw.png" alt="Crystal oscillator feeding a counter register, with a holding register below that loads the counter" width="723" height="494"></div>
+              <figcaption><b>Slide 25.</b> A programmable clock: crystal oscillator, counter, and the register that holds the value to load. Source: Modern Operating Systems, Tanenbaum and Bos.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="timer"></div>
+        <div class="quiz" data-quiz="timers"></div>
+      </section>
+
+      <!-- 14 -->
+      <section class="topic" id="timer-challenge" data-part="Hardware interaction" data-short="A timer challenge">
+        <header class="topic-head">
+          <span class="topic-num">14</span>
+          <div><h2>A timer challenge</h2><p class="kicker">Scheduling events near and beyond the overflow</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Your kitchen timer only goes up to 8.5 minutes. Timing 5 minutes is easy. Timing 10 minutes is not.</p>
+              <p>Two ways out: <strong>set it for 5 minutes twice</strong> and ignore the first ring, or use a timer whose dial <strong>moves half as fast</strong>, so it reaches 17 minutes but with coarser marks.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <p>Two oscillators (24 MHz and 32 kHz) drive two 24-bit timers. The LF timer overflows after 512 s, the HF timer after about 0.7 s.</p>
+              <p><strong>An event in 5 minutes (300 s):</strong> use the LF timer.</p>
+              <ul>
+                <li>Read the current value of the timer (COUNTER).</li>
+                <li>Calculate the ticks for the interval: INTERVAL = 300 &times; f<sub>LF</sub> = 9 830 400.</li>
+                <li>Add them to the current value, wrapping around the timer's maximum:
+                  <div class="formula">COMPARE = (COUNTER + INTERVAL) mod 2<sup>24</sup></div></li>
+              </ul>
+              <p><strong>An event in 10 minutes (600 s):</strong> longer than the 512 s overflow period, so one compare is not enough.</p>
+              <ul>
+                <li><strong>Approach 1, generate more events than needed:</strong> schedule an event every 300 s and ignore every odd one.</li>
+                <li><strong>Approach 2, trade resolution for overflow period:</strong> set PRESCALER = 1 to get a lower timer frequency (f<sub>LF</sub> = 16 384 Hz). Then INTERVAL = 600 &times; 16 384 = 9 830 400, which fits, and COMPARE is computed as before.</li>
+                <li>On the nRF52832 RTC the tick frequency is
+                  <div class="formula">f<sub>RTC</sub> [kHz] = 32.768 / (PRESCALER + 1)</div>
+                  and with the maximum prescaler the 24-bit counter takes 582.542 hours to overflow, at a resolution of 125 ms.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/rtc-prescaler.png" alt="nRF52832 RTC table: prescaler 0 gives 30.517 microsecond resolution and 512 second overflow; prescaler 255 gives 7812.5 microseconds and 131072 seconds; prescaler 4095 gives 125 ms and 582.542 hours" width="1300" height="201"></div>
+              <figcaption><b>Slides 26 and 27.</b> RTC prescaler vs resolution and overflow. Source: nRF52832 datasheet, Nordic Semiconductor.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="timer-challenge"></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="topic" id="watchdog" data-part="Hardware interaction" data-short="Watchdog timer">
+        <header class="topic-head">
+          <span class="topic-num">15</span>
+          <div><h2>Watchdog timer</h2><p class="kicker">A dead man's switch for software</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A train driver has to press a pedal every so often. If the driver faints and the pedal is not pressed, the train brakes by itself.</p>
+              <p>A <strong>watchdog</strong> is that pedal for firmware: the program must "kick" it regularly. If the program freezes, the kicks stop and the watchdog restarts the whole device. Nobody has to climb a mast to press reset.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A <strong>safety mechanism against system crashes</strong>: a timer that <strong>resets the system when it expires</strong>.</li>
+                <li>Under normal operation the system resets the timer periodically, making sure it never expires.</li>
+                <li>If the system hangs (deadlock, infinite loop, and so on), the watchdog resets the system.</li>
+                <li>It can be temporarily paused in long sleep modes or when the system is halted by a debugger, so that sleeping or stopping at a breakpoint is not mistaken for a crash.</li>
+                <li>Where you kick matters: kick from the main loop, not from a timer interrupt, otherwise the interrupt keeps kicking happily while the main code is stuck.</li>
+              </ul>
+              <pre class="code"><code><span class="k">while</span> (1) {
+  do_work();
+  watchdog_kick();     <span class="c">/* "I am still alive" */</span>
+}</code></pre>
+              <p class="aside-note">Slide 28.</p>
+            </div>
+          </div>
+        </div>
+        <div data-lab="wdt"></div>
+        <div class="quiz" data-quiz="watchdog"></div>
+      </section>
+
+      <!-- 16 -->
+      <section class="topic" id="dma" data-part="Hardware interaction" data-short="DMA">
+        <header class="topic-head">
+          <span class="topic-num">16</span>
+          <div><h2>Direct Memory Access (DMA)</h2><p class="kicker">Moving data without the CPU</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The manager does not carry every box from the truck to the warehouse. She tells a <strong>forklift driver</strong> "move these 500 boxes from there to here" and gets on with other things (or takes a nap). The driver reports back once, when the job is done.</p>
+              <p>DMA is that forklift: it copies data between memory and peripherals while the CPU does something else.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>DMA transfers data between the memory and peripherals <strong>without the involvement of the CPU</strong>.</li>
+                <li>Support for <strong>multiple channels</strong> (several transfers set up at once).</li>
+                <li><strong>Transfer modes:</strong> memory-to-memory, memory-to-peripheral, peripheral-to-memory, peripheral-to-peripheral.</li>
+                <li>The figure: (1) the CPU programs the DMA controller (address, count, control), (2) the DMA controller requests the transfer, (3) the data is transferred, (4) the device acknowledges. When the count reaches zero, the CPU gets an <strong>interrupt</strong>: one for the whole transfer, instead of one per byte.</li>
+                <li><strong>Slower but more energy efficient than the CPU.</strong> The CPU can stay asleep during the whole transfer, for example while an ADC fills a buffer with samples.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/dma.png" alt="CPU programs the DMA controller, which moves data between the disk controller buffer and main memory over the bus, then interrupts the CPU" width="1300" height="593"></div>
+              <figcaption><b>Slide 29.</b> Operation of a DMA transfer. Source: Modern Operating Systems, Tanenbaum and Bos.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="dma"></div>
+      </section>
+
+      <!-- 17 -->
+      <section class="topic" id="power-modes" data-part="Hardware interaction" data-short="MCU power modes">
+        <header class="topic-head">
+          <span class="topic-num">17</span>
+          <div><h2>MCU power modes</h2><p class="kicker">Sleep as much as you can, as deeply as you can</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Think of a shop. <strong>Active:</strong> open, staff serving. <strong>Idle:</strong> open, lights on, staff waiting. <strong>Sleep:</strong> closed for the night, only the alarm clock running, everything still on the shelves. <strong>Deep sleep:</strong> shut down and emptied; only someone knocking on the door can reopen it, and you start from scratch.</p>
+              <p>The deeper the sleep, the less it costs, and the less can wake you up.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <p>MCUs provide granular control over which sub-modules are active: <strong>energy consumption vs functionality</strong>.</p>
+              <div class="table-wrap">
+                <table class="tt" style="width:100%;font-family:var(--font);font-size:13.5px">
+                  <thead><tr><th style="text-align:left">Mode</th><th>CPU</th><th>RAM</th><th>HF clock</th><th>LF clock</th><th style="text-align:left">Peripherals and wake-up</th></tr></thead>
+                  <tbody>
+                    <tr><td style="text-align:left"><strong>Active</strong></td><td>on</td><td>on</td><td>on</td><td>on</td><td style="text-align:left">internal peripherals active if needed</td></tr>
+                    <tr><td style="text-align:left"><strong>Idle</strong></td><td>off</td><td>on</td><td>on</td><td>on</td><td style="text-align:left">internal peripherals active if needed</td></tr>
+                    <tr><td style="text-align:left"><strong>Sleep</strong> (standby)</td><td>off</td><td>retained</td><td>off</td><td>on</td><td style="text-align:left">peripherals unavailable; time-scheduled wake-up possible</td></tr>
+                    <tr><td style="text-align:left"><strong>Deep sleep</strong> (shutdown)</td><td>off</td><td>lost</td><td>off</td><td>off</td><td style="text-align:left">peripherals unavailable; wake-up on pin edge possible</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li><strong>CC2650 numbers</strong> (slide 32): active 1.45 mA + 31 &micro;A/MHz, idle 550 &micro;A, standby about 1 to 2.7 &micro;A, shutdown 150 nA. The radio adds about 6 mA while receiving or transmitting.</li>
+                <li>From active to standby is a factor of more than a thousand. A node that is awake 0.1% of the time is dominated by what it draws while asleep.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/cc2650-power-modes.png" alt="CC2650 table of software configurable power modes: active, idle, standby, shutdown" width="1300" height="823"></div>
+              <figcaption><b>Slide 31.</b> CC2650 power modes. Source: CC13xx, CC26xx SimpleLink Wireless MCU Technical Reference Manual, Texas Instruments.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/cc2650-consumption.png" alt="CC2650 core current consumption table from reset and shutdown in nanoamps to radio TX in milliamps" width="1300" height="603"></div>
+              <figcaption><b>Slide 32.</b> CC2650 current consumption. Source: CC2650 datasheet, Texas Instruments.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="power"></div>
+        <div class="quiz" data-quiz="power-modes"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 3</span><h2>Embedded programming tricks in C</h2></div>
+
+      <!-- 18 -->
+      <section class="topic" id="data-types" data-part="C tricks" data-short="Data types and qualifiers">
+        <header class="topic-head">
+          <span class="topic-num">18</span>
+          <div><h2>Numbers, data types, static and volatile</h2><p class="kicker">Say exactly what you mean</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A recipe that says "a cup of flour" gives different cakes in different countries. "240 ml" does not. In C, <code>int</code> is the cup: its size depends on the machine. <code>int16_t</code> is the millilitres.</p>
+              <p><strong>static</strong> is a drawer that keeps its contents between visits. <strong>volatile</strong> is a note to the compiler: "someone else changes this behind your back, so look at it again every time."</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Two's complement</strong> for signed numbers: to get a negative N-bit value, subtract from 2<sup>N</sup>.
+                  <div class="formula">8-bit: -100 = 256 - 100 = 156 = 0x9C</div></li>
+                <li><strong>Explicit and minimal data types.</strong> How big is an <code>int</code>? On many embedded systems it is not 32 bits. Use <code>int32_t</code>, <code>uint32_t</code>, <code>int16_t</code>, <code>uint16_t</code> and friends (from <code>&lt;stdint.h&gt;</code>), and do not use a <code>uint32_t</code> when a <code>uint8_t</code> is enough.</li>
+                <li><strong>Static variables</strong> (<code>static uint8_t A;</code>): the variable lives in a statically allocated piece of global memory, not on the stack, so it <strong>survives between function calls</strong>.</li>
+                <li><strong>Volatile variables</strong> (<code>volatile uint8_t A;</code>): tells the compiler the variable is expected to be changed by other entities (an interrupt handler, the hardware). The compiler does not keep it in a register or cache; it reads memory each time.</li>
+              </ul>
+              <pre class="code"><code><span class="k">volatile</span> uint8_t button_pressed = 0;     <span class="c">/* written by the interrupt handler */</span>
+
+<span class="k">void</span> button_isr(<span class="k">void</span>) { button_pressed = 1; }
+
+<span class="k">uint16_t</span> count_calls(<span class="k">void</span>) {
+  <span class="k">static</span> uint16_t calls = 0;               <span class="c">/* keeps its value between calls */</span>
+  <span class="k">return</span> ++calls;
+}
+
+<span class="k">while</span> (!button_pressed) ;                  <span class="c">/* without volatile this may loop forever */</span></code></pre>
+              <p class="aside-note">Slide 33.</p>
+            </div>
+          </div>
+        </div>
+        <div data-lab="twos"></div>
+        <div class="quiz" data-quiz="data-types"></div>
+      </section>
+
+      <!-- 19 -->
+      <section class="topic" id="inline-macros" data-part="C tricks" data-short="Inline functions and macros">
+        <header class="topic-head">
+          <span class="topic-num">19</span>
+          <div><h2>Inline functions and macros</h2><p class="kicker">Zero-cost abstractions, and their traps</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Calling a function is like walking to a colleague's office to ask a question. For a tiny question the walk costs more than the answer. An <strong>inline function</strong> puts the answer on a sticky note at your own desk.</p>
+              <p>A <strong>macro</strong> is find-and-replace in a text editor. It is powerful and completely blind: it pastes text without understanding maths, which is how <code>1+1*10</code> happens.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Inline functions</strong> omit the overhead of calling a function and speed up the execution of basic functions. They give you the speed of copy/pasted code without the maintenance problems of copy/pasting.</li>
+              </ul>
+              <pre class="code"><code><span class="k">inline</span> int sum(int a, int b) {
+  int result;
+  result = a + b;
+  <span class="k">return</span> result;
+}
+
+c = sum(a, b);      <span class="c">/* these two lines compile to the same thing */</span>
+c = a + b;</code></pre>
+              <ul>
+                <li><strong>Macros, to avoid hardcoded numbers:</strong> <code>#define TICKS_IN_SECOND 32768</code></li>
+                <li><strong>Macros, to remove functionality you do not need at run time:</strong> <code>#ifdef FEATURE ... #endif</code></li>
+                <li><strong>Use parentheses to avoid bugs:</strong></li>
+              </ul>
+              <pre class="code"><code><span class="k">#define</span> ONE_PLUS_ONE 1+1       <span class="c">/* A = ONE_PLUS_ONE * 10  ->  1+1*10   = 11 */</span>
+<span class="k">#define</span> ONE_PLUS_ONE (1+1)     <span class="c">/* A = ONE_PLUS_ONE * 10  ->  (1+1)*10 = 20 */</span>
+
+<span class="k">#define</span> TIMES_TWO(x) x*2       <span class="c">/* A = TIMES_TWO(1+1)     ->  1+1*2    = 3  */</span>
+<span class="k">#define</span> TIMES_TWO(x) (x)*2     <span class="c">/* A = TIMES_TWO(1+1)     ->  (1+1)*2  = 4  */</span></code></pre>
+              <ul>
+                <li>For function-like macros, prefer inline functions: they are type-checked and have no such surprises.</li>
+              </ul>
+              <p class="aside-note">Slides 34 and 35. The slide writes the function as <code>inline sum (int a, int b)</code>; the return type <code>int</code> is added here.</p>
+            </div>
+          </div>
+        </div>
+        <div data-lab="macro"></div>
+        <div class="quiz" data-quiz="inline-macros"></div>
+      </section>
+
+      <!-- 20 -->
+      <section class="topic" id="efficient-math" data-part="C tricks" data-short="Efficient math">
+        <header class="topic-head">
+          <span class="topic-num">20</span>
+          <div><h2>Efficient math: shifts and fixed point</h2><p class="kicker">Arithmetic without a calculator on board</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Multiplying by 10 in your head is easy: add a zero. Computers have the same trick for 2: <strong>slide the bits one place left</strong> and the number doubles; slide right and it halves.</p>
+              <p>And instead of decimals, count in smaller units. Nobody says "0.75 euros" at the till, they say "75 cents". That is <strong>fixed point</strong>: store 25.35 &deg;C as the whole number 2535.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Shift left by N</strong> to multiply by 2<sup>N</sup>: <code>A = A &lt;&lt; 2</code> is equivalent to <code>A = A * 4</code>.</li>
+                <li><strong>Shift right by N</strong> to divide by 2<sup>N</sup> (the remainder is lost): <code>A = A &gt;&gt; 2</code> is equivalent to <code>A = A / 4</code>.</li>
+                <li><strong>Fixed-point instead of floating-point operations.</strong> Variable <code>T</code> is an <code>int16</code> that holds temperature in hundredths of a degree:
+                  <ul>
+                    <li><code>T = 2535</code> means 25.35 &deg;C.</li>
+                    <li><code>T = T &gt;&gt; 1</code> divides the temperature by 2, so <code>T = 1267</code>, that is 12.67 &deg;C.</li>
+                  </ul></li>
+                <li>Why bother: many small MCUs have no hardware multiplier, divider or floating-point unit. Floating point then has to be emulated in software, which is slow, costs energy and pulls a large library into the binary. A shift is a single cheap instruction.</li>
+              </ul>
+              <p class="aside-note">Slide 36.</p>
+            </div>
+          </div>
+        </div>
+        <div data-lab="shift"></div>
+        <div class="quiz" data-quiz="efficient-math"></div>
+      </section>
+
+      <!-- 21 -->
+      <section class="topic" id="bitwise" data-part="C tricks" data-short="Single-bit operations">
+        <header class="topic-head">
+          <span class="topic-num">21</span>
+          <div><h2>Bitwise operations on a specific bit</h2><p class="kicker">Set, clear, toggle, test</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A register is a row of eight light switches, each controlling something different. You often need to flip <strong>one switch without bumping the others</strong>.</p>
+              <p>The tool is a <strong>mask</strong>: a stencil with a hole over exactly the switch you mean. OR through the hole turns it on, AND with the inverted stencil turns it off, XOR flips it.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <p>Often you need to set, clear, toggle or read a specific bit within a byte (<code>uint8_t A</code>). In the figure, each bit of the ADXL362's INTMAP1 register switches one interrupt source on or off.</p>
+              <pre class="code"><code>M = (0x1&lt;&lt;6);                 <span class="c">// mask on bit 6: 0b01000000 (shift moves 0x01 into place)</span>
+
+A = A | (0x1&lt;&lt;6);             <span class="c">// set bit 6:    OR with 1 sets, OR with 0 keeps</span>
+A = A ^ (0x1&lt;&lt;6);             <span class="c">// toggle bit 6: XOR with 1 inverts, XOR with 0 keeps</span>
+A = A &amp; ((0x1&lt;&lt;6) ^ 0xFF);    <span class="c">// clear bit 6:  AND with 0 clears, AND with 1 keeps</span>
+<span class="k">if</span> (A &amp; (0x1&lt;&lt;6)) { }         <span class="c">// branch if bit 6 is set</span></code></pre>
+              <ul>
+                <li><code>(0x1&lt;&lt;6) ^ 0xFF</code> inverts the mask: <code>0b10111111</code>. You will usually see it written as <code>~(0x1&lt;&lt;6)</code>, which does the same for a byte.</li>
+                <li>The short forms are <code>A |= M</code>, <code>A ^= M</code> and <code>A &amp;= ~M</code>.</li>
+                <li>Bits are numbered from 0 on the right (least significant) to 7 on the left.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/intmap-bits.png" alt="ADXL362 INTMAP1 register: eight individual bits such as INT_LOW, AWAKE, INACT, ACT, FIFO_OVERRUN, FIFO_WATERMARK, FIFO_READY, DATA_READY" width="1300" height="740"></div>
+              <figcaption><b>Slides 37 and 38.</b> A register where every bit has its own meaning. Source: ADXL362 datasheet, Analog Devices.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="bits"></div>
+        <div class="quiz" data-quiz="bitwise"></div>
+      </section>
+
+      <!-- 22 -->
+      <section class="topic" id="bitfields" data-part="C tricks" data-short="Sets of bits">
+        <header class="topic-head">
+          <span class="topic-num">22</span>
+          <div><h2>Bitwise operations on a set of bits</h2><p class="kicker">Reading and writing fields inside a byte</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Sometimes a setting needs more than on/off, so it takes two or three neighbouring switches that together form a small number. To read it, <strong>slide it to the right edge and cover the rest</strong>. To change it, <strong>wipe just those switches clean and write the new number in</strong>, leaving the neighbours alone.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <p>Often you need to read or write a set of bits within a byte (<code>uint8_t FILTER_CTRL</code>). In the ADXL362, FILTER_CTRL holds RANGE in bits 7:6 and ODR (output data rate) in bits 2:0.</p>
+              <pre class="code"><code><span class="c">// masks on the lowest bits</span>
+MASK3 = (0x1&lt;&lt;3)-1;                        <span class="c">// 0b00000111</span>
+MASK2 = (0x1&lt;&lt;2)-1;                        <span class="c">// 0b00000011</span>
+
+<span class="c">// read a set of bits</span>
+ODR   = FILTER_CTRL &amp; MASK3;               <span class="c">// keep the first 3 bits, clear the rest</span>
+RANGE = (FILTER_CTRL&gt;&gt;6) &amp; MASK2;          <span class="c">// move the last 2 bits down by 6, then mask</span>
+
+<span class="c">// write a set of bits without corrupting the others:</span>
+<span class="c">// clear the field first, then OR in the new value</span>
+FILTER_CTRL = (FILTER_CTRL &amp; (0xFF ^ MASK3)) | (new_odr &amp; MASK3);
+FILTER_CTRL = (FILTER_CTRL &amp; (0xFF ^ (MASK2&lt;&lt;6))) | ((new_range &amp; MASK2)&lt;&lt;6);</code></pre>
+              <ul>
+                <li>Pattern for a field of <em>w</em> bits starting at bit <em>s</em>: mask = <code>((0x1&lt;&lt;w)-1)&lt;&lt;s</code>; read = <code>(R&gt;&gt;s) &amp; ((0x1&lt;&lt;w)-1)</code>.</li>
+                <li>Masking the new value (<code>new_odr &amp; MASK3</code>) protects the neighbouring fields if the value is too large for the field.</li>
+                <li>For a register in an external chip this becomes a <strong>read-modify-write</strong>: read the byte over SPI or I&sup2;C, change the field, write the byte back.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/embedded-software/filter-ctrl-bits.png" alt="ADXL362 FILTER_CTRL register: RANGE in bits 7:6, HALF_BW bit 4, EXT_SAMPLE bit 3, ODR in bits 2:0, with a table of settings" width="1300" height="1169"></div>
+              <figcaption><b>Slides 39 and 40.</b> A register with multi-bit fields. Source: ADXL362 datasheet, Analog Devices.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="fields"></div>
+        <div class="quiz" data-quiz="bitfields"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 4</span><h2>Programming and debugging the device</h2></div>
+
+      <!-- 23 -->
+      <section class="topic" id="flashing" data-part="Flash and debug" data-short="Flashing the device">
+        <header class="topic-head">
+          <span class="topic-num">23</span>
+          <div><h2>Programming (flashing) embedded systems</h2><p class="kicker">Getting the binary into the chip</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The build gives you a file on your laptop. The chip cannot fetch it by itself, so a <strong>go-between</strong> is needed: a small helper chip that listens to your laptop over USB and writes the file into the target's memory.</p>
+              <p>Development boards have this helper built in, which is why you just plug in one USB cable.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Programming or flashing the device:</strong> the build toolchain outputs a binary file that needs to be uploaded to the flash memory of the embedded system.</li>
+                <li>This is done with a special <strong>programmer/debugger</strong> chip or board, which receives commands over USB or serial.</li>
+                <li>Development boards often come with the programmer/debugger chip <strong>on board</strong>. On the CC2650 LaunchPad in the picture, the upper part of the board is the debugger and the lower part is the actual CC2650 system.</li>
+                <li>Alternatively, the MCU's <strong>bootloader</strong> may be able to use the UART interface to receive firmware over serial. A bootloader is a small program that runs first after reset and can write a new image into flash.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/embedded-software/launchpad.png" alt="Red CC2650 LaunchPad development board" width="520" height="829"></div>
+              <figcaption><b>Slide 41.</b> CC2650 LaunchPad development board. Source: ti.com/tool/LAUNCHXL-CC2650.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="flashing"></div>
+      </section>
+
+      <!-- 24 -->
+      <section class="topic" id="debug-interfaces" data-part="Flash and debug" data-short="JTAG, cJTAG, SWD">
+        <header class="topic-head">
+          <span class="topic-num">24</span>
+          <div><h2>Programming and debugging interfaces</h2><p class="kicker">JTAG, cJTAG and SWD</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The helper chip and the target need an agreed <strong>plug and language</strong>. There are three common ones. They all do the same two jobs (load the program, and let you look inside while it runs); they differ in how many wires they need and how several chips are hooked up together.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <p>Programming/debugging standards are used for uploading binary code <em>and</em> as a debugger.</p>
+              <div class="table-wrap">
+                <table class="tt" style="width:100%;font-family:var(--font);font-size:13.5px">
+                  <thead><tr><th style="text-align:left">Interface</th><th style="text-align:left">Standard</th><th style="text-align:left">Wires (+ optional RESET)</th><th style="text-align:left">Several devices</th></tr></thead>
+                  <tbody>
+                    <tr><td style="text-align:left"><strong>JTAG</strong> (Joint Test Action Group)</td><td style="text-align:left">generic, IEEE 1149.1</td><td style="text-align:left">4: TCK, TMS, TDI, TDO</td><td style="text-align:left">daisy chain</td></tr>
+                    <tr><td style="text-align:left"><strong>cJTAG</strong></td><td style="text-align:left">IEEE 1149.7</td><td style="text-align:left">2: TMSC, TCKC</td><td style="text-align:left">star topology</td></tr>
+                    <tr><td style="text-align:left"><strong>SWD</strong> (Serial Wire Debug)</td><td style="text-align:left">specific to ARM processors</td><td style="text-align:left">2: SWDIO, SWCLK</td><td style="text-align:left">star topology</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li>In the pinouts: the CC2650 exposes <code>JTAG_TMSC</code> and <code>JTAG_TCKC</code> (cJTAG); the nRF52832 exposes <code>SWDIO</code> and <code>SWDCLK</code> (SWD).</li>
+                <li>Fewer wires means fewer pins lost on a small package and a smaller connector on the board.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/embedded-software/debug-pins.png" alt="CC2650 pinout with JTAG_TMSC and JTAG_TCKC pins, and nRF52832 pinout with SWDIO and SWDCLK pins" width="740" height="1317"></div>
+              <figcaption><b>Slide 42.</b> Debug pins on the CC2650 (top) and the nRF52832 (bottom). Sources: CC2650 datasheet, Texas Instruments; nRF52832 datasheet, Nordic Semiconductor.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="debug-interfaces"></div>
+      </section>
+
+      <!-- 25 -->
+      <section class="topic" id="debugging" data-part="Flash and debug" data-short="Debugging">
+        <header class="topic-head">
+          <span class="topic-num">25</span>
+          <div><h2>Debugging embedded software</h2><p class="kicker">Finding out what a device with no screen is doing</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Your program runs inside a little black box with no screen and no keyboard. To find a bug you need a <strong>window into the box</strong>: freeze it and look inside (debugger), make it wink at you (LED), make it keep a diary (logs), or listen on its wires from outside (oscilloscope, logic analyser).</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Debuggers</strong> are powerful: breakpoints, reading the memory of the embedded system, and more. But breakpoints are not compatible with distributed software (the rest of the network keeps running while one node is frozen), and a debugger is not always available in the wild.</li>
+                <li><strong>LEDs as debugging tools:</strong> blink when entering or exiting a code region; turn on when entering an error state.</li>
+                <li><strong>Printing messages and logs:</strong> on serial if the UART is connected to a terminal; to a file in flash memory; or as log messages sent over wireless.</li>
+                <li><strong>Oscilloscopes, multimeters, logic analysers:</strong> test voltage levels and logic levels on the actual wires. A logic analyser records many digital lines at once and can decode protocols such as UART, SPI and I&sup2;C.</li>
+                <li>Printing is not free: it takes time and can change the timing of the very bug you are chasing.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-software/logic-analyzer.png" alt="Lab bench with an oscilloscope, a laptop showing logic analyser traces, and a small board under test" width="760" height="490"></div>
+              <figcaption><b>Slide 43.</b> Oscilloscope and logic analyser on the bench. Source: ikalogic.com/sp209-logic-analyzer.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="debugging"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="topic" id="cheat-sheet" data-toc-extra="Cheat sheet">
+        <header class="topic-head">
+          <span class="topic-num">&Sigma;</span>
+          <div><h2>Cheat sheet</h2><p class="kicker">The formulas and one-liners worth memorising</p></div>
+        </header>
+        <div class="cheat">
+          <div class="cheat-item"><h3>Development stages</h3><div class="formula">Source &rarr; Build &rarr; Flash &rarr; Test &rarr; Deploy</div><p>Build on a computer, run and test on the device.</p></div>
+          <div class="cheat-item"><h3>OS models</h3><div class="formula">event-driven (Contiki-NG) | threads (RIOT) | RTOS (FreeRTOS)</div><p>Cheap | natural but with overhead | guaranteed worst-case timing.</p></div>
+          <div class="cheat-item"><h3>Scheduling</h3><div class="formula">preemptive | cooperative | tickless preemptive</div><p>Fair but costly | efficient but fragile | the efficient middle.</p></div>
+          <div class="cheat-item"><h3>Register types</h3><div class="formula">status (R) | command (W) | data/config (R/W)</div><p>Peripherals are controlled by reading and writing registers.</p></div>
+          <div class="cheat-item"><h3>Timer resolution and overflow</h3><div class="formula">res = 1/f, &nbsp;overflow = 2<sup>bits</sup>/f</div><p>24-bit at 32 768 Hz: 30.5 &micro;s and 512 s.</p></div>
+          <div class="cheat-item"><h3>Scheduling a timer event</h3><div class="formula">COMPARE = (COUNTER + t &middot; f) mod 2<sup>bits</sup></div><p>Too long? Count several events, or use a prescaler: f / (PRESCALER + 1).</p></div>
+          <div class="cheat-item"><h3>Power modes</h3><div class="formula">active &gt; idle &gt; sleep &gt; deep sleep</div><p>Sleep keeps RAM and the LF clock (timed wake-up). Deep sleep keeps neither (pin wake-up).</p></div>
+          <div class="cheat-item"><h3>Two's complement</h3><div class="formula">-x &rarr; 2<sup>N</sup> - x &nbsp;&nbsp; (-100 &rarr; 0x9C)</div><p>Use explicit types: int16_t, uint8_t. volatile for anything an interrupt changes.</p></div>
+          <div class="cheat-item"><h3>Shifts and fixed point</h3><div class="formula">A&lt;&lt;N = A&middot;2<sup>N</sup>, &nbsp;A&gt;&gt;N = A/2<sup>N</sup></div><p>Store 25.35 &deg;C as 2535. The remainder of a right shift is lost.</p></div>
+          <div class="cheat-item"><h3>Single bit n</h3><div class="formula">set: A | (1&lt;&lt;n) &nbsp; clear: A &amp; ((1&lt;&lt;n)^0xFF) &nbsp; toggle: A ^ (1&lt;&lt;n)</div><p>Test: if (A &amp; (1&lt;&lt;n)).</p></div>
+          <div class="cheat-item"><h3>Bit field (width w, start s)</h3><div class="formula">read: (R&gt;&gt;s) &amp; ((1&lt;&lt;w)-1)</div><p>Write: clear the field with the inverted mask, then OR in (value &amp; mask)&lt;&lt;s.</p></div>
+          <div class="cheat-item"><h3>Macros</h3><div class="formula">#define TIMES_TWO(x) (x)*2</div><p>Always parenthesise. Prefer inline functions for function-like macros.</p></div>
+          <div class="cheat-item"><h3>Debug interfaces</h3><div class="formula">JTAG: 4 wires | cJTAG: 2 | SWD: 2 (ARM)</div><p>JTAG daisy-chains devices; cJTAG and SWD use a star.</p></div>
+          <div class="cheat-item"><h3>Safety net</h3><div class="formula">watchdog: kick it, or be reset</div><p>Recovers from deadlocks and infinite loops without human help.</p></div>
+        </div>
+      </section>
+
+      <p class="page-foot">Figures cropped from the lecture slides "Week 3: Embedded Software" by Xenofon Fafoutis and Massimo Pavan, DTU Compute, with their original sources noted. For personal study.</p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/embedded-software.js"></script>
+</body>
+</html>

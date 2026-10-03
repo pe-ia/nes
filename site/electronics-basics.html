@@ -1,0 +1,1165 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Practical Electronics · NES Study</title>
+  <meta name="description" content="Interactive study page for the NES lecture on practical electronics: Ohm's law, voltage dividers, capacitors, batteries, switches, MOSFETs, diodes, PCB design and test instruments.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3162b'/%3E%3Cpath d='M7 21h5V11h8v10h5' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn" type="button" data-nav-toggle aria-label="Open contents">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Contents
+  </button>
+  <span class="topbar-progress"><span data-progress-answered>0 / 0</span> answered</span>
+</header>
+<div class="scrim"></div>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Lecture contents">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">NES</span>
+      <span class="brand-text"><b>NES Study</b><span>Networked Embedded Systems</span></span>
+    </a>
+
+    <div class="progress-card">
+      <div class="progress-row"><span>Questions answered</span><b data-progress-answered>0 / 0</b></div>
+      <div class="progress-bar"><span data-progress-bar></span></div>
+      <div class="progress-sub"><span>Right on first try: <b data-progress-first>0</b></span><button class="link-btn" type="button" data-quiz-reset>Reset</button></div>
+    </div>
+
+    <nav class="toc" data-toc></nav>
+
+    <div class="sidebar-foot">
+      <a class="icon-btn" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        All lectures
+      </a>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Theme
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+
+      <div class="hero">
+        <div class="crumbs"><a href="index.html">NES Study</a> / Week 2: Practical Electronics</div>
+        <h1>Practical Electronics for Embedded Systems</h1>
+        <p class="hero-lead">The electronics you need to read a schematic and build an embedded device: voltage, current and resistance, the voltage divider and its many disguises, capacitors, batteries, switches, transistors and diodes, and how a circuit becomes a tested PCB.</p>
+        <div class="hero-meta">
+          <span class="chip">31 topics</span>
+          <span class="chip">15 interactive labs</span>
+          <span class="chip">70 questions</span>
+          <span class="chip">Slides: X. Fafoutis, DTU Compute</span>
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 1</span><h2>Circuits: the basic concepts</h2></div>
+
+      <!-- 01 -->
+      <section class="topic" id="schematic" data-part="Basic concepts" data-short="Schematics">
+        <header class="topic-head">
+          <span class="topic-num">01</span>
+          <div><h2>Schematic (or circuit diagram)</h2><p class="kicker">A map of the circuit, not a photo of it</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A real circuit is a tangle of wires, a battery and parts. A <strong>schematic</strong> is its map: like a metro map, it ignores what things look like and where they physically sit, and shows only <strong>what is connected to what</strong>.</p>
+              <p>Every real embedded system, such as the wearable on the first slide, starts as a schematic.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A schematic is a <strong>model</strong> of an electronic circuit.</li>
+                <li>An <strong>electronic circuit</strong> is electronic components interconnected in a <strong>closed loop</strong>. Current needs a complete path out of the source and back into it.</li>
+                <li>Schematics make our lives easier: they <strong>abstract</strong> components to basic concepts (a source, a resistor, an LED) and are much easier to read and understand than the physical circuit.</li>
+                <li>Lines are ideal wires (no resistance); each symbol stands for one component. The example: a battery V, a resistor R and an LED in one loop.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/schematic.png" alt="Photo of a battery, resistor and LED circuit, and its schematic" width="1100" height="338"></div>
+              <figcaption><b>Slide 4.</b> A real circuit and its schematic. Photo source: sciencebuddies.org.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/wearable-schematic.png" alt="Full schematic of a wearable embedded system" width="1300" height="939"></div>
+              <figcaption><b>Slide 3.</b> The complete schematic of a wearable embedded system.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/electronics-basics/wearable-photos.png" alt="Photos of the wearable's PCB, the board on a coin, and wristbands" width="657" height="947"></div>
+              <figcaption><b>Slide 3.</b> The wearable itself: PCB, size next to a coin, and the wristband enclosure.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="schematic"></div>
+      </section>
+
+      <!-- 02 -->
+      <section class="topic" id="ohm" data-part="Basic concepts" data-short="Voltage, current, resistance">
+        <header class="topic-head">
+          <span class="topic-num">02</span>
+          <div><h2>Voltage, current, resistance and Ohm's law</h2><p class="kicker">The three quantities everything else builds on</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Think of water in pipes. <strong>Voltage</strong> is the pressure difference that pushes. <strong>Current</strong> is how much water actually flows. <strong>Resistance</strong> is how narrow the pipe is.</p>
+              <p>More pressure gives more flow; a narrower pipe gives less. That is all Ohm's law says.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Voltage</strong> (V, volts): the electric potential difference between two points.</li>
+                <li><strong>Current</strong> (I, amperes): the flow of electrically charged particles.</li>
+                <li><strong>Resistance</strong> (R, ohms, &Omega;): a measure of the opposition to the flow of current.</li>
+                <li><strong>Ohm's law:</strong> the current through two points is directly proportional to the voltage across them:<div class="formula">I = V / R <span class="eq-note">equivalently V = I &middot; R and R = V / I</span></div></li>
+                <li>Voltage is always <em>between two points</em> (across a component); current flows <em>through</em> a component.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/ohm.png" alt="Voltage source V driving current I = V/R through a resistor R" width="752" height="602"></div>
+              <figcaption><b>Slide 5.</b> A source, a resistor, and the current that results.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="ohm"></div>
+        <div class="quiz" data-quiz="ohm"></div>
+      </section>
+
+      <!-- 03 -->
+      <section class="topic" id="power-source" data-part="Basic concepts" data-short="AC and DC">
+        <header class="topic-head">
+          <span class="topic-num">03</span>
+          <div><h2>Electric power sources: AC and DC</h2><p class="kicker">Which way the charge flows</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p><strong>DC</strong> is a river: the charge always flows the same way. A battery gives DC. <strong>AC</strong> is a tide: the flow reverses direction many times per second. The wall socket gives AC.</p>
+              <p>Electronics want the river. So anything plugged into the wall first converts AC to DC.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Direct current (DC)</strong> is a one-directional flow of electric charge (e.g. a battery).</li>
+                <li><strong>Alternating current (AC)</strong> periodically reverses direction (e.g. the mains, at 50 or 60 Hz).</li>
+                <li>A <strong>rectifier</strong> is an electrical device that converts AC to DC. It is built from diodes, the one-way conductors covered in Part 2.</li>
+                <li><strong>Embedded systems typically require DC</strong> power sources.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/acdc.png" alt="AC/DC lettering" width="720" height="303"></div>
+              <figcaption><b>Slide 6.</b> AC and DC. Image source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="power-source"></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="topic" id="voltage-sources" data-part="Basic concepts" data-short="Sources, ground, labels">
+        <header class="topic-head">
+          <span class="topic-num">04</span>
+          <div><h2>Voltage sources, ground and labels</h2><p class="kicker">Where voltages are measured from</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Height only makes sense relative to something, usually sea level. Voltage is the same: it is a difference between two points. So we pick one point, call it <strong>ground</strong> (0 V), and measure everything else from there.</p>
+              <p>On big schematics, drawing every wire to the battery would be a mess. Instead we write a <strong>label</strong>: every point with the same name is connected.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>DC sources can be <strong>batteries</strong> (or the mains via rectification).</li>
+                <li>Voltage is the potential difference between two points, yet it is convenient to measure it from a common reference point: <strong>the ground</strong>.</li>
+                <li>The ground is sometimes physically connected to the earth, but it does not have to be.</li>
+                <li>As circuits grow, we use <strong>labels</strong> for the supply voltage and the ground. A label implies that <strong>all points with the same label are connected</strong> to each other.</li>
+                <li>The slide redraws the battery loop this way: the battery sits between V<sub>source</sub> and ground, and so does the resistor plus LED. Same circuit, no loop drawn.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/electronics-basics/voltage-sources.png" alt="A loop circuit redrawn with Vsource labels and ground symbols" width="777" height="1296"></div>
+              <figcaption><b>Slide 7.</b> The same circuit drawn as a loop (top) and with supply and ground labels (bottom).</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="voltage-sources"></div>
+      </section>
+
+      <!-- 05 -->
+      <section class="topic" id="load" data-part="Basic concepts" data-short="Load, power, energy">
+        <header class="topic-head">
+          <span class="topic-num">05</span>
+          <div><h2>Electric load, power and energy</h2><p class="kicker">What consumes, how fast, and how much in total</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The <strong>load</strong> is whatever uses up the electricity: a lamp, a motor, a chip. <strong>Power</strong> is how fast it uses energy, like litres per minute from a tap. <strong>Energy</strong> is the total amount used, like the litres in the bucket after some time.</p>
+              <p>A battery holds a fixed amount of energy, so lower power means longer life.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The <strong>electric load</strong> is the components or part of the circuit that consume electrical energy, converting it to light, kinetic energy or heat.</li>
+                <li><strong>Electric power</strong> (P, watts) is the rate of energy transfer (consumption):<div class="formula">P = V &middot; I</div></li>
+                <li><strong>Energy</strong> (E, joules) consumed is proportional to the time t of operation:<div class="formula">E = P &middot; t = V &middot; I &middot; t</div></li>
+                <li>Combining with Ohm's law gives two handy forms for a resistor: P = I&sup2; &middot; R = V&sup2; / R.</li>
+                <li>Battery capacity is usually given in mAh. Running time &asymp; capacity / average current.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/load.png" alt="Battery with a resistor and LED circled as the load" width="1125" height="733"></div>
+              <figcaption><b>Slide 8.</b> The resistor and LED together form the load.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="energy"></div>
+        <div class="quiz" data-quiz="load"></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="topic" id="resistance" data-part="Basic concepts" data-short="Everything has resistance">
+        <header class="topic-head">
+          <span class="topic-num">06</span>
+          <div><h2>Everything has resistance</h2><p class="kicker">Wires, air and everything in between</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Nothing is a perfect conductor and nothing is a perfect insulator. A copper wire resists a tiny bit; air resists enormously. We usually round those to "zero" and "infinity" because it makes thinking easier, and it is almost always close enough.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Resistance is opposition to current flow. Fixed resistors range from 0 &Omega; to hundreds of G&Omega;.</li>
+                <li><strong>Insulators</strong> are assumed to have infinite resistance. In reality an insulator like air has a very high resistance (the slide's open switch: 10<sup>14</sup> &Omega;).</li>
+                <li><strong>Conducting wires</strong> are assumed to have zero resistance. In reality a copper wire has a very low resistance (the slide's example: 0.002 &Omega;).</li>
+                <li>The idealisation fails only at the extremes: large currents through thin wires (the wire drops voltage and heats up), or very high voltages across small gaps.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/resistance.png" alt="A resistor R, an open switch with 10^14 ohm, and a wire with 0.002 ohm" width="416" height="653"></div>
+              <figcaption><b>Slide 9.</b> A resistor, an open switch (air gap) and a wire: all are resistances.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="resistance"></div>
+      </section>
+
+      <!-- 07 -->
+      <section class="topic" id="parallel" data-part="Basic concepts" data-short="Path of least resistance">
+        <header class="topic-head">
+          <span class="topic-num">07</span>
+          <div><h2>"Path of least resistance"</h2><p class="kicker">Resistors side by side, and the slide's quiz</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Give water two pipes side by side, one wide and one hair-thin. Nearly all the water goes through the wide one. The thin pipe does carry a trickle, but so little that you can ignore it.</p>
+              <p>Current behaves the same way: it splits between parallel paths, and <strong>most of it takes the easiest one</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The slide's quiz: a 1 k&Omega; resistor alone, versus 1 k&Omega; in parallel with 1 M&Omega;, at the same voltage. Which draws more current, and by how much?</li>
+                <li>Apply 1 V. Left: I = V / R = 1 / 1k = <strong>1 mA</strong>.</li>
+                <li>Right: two resistors in parallel combine as<div class="formula">R = (R<sub>1</sub> &middot; R<sub>2</sub>) / (R<sub>1</sub> + R<sub>2</sub>) <span class="eq-note">(1k &middot; 1M) / (1k + 1M) &asymp; 999 &Omega;</span></div>so I = 1 / 999 = <strong>1.001 mA</strong>: just 0.1% more.</li>
+                <li>Practically, left and right are <strong>equivalent</strong>. A parallel path that is much more resistive can be ignored.</li>
+                <li>For completeness: resistors in <strong>series</strong> simply add, R = R<sub>1</sub> + R<sub>2</sub>, and there the <em>larger</em> one dominates.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/parallel.png" alt="A single 1K resistor next to 1K in parallel with 1M" width="1182" height="626"></div>
+              <figcaption><b>Slides 10 and 11.</b> 1 k&Omega; alone versus 1 k&Omega; in parallel with 1 M&Omega;.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="parallel"></div>
+        <div class="quiz" data-quiz="parallel"></div>
+      </section>
+
+      <!-- 08 -->
+      <section class="topic" id="short" data-part="Basic concepts" data-short="Short circuit">
+        <header class="topic-head">
+          <span class="topic-num">08</span>
+          <div><h2>Short circuit (or short)</h2><p class="kicker">A path of "no resistance"</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A short circuit is an accidental shortcut: a path straight from the supply to ground with nothing in between to slow the current down. Like a dam breaking, everything rushes through at once.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A short is an often-unintentional path of "no resistance" from a high voltage to ground.</li>
+                <li>Mathematically it is an impossibility:<div class="formula">I = V / R = V / 0 = &infin;</div></li>
+                <li>Practically, any wire or conductive path has some very small resistance, and if the supply is a battery, it has <strong>internal resistance</strong> too.</li>
+                <li>So a short leads to a <strong>very high current</strong>, often limited only by how much the power supply can provide.</li>
+                <li>In high-power electronics this can be dangerous or lethal; in low-power electronics it can damage components or chips.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/short.png" alt="Supply V connected directly to ground" width="248" height="622"></div>
+              <figcaption><b>Slide 12.</b> The supply connected straight to ground.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="short"></div>
+        <div class="quiz" data-quiz="short"></div>
+      </section>
+
+      <!-- 09 -->
+      <section class="topic" id="variable" data-part="Basic concepts" data-short="Variable resistance">
+        <header class="topic-head">
+          <span class="topic-num">09</span>
+          <div><h2>Resistance can be variable</h2><p class="kicker">One idea behind many components</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A surprising number of components are just resistors whose value <strong>changes with something</strong>: a knob, the temperature, the light, the frequency of the signal, or another voltage. Learn what the "something" is and you know what the component is for.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Potentiometer:</strong> mechanically controlled resistance.</li>
+                <li><strong>Thermistor:</strong> temperature-dependent resistance.</li>
+                <li><strong>Photoresistor:</strong> luminosity-dependent resistance.</li>
+                <li><strong>Capacitor / inductor:</strong> behave like frequency-dependent resistors for AC. This is called <strong>reactance</strong>.</li>
+                <li><strong>Transistor:</strong> electrically controlled resistance.</li>
+                <li>Each of these returns in Part 2, usually inside a voltage divider.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/electronics-basics/variable.png" alt="Symbols for potentiometer, thermistor, photoresistor, capacitor, inductor and transistor" width="678" height="918"></div>
+              <figcaption><b>Slide 13.</b> Symbols, top to bottom: potentiometer, thermistor, photoresistor, capacitor and inductor, transistor.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="variable"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 2</span><h2>Building blocks of embedded circuits</h2></div>
+
+      <!-- 10 -->
+      <section class="topic" id="divider" data-part="Building blocks" data-short="Voltage divider">
+        <header class="topic-head">
+          <span class="topic-num">10</span>
+          <div><h2>Voltage divider</h2><p class="kicker">The most reused circuit in this lecture</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Two resistors in a row share the input voltage between them, in proportion to their size, like two people carrying a load where the bigger one takes more. Tap the point between them and you get a <strong>fixed fraction</strong> of the input.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A voltage divider is a <strong>signal attenuator</strong>: the output voltage is a fraction of the input voltage.<div class="formula">V<sub>out</sub> = V<sub>in</sub> &middot; R<sub>2</sub> / (R<sub>1</sub> + R<sub>2</sub>)</div></li>
+                <li>If R<sub>1</sub> is much smaller than R<sub>2</sub>, most of the input signal goes through (small attenuation).</li>
+                <li>If R<sub>1</sub> is much larger than R<sub>2</sub>, most of the input signal does not go through (large attenuation).</li>
+                <li>Where it comes from: the same current I = V<sub>in</sub> / (R<sub>1</sub> + R<sub>2</sub>) flows through both, and V<sub>out</sub> = I &middot; R<sub>2</sub>.</li>
+                <li>The formula assumes that whatever is connected to V<sub>out</sub> draws almost no current (true for an ADC or logic input).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/divider.png" alt="Voltage divider with R1 in series and R2 to ground" width="833" height="716"></div>
+              <figcaption><b>Slide 14.</b> The voltage divider.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="divider"></div>
+        <div class="quiz" data-quiz="divider"></div>
+      </section>
+
+      <!-- 11 -->
+      <section class="topic" id="level-shifter" data-part="Building blocks" data-short="Level shifter">
+        <header class="topic-head">
+          <span class="topic-num">11</span>
+          <div><h2>Level shifter</h2><p class="kicker">Making a 5 V device talk to a 3.3 V device</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>One chip shouts (5 V means '1'), the other has sensitive ears (3.3 V at most). A voltage divider between them turns the volume down to a level the listener can take.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Goal: interface the output of a device that encodes '1' as 5 V to a device that expects at most 3.3 V, <strong>without damaging the latter</strong>.</li>
+                <li>The slide uses 1 k&Omega; in series and 2 k&Omega; to ground:<div class="formula">5 V &middot; 2k / (1k + 2k) = 3.33 V</div></li>
+                <li>A '0' (0 V) stays 0 V, so both logic levels arrive correctly.</li>
+                <li>This only works in one direction (5 V to 3.3 V). Going the other way needs a different circuit, since a divider cannot raise a voltage.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/level-shifter.png" alt="5V device output through 1K, with 2K to ground, into a 3V3 device input" width="1300" height="721"></div>
+              <figcaption><b>Slide 15.</b> A resistive level shifter from 5 V to 3.3 V.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="level"></div>
+        <div class="quiz" data-quiz="level-shifter"></div>
+      </section>
+
+      <!-- 12 -->
+      <section class="topic" id="potentiometer" data-part="Building blocks" data-short="Potentiometer">
+        <header class="topic-head">
+          <span class="topic-num">12</span>
+          <div><h2>Volume control: the potentiometer</h2><p class="kicker">A voltage divider with a knob</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A potentiometer is one long resistor with a sliding contact. Slide the contact and you change where the resistor is "cut" in two. It is a voltage divider whose ratio you set <strong>with your fingers</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Mechanically controlled signal attenuation.</li>
+                <li>A potentiometer has two terminals at the two ends of a resistor and one at the <strong>wiper</strong> arm.</li>
+                <li>The wiper can be moved, cutting the resistor into two parts with an adjustable ratio. R<sub>1</sub> + R<sub>2</sub> stays constant; only the split changes.</li>
+                <li>The same configuration is used for <strong>user input</strong>: an Analog-to-Digital Converter (ADC) measures the output voltage and maps it to a set of numbers.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/potentiometer.png" alt="Potentiometer between Vin and ground with the wiper as Vout" width="641" height="637"></div>
+              <figcaption><b>Slide 16.</b> A potentiometer wired as an adjustable divider.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="pot"></div>
+        <div class="quiz" data-quiz="potentiometer"></div>
+      </section>
+
+      <!-- 13 -->
+      <section class="topic" id="thermistor" data-part="Building blocks" data-short="Temperature sensor">
+        <header class="topic-head">
+          <span class="topic-num">13</span>
+          <div><h2>Temperature sensor: thermistor in a divider</h2><p class="kicker">Turning a resistance into something measurable</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A microcontroller cannot measure resistance directly. It can measure voltage. So we put the temperature-dependent resistor into a voltage divider: when the temperature changes, the resistance changes, the divider ratio changes, and so the <strong>voltage changes</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Embedded systems can measure <strong>voltage, not resistance</strong>.</li>
+                <li>A thermistor's resistance (R<sub>2</sub>) depends on the temperature T.</li>
+                <li>The output voltage depends on the ratio of the two resistors, therefore the output voltage depends on the temperature:<div class="formula">V<sub>out</sub> = V<sub>S</sub> &middot; R<sub>2</sub>(T) / (R<sub>1</sub> + R<sub>2</sub>(T))</div></li>
+                <li>The datasheet curve shows R / R<sub>25</sub> (resistance relative to its value at 25 &deg;C) on a logarithmic axis, for three B constants. It falls with temperature: a <strong>negative temperature coefficient</strong> (NTC).</li>
+                <li>The same trick works for a photoresistor (a light sensor) or any other resistive sensor.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/electronics-basics/thermistor-divider.png" alt="Divider with R1 on top and thermistor R2 to ground" width="402" height="941"></div>
+              <figcaption><b>Slide 17.</b> Thermistor as the lower resistor of a divider.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/thermistor-curve.png" alt="Resistance versus temperature characteristics for B=3450, 3900, 4100" width="598" height="811"></div>
+              <figcaption><b>Slide 17.</b> Resistance versus temperature. Source: NTC Thermistors Datasheet by Murata.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="thermistor"></div>
+        <div class="quiz" data-quiz="thermistor"></div>
+      </section>
+
+      <!-- 14 -->
+      <section class="topic" id="capacitor" data-part="Building blocks" data-short="Capacitors, RC filter">
+        <header class="topic-head">
+          <span class="topic-num">14</span>
+          <div><h2>Capacitors and the RC low-pass filter</h2><p class="kicker">Tiny energy stores that react to frequency</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A capacitor is a small <strong>bucket for charge</strong>. It fills up, holds energy, and can give it back. Once full, nothing more flows, so steady (DC) current cannot get through.</p>
+              <p>But if you keep sloshing the level up and down (AC), charge keeps moving in and out. The faster you slosh, the easier it goes.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Capacitors can store and provide electrical energy. They behave like tiny "power supplies".</li>
+                <li>Capacitors do <strong>not</strong> let DC current go through; they <strong>do</strong> let AC current go through.</li>
+                <li>They behave like frequency-dependent "resistors": high frequencies see a low "resistance", low frequencies see a high one.<div class="formula">X<sub>C</sub> = 1 / (2&pi; f C)</div></li>
+                <li><strong>RC low-pass filter:</strong> a voltage divider with the capacitor as the lower element. High frequencies are attenuated a lot, low frequencies only a bit. The boundary is the cutoff frequency<div class="formula">f<sub>c</sub> = 1 / (2&pi; R C) <span class="eq-note">there V<sub>out</sub> &asymp; 0.71 &middot; V<sub>in</sub></span></div></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/rc.png" alt="Resistor R in series, capacitor C to ground" width="750" height="510"></div>
+              <figcaption><b>Slide 18.</b> RC low-pass filter.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="rc"></div>
+        <div class="quiz" data-quiz="capacitor"></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="topic" id="battery" data-part="Building blocks" data-short="Batteries are imperfect">
+        <header class="topic-head">
+          <span class="topic-num">15</span>
+          <div><h2>Batteries are imperfect power sources</h2><p class="kicker">The hidden resistor inside every battery</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A battery behaves like a perfect source with a <strong>small resistor hidden inside</strong>. Sip slowly and you get the full voltage. Gulp, and part of the voltage gets stuck in that hidden resistor, so less reaches your circuit.</p>
+              <p>The older the battery, the bigger the hidden resistor.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Batteries have <strong>internal resistance</strong> (R<sub>I</sub>), which increases as they are used.</li>
+                <li>It creates a voltage drop proportional to the current the system draws, so the supply voltage is less than the battery voltage:<div class="formula">V<sub>S</sub> = V - I &middot; R<sub>I</sub></div></li>
+                <li>As the system goes through its states of operation it may need a high current for a short time (radio transmission, a motor starting). Low current: small drop, no problem. High current: large drop, dangerous.</li>
+                <li>Large voltage drops can take the supply <strong>below the minimum operating voltage</strong> of the embedded system, causing resets (a brown-out).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/electronics-basics/battery.png" alt="Battery modelled as V with series RI, feeding an embedded system RL" width="866" height="1002"></div>
+              <figcaption><b>Slide 19.</b> A battery with internal resistance R<sub>I</sub> feeding the system.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="battery"></div>
+        <div class="quiz" data-quiz="battery"></div>
+      </section>
+
+      <!-- 16 -->
+      <section class="topic" id="decoupling" data-part="Building blocks" data-short="Decoupling capacitors">
+        <header class="topic-head">
+          <span class="topic-num">16</span>
+          <div><h2>Decoupling capacitors</h2><p class="kicker">A local energy reservoir next to every chip</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Think of the water tank on the roof of a building. When everyone showers at once, the tank covers the peak so the pressure does not collapse, and it refills slowly afterwards.</p>
+              <p>A decoupling capacitor is that tank, placed right next to a chip.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Capacitors in <strong>parallel</strong> with the supply and <strong>physically very close</strong> to components and integrated circuits.</li>
+                <li>They act as a local power supply or local energy reservoir.</li>
+                <li>They filter out high-frequency noise in power supply signals.</li>
+                <li>They support the battery in moments that require high peaks of current for a short time.</li>
+                <li>They <strong>oppose changes</strong> to the supply voltage: if the voltage goes up, they absorb the excess energy; if it drops, they provide power to the IC.</li>
+                <li>The slide shows a larger capacitor near the battery plus one small capacitor directly at each IC.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/decoupling.png" alt="Battery with internal resistance, a bulk capacitor, and a decoupling capacitor at each of two ICs" width="1300" height="743"></div>
+              <figcaption><b>Slide 20.</b> One capacitor at the supply and one at each IC.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="decoupling"></div>
+        <div class="quiz" data-quiz="decoupling"></div>
+      </section>
+
+      <!-- 17 -->
+      <section class="topic" id="button" data-part="Building blocks" data-short="Switches and buttons">
+        <header class="topic-head">
+          <span class="topic-num">17</span>
+          <div><h2>Switches, buttons and detecting a press</h2><p class="kicker">From a mechanical action to a voltage</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A switch is a drawbridge in the wire: open, nothing crosses; closed, current flows. A <strong>switch</strong> stays where you leave it. A <strong>button</strong> is closed only while your finger is on it.</p>
+              <p>The microcontroller cannot feel a press, it can only measure voltage. So we build a small circuit where pressing the button <strong>changes a voltage</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Switches and buttons mechanically open or close the circuit. A switch holds its open/closed state; a button is closed when pressed and open when released.</li>
+                <li>Detection circuit: a resistor R from V<sub>S</sub> to the output, and the button from the output to ground.</li>
+                <li><strong>Not pushed:</strong> the circuit is open, there is no path to ground. No current through R, so no voltage drop: V<sub>out</sub> = V<sub>S</sub>.</li>
+                <li><strong>Pushed:</strong> the circuit is closed. Current goes through R and the output is directly connected to ground: V<sub>out</sub> = 0.</li>
+                <li>The resistor here is a <em>pull-up</em>: it defines the output when the button is open, and it limits the current when the button is closed (otherwise pressing would short V<sub>S</sub> to ground).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/electronics-basics/button.png" alt="Resistor from VS to Vout, button from Vout to ground" width="492" height="882"></div>
+              <figcaption><b>Slide 22.</b> Converting a button press into a voltage.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/switches.png" alt="Symbols of a switch and a push button" width="504" height="373"></div>
+              <figcaption><b>Slide 21.</b> Switch (top) and button (bottom).</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="button"></div>
+        <div class="quiz" data-quiz="button"></div>
+      </section>
+
+      <!-- 18 -->
+      <section class="topic" id="mosfet" data-part="Building blocks" data-short="MOSFET switch">
+        <header class="topic-head">
+          <span class="topic-num">18</span>
+          <div><h2>Transistor (MOSFET) as a switch</h2><p class="kicker">A switch operated by a voltage instead of a finger</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A MOSFET is a tap whose handle is turned by electricity. A small voltage on one terminal (the gate) decides whether the path between the other two is wide open or shut.</p>
+              <p>That lets a weak signal from a chip switch a much stronger current on and off.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A way of controlling a switch with an electric signal.</li>
+                <li>MOSFETs are like <strong>electrically controlled resistors</strong>: the resistance between two terminals (drain D and source S) depends on the voltage at the third (gate G).</li>
+                <li>V<sub>in</sub> = V<sub>S</sub>: R<sub>DS</sub> very, very small, the switch is closed, current flows through R<sub>L</sub>, the load gets power.</li>
+                <li>V<sub>in</sub> = 0: R<sub>DS</sub> very, very big, the switch is open, no current flows through R<sub>L</sub>, the load gets no power.</li>
+                <li>The slide's right-hand drawing shows the idea: the load R<sub>L</sub> and R<sub>DS</sub> form a voltage divider, and R<sub>DS</sub> is either negligible or enormous.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/mosfet.png" alt="MOSFET with load RL to VS and its equivalent with RDS" width="948" height="667"></div>
+              <figcaption><b>Slide 23.</b> MOSFET switch and its equivalent circuit with R<sub>DS</sub>.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="mosfet"></div>
+        <div class="quiz" data-quiz="mosfet"></div>
+      </section>
+
+      <!-- 19 -->
+      <section class="topic" id="diode" data-part="Building blocks" data-short="Diodes and LEDs">
+        <header class="topic-head">
+          <span class="topic-num">19</span>
+          <div><h2>Diodes and LEDs</h2><p class="kicker">One-way streets for current</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A diode is a <strong>one-way valve</strong>: current can go through in one direction and is blocked in the other. An LED is a diode that happens to glow when current passes.</p>
+              <p>The valve has almost no resistance when open, so something else must limit the flow. That is what the series resistor is for.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A diode is a one-way conductor: ideally zero resistance in one direction and infinite resistance in the other.</li>
+                <li>When current goes through, there is a <strong>voltage drop</strong> (the forward voltage V<sub>F</sub>) and the diode consumes power.</li>
+                <li><strong>LEDs</strong> are diodes that emit light.</li>
+                <li>A <strong>series resistor</strong> is needed to limit the current through the LED to avoid damage:<div class="formula">I = (V<sub>source</sub> - V<sub>F</sub>) / R</div></li>
+                <li>Typical forward voltages: roughly 0.6 to 0.7 V for a silicon diode, around 2 V for a red LED and around 3 V for a blue or white one.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/electronics-basics/diode.png" alt="Diode symbol, and an LED with series resistor between Vsource and ground" width="458" height="867"></div>
+              <figcaption><b>Slide 24.</b> Diode symbol (top) and an LED with its series resistor.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="led"></div>
+        <div class="quiz" data-quiz="diode"></div>
+      </section>
+
+      <!-- 20 -->
+      <section class="topic" id="reverse" data-part="Building blocks" data-short="Reverse voltage protection">
+        <header class="topic-head">
+          <span class="topic-num">20</span>
+          <div><h2>Reverse voltage protection</h2><p class="kicker">A diode as a bouncer at the power input</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>People insert batteries the wrong way round. Put a one-way valve in the supply line and a reversed battery simply cannot push current through: the device stays off instead of being destroyed.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A diode in series with the supply protects the circuit from reverse voltage.</li>
+                <li>Battery connected <strong>correctly</strong>: current flows as expected and the system is powered properly.</li>
+                <li>Battery connected <strong>reversely</strong>: the diode blocks current flowing in the wrong direction, protecting the system from damage.</li>
+                <li>The cost is the diode's forward drop in normal operation: a slightly lower supply voltage and P = V<sub>F</sub> &middot; I of wasted power. Low-drop (Schottky) diodes are a common choice here.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/reverse.png" alt="Battery connector feeding IC1 through a series diode" width="939" height="700"></div>
+              <figcaption><b>Slide 25.</b> A series diode between the battery connector and the IC.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="reverse"></div>
+        <div class="quiz" data-quiz="reverse"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 3</span><h2>From prototype to printed circuit board</h2></div>
+
+      <!-- 21 -->
+      <section class="topic" id="prototyping" data-part="PCB design" data-short="PCB prototyping">
+        <header class="topic-head">
+          <span class="topic-num">21</span>
+          <div><h2>PCB prototyping</h2><p class="kicker">Try it cheaply before you build it properly</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Before ordering a custom board, build a rough version you can change in seconds. A breadboard is like LEGO for circuits: push parts in, pull them out, no soldering.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Before designing a PCB it is often a good idea to <strong>prototype</strong> the circuit, or some parts of it.</li>
+                <li><strong>Breadboard:</strong> solderless, rows of connected holes, ideal for quick experiments.</li>
+                <li><strong>Veroboard</strong> (stripboard): copper strips you solder to, for a more permanent prototype.</li>
+                <li><strong>Breakout boards</strong> allow easy access to the pins of small components: the tiny chip sits on a small PCB that brings its pins out to conveniently spaced pads.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/prototyping.png" alt="A breadboard, a veroboard and a breakout board" width="1200" height="307"></div>
+              <figcaption><b>Slide 26.</b> Breadboard, veroboard and breakout board.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="prototyping"></div>
+      </section>
+
+      <!-- 22 -->
+      <section class="topic" id="pcb-flow" data-part="PCB design" data-short="PCB design flow">
+        <header class="topic-head">
+          <span class="topic-num">22</span>
+          <div><h2>PCB design: the overall flow</h2><p class="kicker">Six stages and a feedback loop</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A printed circuit board is the permanent home of a circuit: the wires are thin copper lines printed on a board, and the parts are soldered on top. Making one is a pipeline, and like software, you usually go around it more than once.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A <strong>Printed Circuit Board (PCB)</strong> has copper tracks printed on a substrate and exposed copper pads to mount components.</li>
+                <li>PCBs are designed with specialised software called <strong>Electronic Design Automation (EDA)</strong>, or Electronic Computer-Aided Design (ECAD).</li>
+                <li>The flow: <strong>schematic design &rarr; layout design &rarr; bill of materials (BOM) &rarr; manufacturing &rarr; assembly &rarr; testing</strong>.</li>
+                <li>If testing finds <strong>errors</strong>, you go back to the stage that caused them. If everything is OK, the board is done.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/pcb-flow.png" alt="Flow: schematic design, layout design, BOM, manufacturing, assembly, testing, with an errors loop back" width="1300" height="178"></div>
+              <figcaption><b>Slide 27.</b> The PCB design flow with its error feedback loop.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/pcb-photo.png" alt="Photo of a small assembled PCB" width="567" height="350"></div>
+              <figcaption><b>Slide 27.</b> An assembled PCB.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="pcb-flow"></div>
+      </section>
+
+      <!-- 23 -->
+      <section class="topic" id="pcb-schematic" data-part="PCB design" data-short="PCB: schematic">
+        <header class="topic-head">
+          <span class="topic-num">23</span>
+          <div><h2>PCB design: schematic</h2><p class="kicker">Decide what is on the board and how it connects</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>First decide the main ingredients (which chips, which power source) and check they get along. Then, for every chip, draw a symbol whose pins match the datasheet. Most of the small supporting parts you can simply copy from the manufacturer's recipe.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The first step is the identification of <strong>key components and the power source</strong>: ensure compatibility, identify the voltage level(s), and keep it simple.</li>
+                <li>Often we do not have to select the values of passive components (resistors, capacitors): components provide <strong>reference circuits</strong> (e.g. "the decoupling capacitor should be 100 nF"), and there are many open hardware circuits to use as reference.</li>
+                <li>For each component, make a <strong>schematic model</strong> based on the datasheet, matching pin numbers to functionality.</li>
+                <li>The slide's example is the ADXL362 accelerometer: the package drawing on top becomes the schematic symbol below, with each numbered pin given its name (VS, GND, MOSI, MISO, SCLK, CS, INT1, INT2...).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/electronics-basics/adxl.png" alt="ADXL362 package top view and the schematic symbol derived from it" width="652" height="1276"></div>
+              <figcaption><b>Slide 28.</b> From datasheet pinout to schematic symbol. Source: ADXL362 Datasheet by Analog Devices.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="pcb-schematic"></div>
+      </section>
+
+      <!-- 24 -->
+      <section class="topic" id="footprint" data-part="PCB design" data-short="PCB: component layout">
+        <header class="topic-head">
+          <span class="topic-num">24</span>
+          <div><h2>PCB design: component layout (footprints)</h2><p class="kicker">The exact copper pattern each part sits on</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Each part needs a precisely shaped "parking space" of copper pads on the board: its <strong>footprint</strong>. If it is off by a fraction of a millimetre, or mirrored, the part cannot be soldered.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>For each component, create a <strong>footprint</strong> with exact dimensions, following the datasheet.</li>
+                <li><strong>Attention:</strong> the bottom view is the <strong>mirror image</strong> of the top view. Footprints are drawn looking down at the board.</li>
+                <li>Passive components come in <strong>standard sizes</strong>.</li>
+                <li>Imperial sizes (inches) and metric sizes (mm) are both used, and the codes look alike. For example the imperial "0603" (about 1.6 &times; 0.8 mm) is the metric "1608", while a metric "0603" is a far smaller part. Always check which system is meant.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/footprint.png" alt="ADXL362 package dimensions: top view, bottom view and end view" width="1057" height="600"></div>
+              <figcaption><b>Slide 29.</b> Package dimensions for the footprint. Source: ADXL362 Datasheet by Analog Devices.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/pcb-closeup.png" alt="Close-up of chips soldered on a green PCB" width="717" height="540"></div>
+              <figcaption><b>Slide 29.</b> Components on their footprints. Image source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="footprint"></div>
+      </section>
+
+      <!-- 25 -->
+      <section class="topic" id="board-layout" data-part="PCB design" data-short="PCB: board layout">
+        <header class="topic-head">
+          <span class="topic-num">25</span>
+          <div><h2>PCB design: board layout</h2><p class="kicker">Placing parts and routing copper</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Now arrange the parts on the board and draw the copper "roads" between them. When roads need to cross, you use another floor: boards have several copper layers, connected by tiny plated holes called <strong>vias</strong>, like lifts between floors.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Place components on a board and connect them (<strong>routing</strong>).</li>
+                <li>PCBs have <strong>2 or more copper layers</strong>. Components can be placed on the top and bottom layers; internal layers carry copper tracks for wiring.</li>
+                <li><strong>Vias</strong> connect layers vertically:<ul><li><strong>1. Through-hole via:</strong> top to bottom.</li><li><strong>2. Blind via:</strong> top or bottom to an internal layer.</li><li><strong>3. Buried via:</strong> internal to internal.</li></ul></li>
+                <li><strong>Ground plane / layer:</strong> large copper areas connected to ground. They reduce noise and electromagnetic interference, and help with heat dissipation.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/board-layout.png" alt="Routed PCB layout with red and blue copper layers" width="720" height="360"></div>
+              <figcaption><b>Slide 30.</b> A routed board layout.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/vias.png" alt="Cross-section showing through-hole, blind and buried vias" width="482" height="358"></div>
+              <figcaption><b>Slide 30.</b> 1: through-hole, 2: blind, 3: buried via. Image source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="board-layout"></div>
+      </section>
+
+      <!-- 26 -->
+      <section class="topic" id="bom-fab" data-part="PCB design" data-short="BOM, manufacturing, assembly">
+        <header class="topic-head">
+          <span class="topic-num">26</span>
+          <div><h2>PCB design: BOM, manufacturing and assembly</h2><p class="kicker">Buying the parts and getting the board built</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The <strong>BOM</strong> is the shopping list. <strong>Manufacturing</strong> makes the empty board. <strong>Assembly</strong> puts the parts on it and solders them. Both need big machines, so you normally send your files to a factory.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Bill of Materials (BOM):</strong> a shopping list of components, typically a spreadsheet. It specifies manufacturer, supplier, price and so on, one line per designator (C1, C2, ...).</li>
+                <li><strong>Manufacturing:</strong> create the PCB itself.</li>
+                <li><strong>Assembly:</strong> place and solder the components on it, e.g. with a pick-and-place machine.</li>
+                <li>These stages require machinery and often need to be outsourced to <strong>PCB fabrication manufacturers</strong> (fabs).</li>
+                <li>Cost increases with precision requirements: <strong>the smaller, the costlier</strong>.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/bom.png" alt="Spreadsheet listing capacitors with manufacturer and supplier part numbers" width="1300" height="480"></div>
+              <figcaption><b>Slide 31.</b> Part of a BOM spreadsheet.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/pickplace.png" alt="A pick-and-place machine placing components on a PCB" width="720" height="398"></div>
+              <figcaption><b>Slide 32.</b> A pick-and-place machine. Image source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="bom-fab"></div>
+      </section>
+
+      <!-- 27 -->
+      <section class="topic" id="testing" data-part="PCB design" data-short="PCB: testing">
+        <header class="topic-head">
+          <span class="topic-num">27</span>
+          <div><h2>PCB design: testing</h2><p class="kicker">Hardware has bugs too</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A board can be manufactured perfectly and still be wrong, because the design was wrong. Just like software, hardware needs testing, and often a "version 2".</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>PCBs, like software, may have bugs. <strong>Hardware revisions</strong> may be required.</li>
+                <li>PCB fabs typically test their products, but errors can also be in the <strong>design stages</strong>, which the fab does not check.</li>
+                <li>Types of testing include: functional testing, performance testing (power measurement), signal quality testing, mechanical testing, thermal testing, specification verification and safety certification.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="testing"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 4</span><h2>Electronic testing instruments</h2></div>
+
+      <!-- 28 -->
+      <section class="topic" id="multimeter" data-part="Test instruments" data-short="Multimeter">
+        <header class="topic-head">
+          <span class="topic-num">28</span>
+          <div><h2>Multimeter</h2><p class="kicker">Three meters in one, for steady values</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The multimeter is the tape measure of electronics: touch two points and read one number. It tells you a voltage, a current or a resistance, as long as that value holds still.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A multimeter (digital multimeter, DMM) combines:<ul><li><strong>Voltmeter:</strong> measures voltage, DC and/or AC.</li><li><strong>Ammeter:</strong> measures current, DC and/or AC.</li><li><strong>Ohmmeter:</strong> measures resistance, and beeps when the resistance is very low (continuity test).</li><li>Other functions, depending on the model.</li></ul></li>
+                <li>It operates at specific <strong>ranges</strong>.</li>
+                <li>It is ideal for measuring <strong>constant values</strong>.</li>
+                <li>Practical note: voltage is measured <em>across</em> a component (meter in parallel), current <em>through</em> it (meter in series, the circuit must be opened).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/electronics-basics/multimeter.png" alt="A yellow Fluke digital multimeter" width="440" height="898"></div>
+              <figcaption><b>Slide 34.</b> A digital multimeter. Image source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="multimeter"></div>
+      </section>
+
+      <!-- 29 -->
+      <section class="topic" id="psu" data-part="Test instruments" data-short="DC power supply">
+        <header class="topic-head">
+          <span class="topic-num">29</span>
+          <div><h2>DC power supply</h2><p class="kicker">An adjustable, well-behaved battery for the bench</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A bench supply is a battery with knobs: you choose the voltage, and you can set a maximum current so that a wiring mistake does not end in smoke.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Provides DC electric power.</li>
+                <li>The output voltage is typically <strong>configurable</strong>, at a specified resolution.</li>
+                <li>Often comes with multiple individually configurable outputs.</li>
+                <li>The output <strong>current can be limited</strong> to avoid accidental damage.</li>
+                <li>Operates at specific ranges.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/electronics-basics/psu.png" alt="Bench DC power supply showing 0.00 A and 11.9 V" width="573" height="766"></div>
+              <figcaption><b>Slide 35.</b> A bench DC power supply. Image source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="psu"></div>
+      </section>
+
+      <!-- 30 -->
+      <section class="topic" id="scope" data-part="Test instruments" data-short="Oscilloscope">
+        <header class="topic-head">
+          <span class="topic-num">30</span>
+          <div><h2>Oscilloscope</h2><p class="kicker">Seeing voltage change over time</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A multimeter gives you one number. An oscilloscope gives you a <strong>movie</strong>: a graph of voltage against time, fast enough to see signals that change millions of times per second.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Measures and displays voltage signals <strong>over time</strong>.</li>
+                <li>Typically multiple voltage signals can be measured and displayed in parallel (channels).</li>
+                <li>It is possible to set <strong>triggers</strong> for the measurements: a condition that tells the scope when to capture, so repeating or rare events give a stable picture.</li>
+                <li>It can calculate statistics (min, max), frequency and time durations.</li>
+                <li>The data can be extracted to a file.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/scope.png" alt="Drawing of an oscilloscope front panel with a sine wave on screen" width="900" height="457"></div>
+              <figcaption><b>Slide 36.</b> An oscilloscope. Image source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="scope"></div>
+      </section>
+
+      <!-- 31 -->
+      <section class="topic" id="instruments" data-part="Test instruments" data-short="Other instruments">
+        <header class="topic-head">
+          <span class="topic-num">31</span>
+          <div><h2>Logic analyser, spectrum analyser, generator, SMU</h2><p class="kicker">Four more tools and what each is for</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Four more specialists. One watches many digital lines at once, one shows which frequencies a signal contains, one produces test signals, and one powers your device while measuring exactly what it consumes.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Logic analyser:</strong> captures and displays multiple <em>digital</em> voltage signals.</li>
+                <li><strong>Spectrum analyser:</strong> measures the magnitude of an input signal over a frequency range (spectrum).</li>
+                <li><strong>Signal / function generator:</strong> generates signals such as sine waves, square waves, etc.</li>
+                <li><strong>Source Measurement Unit (SMU):</strong> supplies power and measures its voltage and current at the same time.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/electronics-basics/spectrum.png" alt="A spectrum analyser instrument" width="720" height="422"></div>
+              <figcaption><b>Slide 37.</b> A spectrum analyser. Image source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="instruments"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="topic" id="cheat-sheet" data-toc-extra="Cheat sheet">
+        <header class="topic-head">
+          <span class="topic-num">&Sigma;</span>
+          <div><h2>Cheat sheet</h2><p class="kicker">The formulas and rules worth memorising</p></div>
+        </header>
+        <div class="cheat">
+          <div class="cheat-item"><h3>Ohm's law</h3><div class="formula">I = V / R</div><p>Also V = I &middot; R and R = V / I.</p></div>
+          <div class="cheat-item"><h3>Power and energy</h3><div class="formula">P = V &middot; I, &nbsp;E = P &middot; t</div><p>For a resistor also P = I&sup2; &middot; R = V&sup2; / R.</p></div>
+          <div class="cheat-item"><h3>Battery life</h3><div class="formula">t &asymp; capacity (mAh) / I (mA)</div><p>Lower average current, longer life.</p></div>
+          <div class="cheat-item"><h3>Series and parallel</h3><div class="formula">R<sub>ser</sub> = R<sub>1</sub> + R<sub>2</sub>, &nbsp;R<sub>par</sub> = R<sub>1</sub>R<sub>2</sub> / (R<sub>1</sub> + R<sub>2</sub>)</div><p>Parallel: smaller than the smallest. A much larger parallel resistor can be ignored.</p></div>
+          <div class="cheat-item"><h3>Voltage divider</h3><div class="formula">V<sub>out</sub> = V<sub>in</sub> &middot; R<sub>2</sub> / (R<sub>1</sub> + R<sub>2</sub>)</div><p>Level shifter, potentiometer, thermistor sensor, button and MOSFET switch are all dividers.</p></div>
+          <div class="cheat-item"><h3>Capacitor and RC filter</h3><div class="formula">X<sub>C</sub> = 1 / (2&pi;fC), &nbsp;f<sub>c</sub> = 1 / (2&pi;RC)</div><p>Blocks DC, passes AC. RC low-pass: high frequencies attenuated.</p></div>
+          <div class="cheat-item"><h3>Battery under load</h3><div class="formula">V<sub>S</sub> = V - I &middot; R<sub>I</sub></div><p>High current peaks can pull V<sub>S</sub> below the minimum operating voltage.</p></div>
+          <div class="cheat-item"><h3>LED series resistor</h3><div class="formula">R = (V<sub>source</sub> - V<sub>F</sub>) / I</div><p>The resistor limits the current; the LED drops V<sub>F</sub>.</p></div>
+          <div class="cheat-item"><h3>Button with pull-up</h3><div class="formula">released: V<sub>out</sub> = V<sub>S</sub>, &nbsp;pressed: V<sub>out</sub> = 0</div><p>The resistor defines the released level and limits the pressed current.</p></div>
+          <div class="cheat-item"><h3>PCB flow</h3><div class="formula">schematic &rarr; layout &rarr; BOM &rarr; manufacturing &rarr; assembly &rarr; testing</div><p>Errors loop back to the stage that caused them.</p></div>
+        </div>
+      </section>
+
+      <p class="page-foot">Figures cropped from the lecture slides "Practical Electronics for Embedded Systems" by Xenofon Fafoutis, DTU Compute, with their original sources noted. For personal study.</p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/electronics-basics.js"></script>
+</body>
+</html>

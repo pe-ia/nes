@@ -1,0 +1,40 @@
+/* Week 1 lecture-specific styles (labs only). */
+
+.sort-item {
+  min-height: 96px;
+  display: grid; place-items: center;
+  padding: 20px; text-align: center;
+  font-size: 19px; font-weight: 700; color: var(--ink);
+}
+.sort-btns { display: flex; flex-wrap: wrap; gap: 8px; }
+.sort-btns .btn { flex: 1 1 150px; padding: 10px 12px; font-size: 14px; }
+.sort-btns .btn.sort-right { border-color: var(--ok); background: var(--ok-soft); color: var(--ok); }
+.sort-btns .btn.sort-wrong { border-color: var(--bad); background: var(--bad-soft); color: var(--bad); opacity: 0.75; cursor: not-allowed; }
+.sort-next { align-self: flex-start; }
+.sort-next[hidden] { display: none; }
+
+.rule-list { display: grid; gap: 6px; padding: 12px; }
+.rule-row {
+  display: grid; grid-template-columns: 52px minmax(0, 1fr) auto; gap: 10px; align-items: center;
+  padding: 9px 12px; border-radius: 8px; border: 1px solid var(--line);
+  font-size: 14.5px; color: var(--ink-2);
+}
+.rule-kw { font-family: var(--mono); font-size: 12px; font-weight: 700; color: var(--muted); }
+.rule-mark { font-family: var(--mono); font-size: 12px; font-weight: 700; }
+.rule-row.ok { background: var(--ok-soft); border-color: color-mix(in srgb, var(--ok) 40%, var(--line)); }
+.rule-row.ok .rule-mark { color: var(--ok); }
+.rule-row.no .rule-mark { color: var(--bad); }
+.rule-row.then { margin-top: 4px; font-weight: 650; color: var(--ink); }
+.rule-row.then.no { background: var(--lab-bg); }
+
+.steps { display: grid; gap: 8px; margin: 4px 0 0; padding: 0; list-style: none; counter-reset: step; }
+.steps li {
+  counter-increment: step;
+  display: grid; grid-template-columns: 26px minmax(0, 1fr); gap: 10px; align-items: start;
+}
+.steps li::before {
+  content: counter(step);
+  width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center;
+  font-family: var(--mono); font-size: 12px; font-weight: 700;
+  background: var(--tech-soft); color: var(--tech);
+}

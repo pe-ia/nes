@@ -1,0 +1,48 @@
+/* Week 5, Serial Communication: lab-specific styles (loaded after style.css). */
+
+.btn-row { display: flex; flex-wrap: wrap; gap: 8px; }
+
+.bits span.hdr { background: transparent; border-color: transparent; color: var(--muted); font-weight: 600; font-size: 11px; }
+.bits span.rw { color: var(--warn); border-color: var(--warn); }
+.bits span.par { color: var(--warn); border-color: var(--warn); }
+.bits span.moved { box-shadow: inset 0 0 0 2px var(--accent); }
+.bits span.gone { color: var(--muted); opacity: 0.45; }
+
+.flip-bits button.flip {
+  font: inherit; font-family: var(--mono); font-weight: 700; font-size: 13px;
+  border-radius: 4px; padding: 2px 0; cursor: pointer;
+  background: var(--card); border: 1px dashed var(--line-2); color: var(--ink-2);
+}
+.flip-bits button.flip:hover { border-color: var(--accent); }
+.flip-bits button.flip.par { color: var(--warn); border-color: var(--warn); }
+.flip-bits button.flip.flipped { background: var(--bad-soft); border: 1px solid var(--bad); color: var(--bad); }
+.flip-bits button.flip:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.spi-arrows { font-size: 12px; color: var(--muted); text-align: center; padding: 2px 0; }
+
+.chain-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; flex-wrap: wrap; }
+.chain-node {
+  flex: 1 1 0; min-width: 72px; text-align: center;
+  border: 1px solid var(--line-2); border-radius: 10px; padding: 8px 6px; background: var(--lab-bg);
+}
+.chain-node.ctrl { border-color: var(--tech); background: var(--tech-soft); }
+.chain-name { font-size: 11.5px; color: var(--muted); font-weight: 600; }
+.chain-val { font-family: var(--mono); font-weight: 700; font-size: 16px; color: var(--ink); }
+.chain-arrow { color: var(--muted); font-weight: 700; }
+
+.i2c-seq { display: flex; flex-wrap: wrap; gap: 6px; }
+.i2c-chip {
+  font-family: var(--mono); font-size: 12.5px; font-weight: 700;
+  padding: 5px 9px; border-radius: 7px; border: 1px solid var(--line-2); white-space: nowrap;
+}
+.i2c-chip.c { background: var(--tech-soft); border-color: var(--tech); color: var(--tech); }
+.i2c-chip.t { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.i2c-chip.cond { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+table.tt td.mono-sm { font-size: 11.5px; letter-spacing: 0.02em; }
+table.tt tbody th { color: var(--muted); font-weight: 600; font-size: 12px; text-align: left; }
+
+@media (max-width: 600px) {
+  .chain-arrow { display: none; }
+  .chain-node { min-width: 64px; }
+}

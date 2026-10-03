@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Introduction to NES · NES Study</title>
+  <meta name="description" content="Interactive study page for the NES lecture introducing networked embedded systems: what embedded systems are, connectivity, intelligence, and the anatomy of an embedded system.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3162b'/%3E%3Cpath d='M7 21h5V11h8v10h5' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/nes-intro.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn" type="button" data-nav-toggle aria-label="Open contents">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Contents
+  </button>
+  <span class="topbar-progress"><span data-progress-answered>0 / 0</span> answered</span>
+</header>
+<div class="scrim"></div>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Lecture contents">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">NES</span>
+      <span class="brand-text"><b>NES Study</b><span>Networked Embedded Systems</span></span>
+    </a>
+
+    <div class="progress-card">
+      <div class="progress-row"><span>Questions answered</span><b data-progress-answered>0 / 0</b></div>
+      <div class="progress-bar"><span data-progress-bar></span></div>
+      <div class="progress-sub"><span>Right on first try: <b data-progress-first>0</b></span><button class="link-btn" type="button" data-quiz-reset>Reset</button></div>
+    </div>
+
+    <nav class="toc" data-toc></nav>
+
+    <div class="sidebar-foot">
+      <a class="icon-btn" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        All lectures
+      </a>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Theme
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+
+      <div class="hero">
+        <div class="crumbs"><a href="index.html">NES Study</a> / Week 1: Introduction to NES</div>
+        <h1>Introduction to Networked Embedded Systems</h1>
+        <p class="hero-lead">What an embedded system is, how embedded systems became connected and intelligent, and which parts you will find on the circuit board of one.</p>
+        <div class="hero-meta">
+          <span class="chip">22 topics</span>
+          <span class="chip">8 interactive labs</span>
+          <span class="chip">44 questions</span>
+          <span class="chip">Slides: X. Fafoutis, DTU Compute</span>
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 1</span><h2>Embedded systems and the connectivity trend</h2></div>
+
+      <!-- 01 -->
+      <section class="topic" id="what-is" data-part="Connectivity" data-short="What is an embedded system?">
+        <header class="topic-head">
+          <span class="topic-num">01</span>
+          <div><h2>What is an embedded system?</h2><p class="kicker">A computer hiding inside something else</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Nobody buys a washing machine because they want a computer. They want clean clothes. Yet there is a computer inside, quietly running the show. That is an <strong>embedded system</strong>: a computer in a device whose main job is <em>not</em> computing.</p>
+              <p>A laptop is the opposite: a general-purpose computer that does whatever program you start. An embedded system does one job, forever.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Definition:</strong> a computer in a device whose principal mission is not computation.</li>
+                <li>A <strong>special-purpose</strong> computing system: it has a dedicated function within a larger system or product, and it typically <strong>measures and controls physical operations</strong>.</li>
+                <li>As opposed to <strong>general-purpose</strong> computers: laptops, desktops, servers.</li>
+                <li>Embedded systems are everywhere. In 2009 it was estimated that <strong>more than 98%</strong> of all produced processors were used in embedded systems.</li>
+                <li>Examples from the slide: washing machines, microwave ovens, calculators, digital watches, GPS receivers, heart monitors, laser printers, engine controllers, digital cameras, traffic lights, remote controls, cash registers, treadmills, gas pumps, card readers, thermostats, pacemakers.</li>
+                <li>The dedicated function is why they can be small, cheap and low-power: the hardware only needs to be good enough for one task.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/washing-machine.png" alt="A front-loading washing machine" width="541" height="691"></div>
+              <figcaption><b>Slide 4.</b> A washing machine: a computer whose mission is not computation. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="sort-embedded"></div>
+        <div class="quiz" data-quiz="what-is"></div>
+      </section>
+
+      <!-- 02 -->
+      <section class="topic" id="washing" data-part="Connectivity" data-short="Washing machine example">
+        <header class="topic-head">
+          <span class="topic-num">02</span>
+          <div><h2>The washing machine as an embedded system</h2><p class="kicker">Four kinds of computer-controlled functions</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>What does the computer in a washing machine actually do? It <strong>listens to you</strong> (buttons and display), it <strong>runs the process</strong> (water, heat, spinning), it <strong>keeps things safe</strong> (no start with the door open) and it <strong>watches the clock</strong> (how long each stage takes).</p>
+              <p>Almost every embedded system you will meet has these same four jobs in some mix.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Input/Output:</strong> the user selects programme, temperature, rinsing speed, duration. Preferences are captured via buttons, switches or touch screens; the status of the washing cycle and errors are shown on a screen or with LEDs.</li>
+                <li><strong>Control functions (sensing and actuation):</strong> control the valves that let water in and out of the tank, the heater that brings the water to the correct temperature, and the power that goes to the motor to get the right RPM.</li>
+                <li><strong>Safety functions (errors and warnings):</strong> check that the door is closed before the programme can start, check the weight of the clothes, check that the right amount of water is in before heating it.</li>
+                <li><strong>Time keeping:</strong> keep the time passed between washing stages; delayed start functionality.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="sort-washing"></div>
+        <div class="quiz" data-quiz="washing"></div>
+      </section>
+
+      <!-- 03 -->
+      <section class="topic" id="physical" data-part="Connectivity" data-short="Sensors &amp; actuators">
+        <header class="topic-head">
+          <span class="topic-num">03</span>
+          <div><h2>Connecting the digital to the physical world</h2><p class="kicker">Senses and muscles for a computer</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>An embedded system lives close to the real world. <strong>Sensors are its senses</strong>: eyes, ears, a sense of temperature. <strong>Actuators are its muscles</strong>: they push, heat, light up or make sound.</p>
+              <p>Without sensors it would be blind; without actuators it could only watch.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Embedded systems employ <strong>sensors</strong> to measure and perceive the physical world, and <strong>actuators</strong> to alter and manipulate it.</li>
+                <li><strong>Sensors:</strong> cameras, microphones, thermometers, humidity sensors, pressure sensors, light sensors, radars, lidars, motion sensors.</li>
+                <li><strong>Actuators and other output devices:</strong> screens, speakers, electric motors, fluid motors, switches, valves, heaters, vibration motors, lights.</li>
+                <li>Together they form the loop behind almost every embedded application: <em>sense, decide, act</em>.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/sensors.png" alt="Several small electronic components" width="524" height="461"></div>
+              <figcaption><b>Slide 7.</b> Examples of components that connect a circuit to the physical world. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="physical"></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="topic" id="trends" data-part="Connectivity" data-short="Two big trends">
+        <header class="topic-head">
+          <span class="topic-num">04</span>
+          <div><h2>Two big trends in embedded systems</h2><p class="kicker">Connectivity and intelligence</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Embedded systems used to be loners that did one simple thing. Two things are changing that: they are <strong>learning to talk</strong> to each other, and they are <strong>getting smarter</strong>.</p>
+              <p>The rest of this lecture follows these two threads, first connectivity, then intelligence.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Connectivity:</strong> embedded systems send and receive data to and from other embedded systems or larger systems. They are forming larger and wider, potentially global, collaboration networks.</li>
+                <li><strong>Intelligence:</strong> embedded systems provide and consume data as part of Artificial Intelligence frameworks that extract knowledge and perform reasoning. They increasingly process data locally, are capable of embedded AI, and make autonomous decisions.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/trends.png" alt="Icons for connectivity (a cloud with links) and intelligence (a head with circuits)" width="334" height="694"></div>
+              <figcaption><b>Slides 8 and 22.</b> Connectivity (top) and intelligence (bottom).</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="trends"></div>
+      </section>
+
+      <!-- 05 -->
+      <section class="topic" id="networked" data-part="Connectivity" data-short="Networked embedded systems">
+        <header class="topic-head">
+          <span class="topic-num">05</span>
+          <div><h2>Networked embedded systems</h2><p class="kicker">From loners to a team</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>One musician can play a tune; an orchestra needs everyone to listen to each other. A <strong>networked embedded system</strong> is that orchestra: several small computers, connected, working towards <strong>one common goal</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Originally, embedded systems operated <strong>in isolation</strong> as part of a single machine or system. Example: a thermostat inside a boiler measures the temperature and controls the power that goes to the heater to reach the desired temperature.</li>
+                <li><strong>Networked embedded systems:</strong> a group of embedded systems connected over a network that cooperate towards one goal or application.</li>
+                <li>Also known as <strong>distributed embedded systems</strong>.</li>
+                <li>The first networked embedded systems were connected over <strong>wired</strong> networks.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/star-network.png" alt="A central node connected to five surrounding nodes" width="449" height="416"></div>
+              <figcaption><b>Slide 9.</b> Several nodes connected into one network.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="networked"></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="topic" id="can" data-part="Connectivity" data-short="CAN bus">
+        <header class="topic-head">
+          <span class="topic-num">06</span>
+          <div><h2>CAN bus</h2><p class="kicker">The wired network inside a car</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A modern car contains dozens of small computers: engine, brakes, windows, lights, seats. Wiring each one to every other would mean kilometres of cable. Instead they all hang on a <strong>shared line</strong> and take turns talking, like people in a group call.</p>
+              <p>That shared line is the CAN bus.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A <strong>wired networking solution designed for vehicles</strong> (CAN stands for Controller Area Network).</li>
+                <li>Timeline: originally developed by <strong>Bosch starting in 1983</strong>; officially <strong>released in 1986</strong>; <strong>Mercedes-Benz</strong> first introduced it in production vehicles in <strong>1991</strong>; <strong>standardised by ISO in 1993</strong>.</li>
+                <li>The figure shows a typical layout: a <em>high speed CAN</em> for the drivetrain (engine, transmission, suspension), a <em>low speed CAN</em> for body electronics (windows, locks, seats, lights), and gateways that pass messages between the networks.</li>
+                <li>It is the lecture's example of the first step of the connectivity trend: networks of embedded systems within the same machine.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/can-bus.png" alt="Diagram of a car with its controllers connected by high speed and low speed CAN buses" width="1300" height="1038"></div>
+              <figcaption><b>Slide 10.</b> Controllers in a car connected over CAN. Source: eecs.umich.edu, EECS 461 CAN notes.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="can"></div>
+      </section>
+
+      <!-- 07 -->
+      <section class="topic" id="wireless" data-part="Connectivity" data-short="Wired to wireless">
+        <header class="topic-head">
+          <span class="topic-num">07</span>
+          <div><h2>From wired to wireless embedded systems</h2><p class="kicker">Cutting the cable</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Cables are fine inside a car. But try running cables to a hundred sensors spread over a farm, or to a fitness tracker on your wrist. <strong>Wireless</strong> lets you put devices anywhere, move them around, and reach further by letting devices <strong>pass messages along</strong> like a bucket brigade.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Flexible, no infrastructure required:</strong> an apartment can have wires embedded in the walls when it is built or renovated, but wireless makes things easier when that infrastructure does not exist.</li>
+                <li><strong>Easy to extend coverage:</strong> from <em>star</em> networks (everyone talks to one central node) to <em>multi-hop</em> networks (nodes relay for each other, as in the mesh figure).</li>
+                <li><strong>Mobility:</strong> wearable and portable embedded systems.</li>
+                <li>Wireless embedded systems form <strong>Wireless Sensor Networks</strong> and <strong>Wireless Sensor and Actuator Networks</strong>.</li>
+                <li>The agriculture figure shows the typical structure: sensor nodes in the field forward data to a <strong>gateway node</strong>, which connects to the internet, a database server and remote users.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/mesh.png" alt="Six nodes connected in a mesh topology" width="497" height="433"></div>
+              <figcaption><b>Slide 11.</b> A mesh: messages can take several hops. Source: Wikipedia.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/agriculture.png" alt="Wireless sensor nodes in an agricultural field connected through a gateway to the internet, a server and remote users" width="1300" height="888"></div>
+              <figcaption><b>Slide 12.</b> Wireless embedded systems in agriculture. Source: doi.org/10.1016/j.compag.2015.08.011.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="coverage"></div>
+        <div class="quiz" data-quiz="wireless"></div>
+      </section>
+
+      <!-- 08 -->
+      <section class="topic" id="iot" data-part="Connectivity" data-short="Internet of Things">
+        <header class="topic-head">
+          <span class="topic-num">08</span>
+          <div><h2>The Internet of Things and the connectivity trend</h2><p class="kicker">From islands to one global network</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>So far each network was an island: one car, one field, one building. The <strong>Internet of Things</strong> builds bridges between the islands, so a sensor in a field can reach a server, or your phone, on the other side of the world.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The Internet of Things connects <strong>isolated networks of embedded systems</strong> into a "global" network.</li>
+                <li>Application domains: smart cities, transportation networks and logistics; environmental and wildlife monitoring; disaster response (earthquakes, wildfires); industrial networks, manufacturing and factories; agriculture and maritime; energy management and the smart grid; health systems, personal health and fitness; consumer electronics and entertainment; building automation and smart homes; military.</li>
+                <li><strong>The connectivity trend</strong>, an increasing drive for connectivity and collaboration:
+                  <ol class="steps">
+                    <li>Isolated embedded systems</li>
+                    <li>Networks of embedded systems within the same machine</li>
+                    <li>Networked embedded systems forming wired networks</li>
+                    <li>Wireless embedded systems covering wider areas</li>
+                    <li>The potentially global and beyond (for example satellites) connectivity of the Internet of Things</li>
+                  </ol></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/iot.png" alt="Drawing of a globe with many everyday connected objects around it" width="810" height="807"></div>
+              <figcaption><b>Slide 13.</b> Everyday things connected around the globe. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="iot"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 2</span><h2>The intelligence trend</h2></div>
+
+      <!-- 09 -->
+      <section class="topic" id="intelligent" data-part="Intelligence" data-short="Intelligent systems">
+        <header class="topic-head">
+          <span class="topic-num">09</span>
+          <div><h2>Intelligent embedded systems</h2><p class="kicker">AI, cognitive and autonomous systems</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A pile of sensor readings is just numbers. <strong>Intelligence</strong> is what turns "the floor vibrated 40 times in a minute" into "someone is walking here", and then into "switch on the light".</p>
+              <p>The more of that a system can do without a human helping, the more autonomous it is.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Artificial Intelligence:</strong> the process of finding patterns and extracting knowledge out of raw data, and using the data and knowledge to perform reasoning, decision making, planning and so on.</li>
+                <li><strong>Cognitive systems:</strong> systems that imitate the human brain. Wikipedia describes cognition as encompassing "all aspects of intellectual functions and processes such as: perception, attention, thought, intelligence, the formation of knowledge, memory and working memory, judgment and evaluation, reasoning and computation, problem solving and decision making, comprehension and production of language."</li>
+                <li><strong>Autonomous systems:</strong> systems that operate with little or no human intervention.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="intelligent"></div>
+      </section>
+
+      <!-- 10 -->
+      <section class="topic" id="control" data-part="Intelligence" data-short="Control systems">
+        <header class="topic-head">
+          <span class="topic-num">10</span>
+          <div><h2>Control systems</h2><p class="kicker">The classic embedded application</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Taking a shower, you feel the water (sense), decide it is too cold, and turn the tap (act). Then you feel again. A <strong>control system</strong> is that loop, done by a machine, many times per second: measure, compare with what you want, adjust.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A control system <strong>regulates a variable</strong> using <strong>sensing</strong>, <strong>actuation</strong> and a <strong>control algorithm</strong>.</li>
+                <li>It is the classic embedded system application, and the simplest form of machine intelligence: it involves perception (sensing) and decision making (actuation).</li>
+                <li>Reading the figure (a flow controller):
+                  <ul>
+                    <li><strong>Set point (SP):</strong> the desired value.</li>
+                    <li><strong>Process value (PV):</strong> the measured flow rate, reported by the flow transmitter (the sensor).</li>
+                    <li><strong>Controller output (CO):</strong> the valve position sent to the flow control valve (the actuator, or final control element).</li>
+                  </ul></li>
+                <li>Because the output affects the next measurement, this is a <em>closed loop</em> (feedback). The thermostat in the boiler from topic 05 is the same structure.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/control-loop.png" alt="Flow control loop: controller with set point and process value, flow transmitter, and flow control valve" width="1300" height="647"></div>
+              <figcaption><b>Slide 16.</b> A flow control loop: transmitter (sensor), controller, valve (actuator). Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="control"></div>
+        <div class="quiz" data-quiz="control"></div>
+      </section>
+
+      <!-- 11 -->
+      <section class="topic" id="rules" data-part="Intelligence" data-short="Rule-based intelligence">
+        <header class="topic-head">
+          <span class="topic-num">11</span>
+          <div><h2>Rule-based machine intelligence</h2><p class="kicker">Deduction: if this, then that</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The simplest way to make a machine "smart" is to give it a rulebook: <strong>if this happens, then do that</strong>. The machine never guesses. It checks the conditions and, if they all hold, does what the rule says.</p>
+              <p>A human wrote the rules, so the machine is exactly as clever as its rulebook.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Deductive reasoning:</strong> derive conclusions from rules and axioms. Example: "All humans are mortal", "Alice is human", therefore "Alice is mortal".</li>
+                <li>It can be formulated as <strong>"if-then" statements</strong>: "if X is human, then X is mortal".</li>
+                <li>This is how intelligence and automation are built in many networked embedded systems. Building automation example:
+                  <div class="formula">IF motion sensor inside room detects movement<br>AND time is between 9 am and 5 pm<br>AND room temperature is lower than 19 degrees<br>THEN turn on room heating</div></li>
+                <li>Note that the rule combines <em>several</em> sensors (motion, clock, temperature) and an actuator (heating), possibly in different devices: a networked embedded system.</li>
+                <li>Strength: predictable and easy to explain. Weakness: someone has to think of every rule in advance.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="rules"></div>
+        <div class="quiz" data-quiz="rules"></div>
+      </section>
+
+      <!-- 12 -->
+      <section class="topic" id="data-driven" data-part="Intelligence" data-short="Data-driven intelligence">
+        <header class="topic-head">
+          <span class="topic-num">12</span>
+          <div><h2>Data-driven machine intelligence</h2><p class="kicker">Induction: learning from examples</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The other way round: instead of being handed the rules, <strong>look at lots of examples and work out the pattern yourself</strong>. You have only ever seen white swans, so you expect the next swan to be white.</p>
+              <p>That usually works, and it is how you learn most things. But one black swan proves you wrong.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Inductive reasoning:</strong> derive models from observations. Example: "All swans we have seen are white", therefore "All swans are white", therefore "I predict that an unknown swan we have not seen is also white".</li>
+                <li>In relatively <strong>simple</strong> problems we can hand-craft models out of observations that have high predictive power. Example: using Newton's laws to predict the exact location of a planet in the future.</li>
+                <li>In more <strong>complex</strong> problems we instruct machines to find a model that explains the input data, and use it to predict future data. That is <strong>machine learning</strong>.</li>
+                <li>Compare with topic 11: deduction goes from rules to conclusions and is certain; induction goes from observations to a model and is only as good as the data.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="data-driven"></div>
+      </section>
+
+      <!-- 13 -->
+      <section class="topic" id="dnn" data-part="Intelligence" data-short="Deep neural networks">
+        <header class="topic-head">
+          <span class="topic-num">13</span>
+          <div><h2>Deep (artificial) neural networks</h2><p class="kicker">Powerful, hungry models</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A deep neural network is a huge pattern-finder. Show it millions of examples and it discovers patterns far too complicated for a person to write down as rules.</p>
+              <p>The catch: it is <strong>hungry</strong>. It needs enormous amounts of data and computing power. Guess who produces the data: networks of sensors.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Very good at constructing <strong>complex models with high predictive power</strong> based on observations.</li>
+                <li>Require <strong>a lot of computing power</strong>.</li>
+                <li>Require <strong>a lot of observations</strong> (input data).</li>
+                <li>Enabled by advances in <strong>cloud computing</strong> and <strong>big data</strong>.</li>
+                <li>In this context, networked embedded systems play the role of <strong>(big) data generators</strong>.</li>
+                <li>The figure shows the structure: layers of simple units, each connected to the units of the next layer. "Deep" refers to having many such layers.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/dnn.png" alt="A neural network with five fully connected layers" width="952" height="641"></div>
+              <figcaption><b>Slide 19.</b> A deep neural network. Source: doi.org/10.1109/ACCESS.2020.3009819.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="dnn"></div>
+      </section>
+
+      <!-- 14 -->
+      <section class="topic" id="cloud" data-part="Intelligence" data-short="Cloud-based IoT">
+        <header class="topic-head">
+          <span class="topic-num">14</span>
+          <div><h2>Cloud-based IoT systems</h2><p class="kicker">Send everything to the data centre?</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The obvious design: the small devices just collect data and send it all to a giant computer far away, <strong>the cloud</strong>, which does the thinking.</p>
+              <p>It is like phoning an expert for every decision. The expert is brilliant, but the call costs money, takes time, fails when there is no signal, and you have to tell them everything.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Advantages:</strong> lots of computing power; lots of storage; possible to train really accurate but very resource-consuming deep learning models.</li>
+                <li><strong>Disadvantages:</strong>
+                  <ul>
+                    <li><em>Cost:</em> it is expensive to transfer, store and process lots of data.</li>
+                    <li><em>Latency:</em> may be prohibitive for delay-sensitive use cases.</li>
+                    <li><em>Dependency on infrastructure:</em> no-coverage zones.</li>
+                    <li><em>Privacy:</em> potentially sensitive data goes to third parties.</li>
+                  </ul></li>
+                <li>For a battery-powered device there is a further cost hidden in the first point: every transmitted byte costs radio energy.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/cloud-iot.png" alt="Devices of the Internet of Things connected through networks to cloud computing" width="659" height="617"></div>
+              <figcaption><b>Slide 20.</b> Things connected to the cloud. Source: doi.org/10.1016/j.future.2016.11.031.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="cloud"></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="topic" id="continuum" data-part="Intelligence" data-short="Cloud-fog-edge">
+        <header class="topic-head">
+          <span class="topic-num">15</span>
+          <div><h2>The cloud-fog-edge continuum</h2><p class="kicker">Put the thinking where it fits best</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>You do not phone a specialist to decide whether to pull your hand off a hot stove. Your reflexes handle that on the spot (<strong>edge</strong>). For something harder you ask a colleague down the hall (<strong>fog</strong>). Only for the really big questions do you consult the distant expert (<strong>cloud</strong>).</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Computing and AI are <strong>distributed in a cloud-fog-edge continuum</strong>, as needed by the applications.</li>
+                <li><strong>Embedded AI (tier 1, the devices):</strong> AI comes to the embedded systems themselves (inference, and even training). They become more autonomous: sensing, knowledge extraction, planning, decision making.</li>
+                <li><strong>Local fog servers (tier 2):</strong> employed when more computing power or data fusion is needed. They are privately owned or offered as a service.</li>
+                <li><strong>Cloud data centres (tier 3):</strong> used for really demanding tasks, for example training natural language processing models.</li>
+                <li>Each step towards the edge answers one of the cloud's disadvantages from topic 14: less data to transfer, lower latency, less dependency on coverage, and data that stays local.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/continuum.png" alt="Three tiers: cloud data centre, fog gateways and nodes, IoT sensors and actuators" width="1022" height="780"></div>
+              <figcaption><b>Slide 21.</b> Tier 3 cloud, tier 2 fog, tier 1 IoT end devices. Source: doi.org/10.1109/ACCESS.2020.3032388.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="placement"></div>
+        <div class="quiz" data-quiz="continuum"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 3</span><h2>Anatomy of an embedded system</h2></div>
+
+      <!-- 16 -->
+      <section class="topic" id="anatomy" data-part="Anatomy" data-short="Main components">
+        <header class="topic-head">
+          <span class="topic-num">16</span>
+          <div><h2>The main components of an embedded system</h2><p class="kicker">What is on the circuit board?</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Open up almost any smart gadget and you find the same cast: a <strong>brain</strong> (the main chip), <strong>senses</strong> (sensors), <strong>muscles</strong> (actuators), a <strong>face</strong> for the user (LEDs, buttons, a screen), and a <strong>stomach</strong> (the power supply).</p>
+              <p>The remaining topics look at each of them in turn.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>System-on-Chip (SoC):</strong> CPU, RAM, flash, I/O interfaces and radio in a single chip.</li>
+                <li><strong>Sensors</strong>, <strong>actuators</strong> and the <strong>user interface</strong> (LEDs, buttons, buzzers, screens) are attached to the SoC through <code>GPIO</code>, <code>ADC</code>, <code>UART</code>, <code>SPI</code> and <code>I2C</code>.</li>
+                <li><strong>Power source:</strong> a battery or an energy harvester.</li>
+                <li>The photo shows all of this on a real wearable board a few centimetres long: the SoC, two accelerometers and a gyroscope (sensors), an LED (output), flash memory (storage), a printed antenna, a voltage regulator, a wireless charger with its charging coil (power), and serial and programming interfaces (connectors).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/anatomy.png" alt="Block diagram: SoC with CPU, RAM, flash, I/O interfaces and radio, connected to sensors, actuators and user interface, plus a power source" width="1300" height="691"></div>
+              <figcaption><b>Slide 24.</b> Anatomy of an embedded system.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/board.png" alt="Photo of a small circuit board with labelled components" width="1300" height="573"></div>
+              <figcaption><b>Slide 36.</b> The same components on a real board.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="anatomy"></div>
+      </section>
+
+      <!-- 17 -->
+      <section class="topic" id="soc" data-part="Anatomy" data-short="MCU &amp; SoC">
+        <header class="topic-head">
+          <span class="topic-num">17</span>
+          <div><h2>Microcontrollers (MCU) and Systems-on-Chip (SoC)</h2><p class="kicker">A whole computer in one chip</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A desktop PC has a processor, memory and connectors spread over a big board. A <strong>microcontroller</strong> squeezes all of that into a single chip the size of a fingernail.</p>
+              <p>A <strong>System-on-Chip</strong> goes one step further and adds the extras too: storage, a radio, sometimes even sensors. One chip, (almost) the whole product.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>MCU:</strong> a small computer in a chip: processor (CPU), RAM, and input/output peripherals.</li>
+                <li><strong>SoC:</strong> an MCU (processor, RAM, I/O) plus non-volatile storage (flash memory), network interfaces (a wireless radio), other processing units (GPU, DSP, accelerators) and integrated sensors.</li>
+                <li><strong>Example SoC: the CC2650 by Texas Instruments.</strong> It contains:
+                  <ul>
+                    <li>an ARM-based CPU (a Cortex-M3 in the figure);</li>
+                    <li>memory: RAM, cache, ROM and flash;</li>
+                    <li>a wireless module with its own dedicated CPU and RAM (the RF core with a Cortex-M0);</li>
+                    <li>a sensor controller, including a 12-bit ADC;</li>
+                    <li>various controllers for interfaces (I2C, UART, SPI, GPIOs) and various timers;</li>
+                    <li>a crypto module, an integrated temperature sensor and battery monitor, and Direct Memory Access (DMA).</li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/mcu-chip.png" alt="A Microchip PIC microcontroller soldered on a circuit board" width="537" height="541"></div>
+              <figcaption><b>Slide 25.</b> A microcontroller on a board. Source: Wikipedia.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/nes-intro/cc2650.png" alt="Block diagram of the CC26xx wireless MCU: main CPU, RF core, general peripherals, sensor controller" width="911" height="1133"></div>
+              <figcaption><b>Slide 26.</b> Inside the CC2650. Source: CC2650 datasheet, Texas Instruments.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="soc"></div>
+      </section>
+
+      <!-- 18 -->
+      <section class="topic" id="processors" data-part="Anatomy" data-short="Processors">
+        <header class="topic-head">
+          <span class="topic-num">18</span>
+          <div><h2>Processors</h2><p class="kicker">Architectures and the ARM Cortex families</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Engines come in sizes: a scooter, a family car, a truck. Processors do too. A tiny sensor that sleeps most of the day needs a scooter engine, not a truck engine.</p>
+              <p>Most of the "engines" in embedded devices are designed by one company, <strong>ARM</strong>, which does not build chips itself but sells the blueprints to chip makers.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Processors come in <strong>8-bit, 16-bit, 32-bit and 64-bit</strong> architectures.</li>
+                <li>Popular architectures and vendors: <strong>AVR</strong> (Atmel), <strong>PIC</strong> (Microchip), <strong>MSP</strong> (Texas Instruments), <strong>STM</strong> (ST Microelectronics).</li>
+                <li><strong>ARM</strong> licenses CPUs to chip vendors. Its Cortex processors come in three series:
+                  <ul>
+                    <li><strong>Cortex-A:</strong> generic applications. Application processors with an MMU that support Linux or a mobile operating system.</li>
+                    <li><strong>Cortex-R:</strong> real-time.</li>
+                    <li><strong>Cortex-M:</strong> embedded, low-power: microcontrollers and deeply embedded devices.</li>
+                  </ul></li>
+                <li>In the figure, capability and performance grow upwards: the M series sits at the bottom, R in the middle, A at the top.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/arm-processors.png" alt="ARM processor families arranged by capability: Cortex-M, Cortex-R and Cortex-A" width="1281" height="790"></div>
+              <figcaption><b>Slide 27.</b> ARM processor families by capability. Source: Cortex-M for Beginners, ARM.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="processors"></div>
+      </section>
+
+      <!-- 19 -->
+      <section class="topic" id="transducers" data-part="Anatomy" data-short="Transducers">
+        <header class="topic-head">
+          <span class="topic-num">19</span>
+          <div><h2>Transducers: sensors and actuators</h2><p class="kicker">Translators between electricity and the world</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A chip only speaks electricity. The world speaks sound, light, heat and motion. A <strong>transducer</strong> is the translator between the two.</p>
+              <p>A microphone translates sound into electricity (a sensor); a loudspeaker translates electricity back into sound (an actuator). Same idea, opposite direction.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Sensors and actuators are <strong>transducers</strong>: they convert a signal from one form of energy to another.</li>
+                <li><strong>Input transducers</strong> convert a physical quantity into an electrical signal: <em>sensors</em> (accelerometer, thermometer, microphone, camera).</li>
+                <li><strong>Output transducers</strong> convert an electrical signal into a physical quantity: <em>actuators and other output devices</em> (motors, heaters, speakers, LEDs).</li>
+                <li>Types of transducers, named after the other form of energy involved: <strong>electromechanical</strong>, <strong>electromagnetic</strong>, <strong>electrochemical</strong>, <strong>electroacoustic</strong>, <strong>electro-optical</strong>, <strong>thermoelectric</strong>.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/transducers.png" alt="A microphone feeding a processor chip feeding a loudspeaker" width="904" height="195"></div>
+              <figcaption><b>Slide 28.</b> Input transducer, processor, output transducer.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="sort-transducers"></div>
+        <div class="quiz" data-quiz="transducers"></div>
+      </section>
+
+      <!-- 20 -->
+      <section class="topic" id="sensors" data-part="Anatomy" data-short="Sensors">
+        <header class="topic-head">
+          <span class="topic-num">20</span>
+          <div><h2>Sensors: analogue and digital</h2><p class="kicker">From a wiggling voltage to ready-made numbers</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A basic (analogue) sensor just produces a voltage that goes up and down with whatever it measures. The main chip still has to turn that voltage into a number.</p>
+              <p>A <strong>digital sensor</strong> is the convenient version: the measuring part, the converter and a tiny controller are packed in one chip, and it hands you finished numbers.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Analogue sensors</strong> produce an electrical signal that correlates with a physical phenomenon. To be processed by a digital system, an <strong>Analogue-to-Digital Converter (ADC)</strong> is needed.</li>
+                <li><strong>Digital sensors</strong> are analogue sensors packed in a chip with an ADC and a controller.</li>
+                <li>The figure shows the inside of the ADXL362 accelerometer: a 3-axis MEMS sensor, amplifier, demodulators and antialiasing filters, a <strong>12-bit ADC</strong>, and digital logic with a FIFO and an <strong>SPI</strong> interface (pins MOSI, MISO, CS, SCLK) plus interrupt pins.</li>
+                <li>Types of sensors:
+                  <ul>
+                    <li><em>Electromechanical:</em> accelerometer, gyroscope, flow meters, air pressure.</li>
+                    <li><em>Electromagnetic:</em> magnetometer, contact sensors, radar.</li>
+                    <li><em>Electrochemical:</em> pH, gas sensors, chemical detection.</li>
+                    <li><em>Electroacoustic:</em> microphone, ultrasound, piezoelectric sensors.</li>
+                    <li><em>Electro-optical:</em> camera, infrared camera, light sensor, PIR, lidar, heart rate (PPG).</li>
+                    <li><em>Thermoelectric:</em> temperature sensor, body temperature.</li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/adxl362.png" alt="Block diagram of the ADXL362: MEMS sensor, filters, 12-bit ADC, digital logic and SPI" width="1300" height="502"></div>
+              <figcaption><b>Slide 29.</b> A digital sensor: analogue front end, ADC and digital interface in one chip. Source: ADXL362 datasheet, Analog Devices.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="sensors"></div>
+      </section>
+
+      <!-- 21 -->
+      <section class="topic" id="actuators" data-part="Anatomy" data-short="Actuators &amp; other I/O">
+        <header class="topic-head">
+          <span class="topic-num">21</span>
+          <div><h2>Actuators, output devices and other I/O components</h2><p class="kicker">Making things happen</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Output is the way back: from numbers to something you can see, hear or feel. For simple things a switch is enough (LED on, LED off). For complicated outputs like a screen, the main chip does not steer every pixel itself: it sends short commands to a <strong>helper chip</strong> that does the fiddly work.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Actuators and output devices</strong> control or manipulate a physical quantity with an electric signal.</li>
+                <li>To be controlled by a digital system they need a <strong>switch</strong>, a <strong>Digital-to-Analogue Converter (DAC)</strong>, a <strong>signal generator</strong> or a <strong>modulator</strong>.</li>
+                <li><strong>Controller chips</strong> implement a command interface to control the physical output. The figure shows the SSD1306, which drives a 128 x 64 display panel.</li>
+                <li>Types of actuators and output devices: <em>electromechanical</em> (motors, valves, vibration motor), <em>electroacoustic</em> (loudspeaker), <em>electro-optical</em> (screen, LEDs), <em>thermoelectric</em> (heater).</li>
+                <li><strong>Other input/output components:</strong>
+                  <ul>
+                    <li><em>External storage:</em> flash memory chips, SD cards.</li>
+                    <li><em>Connectors and interfaces:</em> jacks, pin headers, sockets; antenna connectors and printed antennas; jumpers and solder bridges.</li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/nes-intro/ssd1306.png" alt="SSD1306 controller chip connected to a 128 by 64 display panel" width="1100" height="874"></div>
+              <figcaption><b>Slide 31.</b> The SSD1306 controller chip driving a display panel. Source: SSD1306 datasheet, Solomon Systech.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="actuators"></div>
+      </section>
+
+      <!-- 22 -->
+      <section class="topic" id="power" data-part="Anatomy" data-short="Power management">
+        <header class="topic-head">
+          <span class="topic-num">22</span>
+          <div><h2>Power management</h2><p class="kicker">Regulators, converters, charging and harvesting</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Chips are picky eaters: they want a steady voltage, and different chips want different ones. A battery is anything but steady: it sags as it empties. <strong>Power management</strong> is the kitchen in between, turning whatever the source delivers into exactly what each component needs.</p>
+              <p>It also takes care of refilling: charging the battery or collecting energy from the surroundings.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Embedded systems are typically powered by <strong>DC sources</strong>: batteries, or the mains through rectification. The power source is typically <strong>noisy and imperfect</strong>.</li>
+                <li><strong>Voltage regulators</strong> automatically maintain a constant output voltage.
+                  <ul>
+                    <li><em>Linear voltage regulator:</em> linear voltage adjustment; dissipates power (the excess becomes heat).</li>
+                    <li><em>Switching regulator:</em> rapid on/off switching; more efficient.</li>
+                  </ul></li>
+                <li><strong>Voltage converters (DC-to-DC)</strong> convert a source from one voltage to another, because components may need to be powered at different voltage levels.
+                  <ul>
+                    <li><em>Step-down (buck) converter:</em> output voltage lower than the input voltage.</li>
+                    <li><em>Step-up (boost) converter:</em> output voltage higher than the input voltage.</li>
+                  </ul></li>
+                <li><strong>Battery charging:</strong> a battery charger (for example via USB), or an inductive wireless power receiver (for example Qi).</li>
+                <li><strong>Energy harvesting:</strong> a solar power manager, an RF power manager, and so on.</li>
+                <li>Why linear regulators waste power: the same current flows in and out, so the share that reaches the load is at best
+                  <div class="formula">efficiency (linear) &asymp; V<sub>out</sub> / V<sub>in</sub> <span class="eq-note">9 V down to 3.3 V: only about 37%</span></div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="regulator"></div>
+        <div class="quiz" data-quiz="power"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="topic" id="cheat-sheet" data-toc-extra="Summary">
+        <header class="topic-head">
+          <span class="topic-num">&Sigma;</span>
+          <div><h2>Summary</h2><p class="kicker">The lecture on one card</p></div>
+        </header>
+        <div class="cheat">
+          <div class="cheat-item"><h3>Embedded system</h3><p>A computer in a device whose principal mission is not computation. Special-purpose; measures and controls physical operations. More than 98% of processors (2009 estimate).</p></div>
+          <div class="cheat-item"><h3>Four function groups</h3><p>Input/Output, control (sensing and actuation), safety (errors and warnings), time keeping.</p></div>
+          <div class="cheat-item"><h3>Sensors and actuators</h3><p>Sensors measure the physical world; actuators alter it. Both are transducers: input transducers and output transducers.</p></div>
+          <div class="cheat-item"><h3>Networked embedded systems</h3><p>A group of embedded systems connected over a network, cooperating towards one goal. Also called distributed embedded systems.</p></div>
+          <div class="cheat-item"><h3>Connectivity trend</h3><p>Isolated, networks within one machine (CAN bus: 1983, 1986, 1991, 1993), wired networks, wireless (star to multi-hop, mobility), Internet of Things.</p></div>
+          <div class="cheat-item"><h3>Machine intelligence</h3><p>Control systems: sensing, actuation, control algorithm. Rule-based: deduction, if-then. Data-driven: induction, machine learning, deep neural networks.</p></div>
+          <div class="cheat-item"><h3>Cloud: pros and cons</h3><p>Pros: computing power, storage, accurate large models. Cons: cost, latency, dependency on infrastructure, privacy.</p></div>
+          <div class="cheat-item"><h3>Cloud-fog-edge continuum</h3><p>Embedded AI on the devices, fog servers for more compute or data fusion, cloud data centres for the really demanding tasks.</p></div>
+          <div class="cheat-item"><h3>MCU vs SoC</h3><p>MCU: CPU, RAM, I/O peripherals. SoC: MCU plus flash, radio, other processing units, integrated sensors (example: CC2650).</p></div>
+          <div class="cheat-item"><h3>ARM Cortex series</h3><p>A: generic applications. R: real-time. M: embedded, low-power. ARM licenses its CPUs to chip vendors.</p></div>
+          <div class="cheat-item"><h3>Signal conversion</h3><p>Analogue sensor needs an ADC. Digital sensor: sensor, ADC and controller in one chip. Actuators need a switch, DAC, signal generator or modulator.</p></div>
+          <div class="cheat-item"><h3>Power management</h3><p>Linear regulator (dissipates) vs switching regulator (efficient). Buck steps down, boost steps up. Battery charging and energy harvesting.</p></div>
+        </div>
+      </section>
+
+      <p class="page-foot">Figures cropped from the lecture slides "Introduction to Networked Embedded Systems" by Xenofon Fafoutis, DTU Compute, with their original sources noted. For personal study.</p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/nes-intro.js"></script>
+</body>
+</html>

@@ -1,0 +1,1120 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Serial Communication · NES Study</title>
+  <meta name="description" content="Interactive study page for the NES Week 5 lecture on serial communication: UART, parity, SPI, I2C and I3C.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3162b'/%3E%3Cpath d='M7 21h5V11h8v10h5' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/serial-communication.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn" type="button" data-nav-toggle aria-label="Open contents">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Contents
+  </button>
+  <span class="topbar-progress"><span data-progress-answered>0 / 0</span> answered</span>
+</header>
+<div class="scrim"></div>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Lecture contents">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">NES</span>
+      <span class="brand-text"><b>NES Study</b><span>Networked Embedded Systems</span></span>
+    </a>
+
+    <div class="progress-card">
+      <div class="progress-row"><span>Questions answered</span><b data-progress-answered>0 / 0</b></div>
+      <div class="progress-bar"><span data-progress-bar></span></div>
+      <div class="progress-sub"><span>Right on first try: <b data-progress-first>0</b></span><button class="link-btn" type="button" data-quiz-reset>Reset</button></div>
+    </div>
+
+    <nav class="toc" data-toc></nav>
+
+    <div class="sidebar-foot">
+      <a class="icon-btn" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        All lectures
+      </a>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Theme
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+
+      <div class="hero">
+        <div class="crumbs"><a href="index.html">NES Study</a> / Week 5: Serial Communication</div>
+        <h1>Serial Communication</h1>
+        <p class="hero-lead">How chips talk to each other one bit at a time: asynchronous serial (UART) with its start bits and baud rates, and the synchronous buses SPI and I2C, where a shared clock keeps everyone in step.</p>
+        <div class="hero-meta">
+          <span class="chip">28 topics</span>
+          <span class="chip">19 interactive labs</span>
+          <span class="chip">63 questions</span>
+          <span class="chip">Slides: X. Fafoutis and M. Pavan, DTU Compute</span>
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 1</span><h2>Asynchronous serial: UART</h2></div>
+
+      <!-- 01 -->
+      <section class="topic" id="serial-basics" data-part="Asynchronous serial" data-short="Serial communication">
+        <header class="topic-head">
+          <span class="topic-num">01</span>
+          <div><h2>Serial communication</h2><p class="kicker">One wire, one bit after another</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Imagine passing a message to a friend across the room using a single torch: on means 1, off means 0. You can only show one bit at a time, so the message goes out <strong>in sequence</strong>, bit after bit.</p>
+              <p>That is serial communication. It needs very few wires, which is exactly what small chips with few pins want.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Bits are transmitted over a wire <strong>in sequence</strong>, one after the other (as opposed to parallel, where each bit has its own wire).</li>
+                <li>Bits are encoded in the <strong>voltage level</strong> of the wire, e.g. high voltage is '1' and low voltage is '0'. The transmitter's TX pin is just a push-pull output and the receiver's RX pin a digital input.</li>
+                <li>The two devices must share a ground (GND) so that "high" and "low" mean the same thing at both ends.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/serial-basics.png" alt="Device TX pin connected to another device's RX pin, with a waveform of bits 0 1 1 0 0 1 0 1" width="1162" height="980"></div>
+              <figcaption><b>Slide 3.</b> TX of one device to RX of the other; the voltage on the wire encodes the bits.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="serial-basics"></div>
+      </section>
+
+      <!-- 02 -->
+      <section class="topic" id="timing" data-part="Asynchronous serial" data-short="Timing the receiver">
+        <header class="topic-head">
+          <span class="topic-num">02</span>
+          <div><h2>Timing the receiver</h2><p class="kicker">When should the receiver look at the wire?</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Someone holds the torch on for a while, then off, then on again. Was that "1 0 1", or "11 00 11", or "111 000 111"? You can't tell unless you know <strong>how long one bit lasts</strong>.</p>
+              <p>The receiver sees changes, but a run of identical bits has no changes in it. Without a shared sense of timing, the same signal has many readings.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The receiver can detect <strong>changes</strong> in its input, but that alone does not say how often it should read the input.</li>
+                <li>In the slide, the voltage V can be read as bin1 = 110011 or as bin2 = 101: both are consistent with the same waveform.</li>
+                <li><strong>We can't know for sure.</strong> Transmitter and receiver need a way to <strong>synchronise</strong>. Two families of solutions follow:
+                  <ul>
+                    <li><em>Asynchronous:</em> agree on the bit rate in advance and mark the start of each byte (UART).</li>
+                    <li><em>Synchronous:</em> send a clock signal on an extra wire (SPI, I2C).</li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/timing-receiver.png" alt="One waveform V with two possible readings: bin1 110011 and bin2 101" width="1152" height="1064"></div>
+              <figcaption><b>Slides 4 and 5.</b> One waveform, two equally valid interpretations.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="rxsample"></div>
+        <div class="quiz" data-quiz="timing"></div>
+      </section>
+
+      <!-- 03 -->
+      <section class="topic" id="async" data-part="Asynchronous serial" data-short="Start, stop and format">
+        <header class="topic-head">
+          <span class="topic-num">03</span>
+          <div><h2>Asynchronous serial: start bit, stop bit, format</h2><p class="kicker">No shared clock, just an agreement</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Two people agree beforehand: "I'll flash at one bit per second. When the torch has been on for a while and suddenly goes off, start your stopwatch: that's the start." From then on the listener just counts seconds.</p>
+              <p>Each byte gets its own little envelope: a <strong>start bit</strong> to say "here it comes" and a <strong>stop bit</strong> to say "done, back to resting".</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Transmitter and receiver do <strong>not</strong> share the same clock.</li>
+                <li>Synchronisation:
+                  <ul>
+                    <li>When idle, the line is at a high state, '1'.</li>
+                    <li>The beginning of each transmission is signalled by setting the line to '0' (<strong>start bit</strong>).</li>
+                    <li>Bits are transferred at a <strong>pre-agreed baud rate</strong> (typically kHz).</li>
+                    <li>The end is signalled by setting the line to '1' and holding it (<strong>end bit</strong> or <strong>stop bit</strong>). There are one or two stop bits.</li>
+                  </ul></li>
+                <li>Data are transmitted in a <strong>pre-agreed format</strong>: data size (5 to 9 bits, typically 8), bit order (typically least significant bit first) and an optional parity bit.</li>
+                <li>The common shorthand <strong>8N1</strong> means 8 data bits, No parity, 1 stop bit: a 10-bit frame per byte.
+                  <div class="formula">ASCII 'a' = 0x61 = 0b01100001 &rArr; on the wire: 0 &nbsp;1 0 0 0 0 1 1 0&nbsp; 1</div></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/async-8n1.png" alt="8N1 frame: start, b0 to b7, stop; and the waveform of ASCII a" width="1111" height="1157"></div>
+              <figcaption><b>Slide 6.</b> The 8N1 frame and ASCII 'a' sent LSB first.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="frame"></div>
+        <div class="quiz" data-quiz="async"></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="topic" id="baud" data-part="Asynchronous serial" data-short="Baud rate">
+        <header class="topic-head">
+          <span class="topic-num">04</span>
+          <div><h2>Baud rate and clock tolerance</h2><p class="kicker">How fast, and how precisely</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The baud rate is the agreed tempo, like a metronome both musicians set before playing. The receiver re-starts its stopwatch on every start bit, so the two clocks only need to agree for the length of <strong>one byte</strong>. A small difference is fine; a few percent off and the last bits are read at the wrong moment.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The <strong>baud rate</strong> is the number of bit periods (symbols) per second; for UART each symbol is one bit. The bit time is its inverse:
+                  <div class="formula">T<sub>bit</sub> = 1 / baud <span class="eq-note">9600 baud &rArr; 104.2 µs per bit</span></div></li>
+                <li>Every byte costs a whole frame, so the useful throughput is
+                  <div class="formula">bytes/s = baud / bits per frame <span class="eq-note">9600 / 10 = 960 B/s for 8N1</span></div></li>
+                <li>The receiver times every bit from the falling edge of the start bit and reads each bit in its middle. If its bit time is off by a fraction e, the sample for bit k drifts by (k + 0.5)&middot;e bit times. The last sample (the stop bit, k = 9 in a 10-bit frame) must stay within half a bit:
+                  <div class="formula">9.5 &middot; |e| &lt; 0.5 &rArr; |e| &lt; 5.3%</div>
+                  Real UARTs detect the start edge by oversampling, which eats some of that margin, so in practice both clocks should be within a couple of percent.</li>
+                <li>Because the receiver re-synchronises on each start bit, errors never build up across bytes, only within one frame.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="drift"></div>
+        <div class="quiz" data-quiz="baud"></div>
+      </section>
+
+      <!-- 05 -->
+      <section class="topic" id="parity" data-part="Asynchronous serial" data-short="Parity check">
+        <header class="topic-head">
+          <span class="topic-num">05</span>
+          <div><h2>Error detection: parity check</h2><p class="kicker">One extra bit that counts the 1s</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Before sending, you agree that every message will contain an <strong>even number of 1s</strong>, adding one extra 1 at the end if needed. If the listener counts an odd number, something got garbled on the way.</p>
+              <p>It is a cheap smoke alarm: it tells you <em>that</em> something went wrong, not <em>what</em>, and two mistakes can cancel each other out.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Even parity:</strong> the parity bit is set so that the total number of '1's transmitted (data + parity) is even.</li>
+                <li><strong>Odd parity:</strong> the parity bit is set so that the total is odd.</li>
+                <li>If the received number of '1's is not as expected, an error occurred. <strong>One error (bit flip) can be detected</strong>; in general any odd number of flips is caught and any even number is missed.</li>
+                <li>Parity cannot correct the error; the frame is simply flagged as bad.</li>
+                <li>Parity is optional: it helps in noisy media but slows down transfers (an 8E1 frame is 11 bits instead of 10).</li>
+                <li>Slide example: 'a' (three 1s) with even parity gets p = 1. At the receiver, b3 flipped to 1, so five 1s are counted: error detected.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/parity.png" alt="TX and RX waveforms of a frame with parity; bit b3 flipped at the receiver" width="1300" height="1110"></div>
+              <figcaption><b>Slide 7.</b> Bit b3 flips in transit (red); the parity no longer matches.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="parity"></div>
+        <div class="quiz" data-quiz="parity"></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="topic" id="duplex" data-part="Asynchronous serial" data-short="Bidirectional serial">
+        <header class="topic-head">
+          <span class="topic-num">06</span>
+          <div><h2>Bidirectional asynchronous serial</h2><p class="kicker">Two wires, crossed over</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A phone call: each person has a mouth (TX) and an ear (RX), and the mouth of one goes to the ear of the other. Both can talk at once (<strong>full-duplex</strong>). A walkie-talkie only lets one speak at a time (<strong>half-duplex</strong>). A radio broadcast goes one way only (<strong>simplex</strong>).</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>For bidirectional communication we need <strong>2 lines</strong> (plus the shared ground): TX of A to RX of B, and RX of A to TX of B.</li>
+                <li><strong>Full-duplex:</strong> both can transmit and receive simultaneously.</li>
+                <li><strong>Half-duplex:</strong> devices take turns transmitting and receiving.</li>
+                <li><strong>Simplex:</strong> unidirectional only.</li>
+                <li>The crossover matters: wiring TX to TX connects two push-pull outputs together, and RX to RX leaves both inputs listening to nobody.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/bidirectional.png" alt="Devices A and B with TX and RX lines crossed" width="1057" height="866"></div>
+              <figcaption><b>Slide 8.</b> TX and RX cross over between A and B.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="duplex"></div>
+      </section>
+
+      <!-- 07 -->
+      <section class="topic" id="electrical" data-part="Asynchronous serial" data-short="TTL, RS-232 and UART">
+        <header class="topic-head">
+          <span class="topic-num">07</span>
+          <div><h2>Implementing asynchronous serial</h2><p class="kicker">TTL vs RS-232 levels, UART vs bit-banging</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The frame format says <em>what</em> to send; the electrical convention says <em>which voltages</em> mean 1 and 0. Microcontrollers speak quietly (0 V and 3.3 V); the old RS-232 standard shouts with ±12 V, and upside down. And the work of building frames can be done by a dedicated hardware helper (a UART) or, laboriously, by the CPU itself.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Convention</th><th>'1'</th><th class="out">'0'</th></tr></thead>
+                  <tbody>
+                    <tr><td>TTL serial (Transistor-Transistor Logic)</td><td>positive, typically 5 V or 3.3 V</td><td class="out">0 V (ground)</td></tr>
+                    <tr><td>RS-232 serial</td><td>negative, typically -12 V</td><td class="out">positive, typically +12 V</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li>RS-232 levels would damage an MCU pin; a level-converter chip translates between RS-232 and TTL levels.</li>
+                <li><strong>UART</strong> (Universal Asynchronous Receiver-Transmitter): a hardware implementation of asynchronous serial. It creates the frames (start, data, parity, stop) and controls the physical lines, so the CPU just reads and writes bytes.</li>
+                <li><strong>Software UART (bit-banging):</strong> a software implementation directly controlled by the processor, toggling and sampling a GPIO with precise timing. Inefficient, but an option if no UART is available in the MCU.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="levels"></div>
+        <div class="quiz" data-quiz="electrical"></div>
+      </section>
+
+      <!-- 08 -->
+      <section class="topic" id="cozir" data-part="Asynchronous serial" data-short="Example: CozIR sensor">
+        <header class="topic-head">
+          <span class="topic-num">08</span>
+          <div><h2>Example of a UART peripheral: the CozIR-A CO<sub>2</sub> sensor</h2><p class="kicker">Text commands over 9600 baud 8N1</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Talking to this sensor is like texting it: you send the letter "Z", it texts back "Z 01521", meaning 1521 ppm of CO<sub>2</sub>. Both sides just need to agree on the speed and format before the chat begins.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>CozIR-A:</strong> a CO<sub>2</sub> sensor with a UART interface: 9600 baud, 8 data bits, no parity, 1 stop bit, no hardware flow control (from its datasheet table).</li>
+                <li>Pins Rx_In (UART receive input) and Tx_Out (UART transmit output) cross over to the MCU's TX and RX.</li>
+                <li>It provides an <strong>ASCII-based command/control interface</strong>: commands and replies are text characters, each sent as one UART frame, ending with <code>\r\n</code>.</li>
+                <li><code>Z\r\n</code> returns the most recent filtered CO<sub>2</sub> measurement in ppm; <code>z\r\n</code> returns the unfiltered one. Example response: <code>Z 01521\r\n</code>.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/cozir-photo.png" alt="CozIR CO2 sensor" width="556" height="445"></div>
+              <figcaption><b>Slide 10.</b> CozIR-A CO<sub>2</sub> sensor. Source: CozIR datasheet by GSS.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/cozir-datasheet.png" alt="CozIR UART timing table and pin-out description" width="1124" height="817"></div>
+              <figcaption><b>Slide 10.</b> UART settings and pin-out.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/cozir-commands.png" alt="CozIR commands Z and z with example responses" width="1300" height="389"></div>
+              <figcaption><b>Slide 10.</b> The Z and z commands.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="cozir"></div>
+        <div class="quiz" data-quiz="cozir"></div>
+      </section>
+
+      <!-- 09 -->
+      <section class="topic" id="uart-shared" data-part="Asynchronous serial" data-short="UART cannot be shared">
+        <header class="topic-head">
+          <span class="topic-num">09</span>
+          <div><h2>UART cannot be shared</h2><p class="kicker">Point-to-point only</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>UART is a private phone line between two devices. Two people shouting into the same line at once just produce noise (and here, possibly smoke). One speaker with two listeners is safe, but there is no way to say who the message is for: everyone hears everything.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Asynchronous serial (UART) does not support multiple devices: it is designed for <strong>two devices</strong> to communicate.</li>
+                <li><strong>Multiple transmitters must not share the same line:</strong> the output is push-pull, so shorts and hardware damage are possible, and communication will fail. (This is the two-MCU problem from the MCU I/O lecture.)</li>
+                <li><strong>Multiple receivers</strong> on one TX is electrically safe, but:
+                  <ul>
+                    <li>it is impossible for the transmitter to select a receiver (there are no addresses),</li>
+                    <li>all receivers will receive everything,</li>
+                    <li>it is not proper use of the standard, though it may work in some applications.</li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/serial-communication/uart-shared-tx.png" alt="Two transmitters connected to one receiver's RX" width="820" height="1367"></div>
+              <figcaption><b>Slides 11 and 12.</b> Two TX outputs on one line: not allowed.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/serial-communication/uart-shared-rx.png" alt="One transmitter connected to two receivers' RX" width="822" height="1367"></div>
+              <figcaption><b>Slide 13.</b> One TX into two RX inputs: safe, but no addressing.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="uart-shared"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 2</span><h2>Synchronous serial: SPI</h2></div>
+
+      <!-- 10 -->
+      <section class="topic" id="sync" data-part="Synchronous serial: SPI" data-short="Synchronous serial">
+        <header class="topic-head">
+          <span class="topic-num">10</span>
+          <div><h2>Synchronous serial communication</h2><p class="kicker">Send the clock along with the data</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Instead of agreeing on a tempo, one person <strong>claps</strong> for every bit: "data ready... clap, read it!" The listener doesn't need a stopwatch at all, it just reads on every clap. The clapper can even speed up or pause, and nothing breaks.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>One device, the <strong>controller</strong>, generates a clock signal.</li>
+                <li>All devices use this clock to synchronise their transmitters and receivers with the controller:
+                  <ul>
+                    <li>transmissions (driving the line) occur on the <strong>falling edge</strong> of the clock (high to low),</li>
+                    <li>receptions (reading the line) occur on the <strong>rising edge</strong> (low to high),</li>
+                    <li>or vice versa.</li>
+                  </ul></li>
+                <li>Changing the data half a clock period before it is read guarantees it is stable when sampled.</li>
+                <li>Advantages over asynchronous serial: no need to pre-agree the baud rate, no overhead of synchronisation bits, and cheaper hardware than a UART (essentially a clocked shift register).</li>
+                <li>The cost: an extra wire for the clock.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/sync.png" alt="Controller sends CLOCK and TX to the receiver; clk and data waveform" width="1010" height="1016"></div>
+              <figcaption><b>Slide 14.</b> A clock line next to the data line.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="sync"></div>
+        <div class="quiz" data-quiz="sync"></div>
+      </section>
+
+      <!-- 11 -->
+      <section class="topic" id="spi" data-part="Synchronous serial: SPI" data-short="SPI">
+        <header class="topic-head">
+          <span class="topic-num">11</span>
+          <div><h2>SPI (Serial Peripheral Interface)</h2><p class="kicker">Clock, data out, data in</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>SPI is a conveyor belt loop between two people: with each tick of the belt, one item moves from you to them <em>and</em> one moves from them to you. After eight ticks you have swapped a whole byte. Even if you only wanted to give something, you always get something back.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>SCLK</strong> (Serial Clock): driven by the SPI controller (or master). The controller selects the clock frequency, which dictates the rate of communication (around MHz). It must be supported by the peripheral(s).</li>
+                <li><strong>MOSI</strong> (Master Out, Slave In): data from the controller to the peripheral(s).</li>
+                <li><strong>MISO</strong> (Master In, Slave Out): data from the peripheral(s) to the controller.</li>
+                <li><strong>Full-duplex:</strong> on each clock cycle a bit is written/read on MOSI and a bit is written/read on MISO. This is maintained even when only one-directional transfer is intended; the unwanted direction just carries don't-care bits.</li>
+                <li>Internally each side is a shift register; MOSI and MISO join the two registers into a ring. Bit order is configurable; most devices (including the ADXL362 later) send the most significant bit first.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/spi.png" alt="SPI controller and peripheral connected by SCLK, MOSI, MISO with waveforms" width="1153" height="1168"></div>
+              <figcaption><b>Slide 15.</b> SCLK and MOSI go out, MISO comes back; 8 bits each way.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="spi"></div>
+        <div class="quiz" data-quiz="spi"></div>
+      </section>
+
+      <!-- 12 -->
+      <section class="topic" id="spi-modes" data-part="Synchronous serial: SPI" data-short="SPI modes">
+        <header class="topic-head">
+          <span class="topic-num">12</span>
+          <div><h2>SPI modes: CPOL and CPHA</h2><p class="kicker">Which edge reads, which edge changes</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Clapping comes in four styles: hands resting apart or together (clock idles low or high), and reading on the first or the second half of each clap. All four work, but both sides must use the <strong>same style</strong>, and the peripheral's datasheet tells you which one.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>CPOL = 0:</strong> clock idles at 0; the leading edge is rising and the trailing edge is falling.</li>
+                <li><strong>CPOL = 1:</strong> clock idles at 1; the leading edge is falling and the trailing edge is rising.</li>
+                <li><strong>CPHA = 0:</strong> data changes on the trailing edge and is read on the leading edge (so the first bit must already be on the line when CS goes low).</li>
+                <li><strong>CPHA = 1:</strong> data changes on the leading edge and is read on the trailing edge.</li>
+              </ul>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>SPI mode</th><th>CPOL</th><th class="out">CPHA</th></tr></thead>
+                  <tbody>
+                    <tr><td>0</td><td>0</td><td class="out">0</td></tr>
+                    <tr><td>1</td><td>0</td><td class="out">1</td></tr>
+                    <tr><td>2</td><td>1</td><td class="out">0</td></tr>
+                    <tr><td>3</td><td>1</td><td class="out">1</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/serial-communication/spi-modes.png" alt="Timing diagrams for the four combinations of clock polarity and phase" width="1270" height="1206"></div>
+              <figcaption><b>Slide 16.</b> The four modes (the slide labels them SPOL/SPHA).</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="spimodes"></div>
+        <div class="quiz" data-quiz="spi-modes"></div>
+      </section>
+
+      <!-- 13 -->
+      <section class="topic" id="spi-cs" data-part="Synchronous serial: SPI" data-short="Chip select">
+        <header class="topic-head">
+          <span class="topic-num">13</span>
+          <div><h2>SPI: chip select</h2><p class="kicker">"You, listen now"</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Chip select is tapping someone on the shoulder. While tapped (CS low), they listen to the clapping and answer. When you let go, they stop listening and go quiet, freeing the shared answer line for someone else.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Chip Select (CS)</strong>, active low: the controller uses it to select the peripheral to communicate with.</li>
+                <li>CS high &rarr; low: the peripheral activates itself and gets ready to transmit/receive.</li>
+                <li>CS low &rarr; high: the peripheral puts MISO in <strong>Hi-Z</strong> (deactivates its output).</li>
+                <li>When deactivated, the peripheral ignores SCLK and MOSI.</li>
+                <li>A <strong>pull-up resistor on CS</strong> is recommended for MCUs that boot with their GPIOs in Hi-Z, so the peripheral stays deselected until the firmware takes control of the pin.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/serial-communication/spi-cs.png" alt="SPI with SCLK, MOSI, MISO and CS lines, CS low during the transfer" width="1173" height="1317"></div>
+              <figcaption><b>Slide 17.</b> CS frames the transfer: low for the whole byte.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="spi-cs"></div>
+      </section>
+
+      <!-- 14 -->
+      <section class="topic" id="spi-multi" data-part="Synchronous serial: SPI" data-short="Multiple peripherals">
+        <header class="topic-head">
+          <span class="topic-num">14</span>
+          <div><h2>SPI: multiple peripherals</h2><p class="kicker">Shared lines, one CS each</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Several people sit around the conveyor belt. Everyone sees the clapping, but only the one being tapped on the shoulder joins in. More people means more shoulders to tap: one extra wire per peripheral.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Multiple SPI peripherals are supported. SCLK, MOSI and MISO are shared; each peripheral has its own CS output from the controller.</li>
+                <li>The controller must make sure to have <strong>only one peripheral enabled at a time</strong>, otherwise two outputs would drive the shared MISO.</li>
+                <li>Data transfers are only possible between the controller and a peripheral (not peripheral to peripheral).</li>
+                <li>Requires <strong>3 GPIOs + 1 GPIO per peripheral</strong>.
+                  <div class="formula">pins = 3 + n <span class="eq-note">4 peripherals &rArr; 7 pins</span></div></li>
+                <li>Only one device can be the SPI controller.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/spi-multi.png" alt="One SPI controller with CS1, CS2, CS3 to three peripherals sharing SCLK, MOSI, MISO" width="1158" height="1156"></div>
+              <figcaption><b>Slide 18.</b> One CS line per peripheral.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="spi-multi"></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="topic" id="spi-daisy" data-part="Synchronous serial: SPI" data-short="Daisy chain">
+        <header class="topic-head">
+          <span class="topic-num">15</span>
+          <div><h2>SPI: daisy chain</h2><p class="kicker">All in a ring, all at once</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Instead of tapping individual shoulders, everyone holds hands in a circle and passes items along: you hand one to your neighbour, who hands theirs on, and the last one hands theirs back to you. Fewer wires, but everyone has to take part, even if you only wanted to reach one person.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The SPI controller and the peripherals form a circle: the output of the first peripheral goes to the input of the second, and so on; the output of the last peripheral goes to the controller's input.</li>
+                <li>Peripherals forward data to the next one: each acts as one stage of a long shift register.</li>
+                <li>All peripherals are enabled together for a data transfer (one shared CS).</li>
+                <li>Fewer pins are required, but all peripherals must be active even if the controller needs to talk to only one. To reach the k-th peripheral, its data must pass through the k - 1 before it.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/spi-daisy.png" alt="SPI controller and three peripherals connected in a daisy chain with one shared CS" width="1180" height="1190"></div>
+              <figcaption><b>Slide 19.</b> MISO of one peripheral feeds MOSI of the next.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="daisy"></div>
+        <div class="quiz" data-quiz="spi-daisy"></div>
+      </section>
+
+      <!-- 16 -->
+      <section class="topic" id="adxl362" data-part="Synchronous serial: SPI" data-short="Example: ADXL362">
+        <header class="topic-head">
+          <span class="topic-num">16</span>
+          <div><h2>Example of an SPI peripheral: the ADXL362 accelerometer</h2><p class="kicker">Instruction, address, data</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The accelerometer is a filing cabinet of numbered drawers (registers). To read a drawer you say "read", then the drawer number, then hold out your hand for one more byte while it passes you the contents.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>ADXL362:</strong> a 3-axis accelerometer with an SPI interface and a command/control interface over SPI.</li>
+                <li>4-wire connection: CS, MOSI, MISO, SCLK. The timing follows <strong>CPHA = CPOL = 0</strong> (mode 0).</li>
+                <li>The SPI port uses a multibyte structure in which the first byte is a command: <code>0x0A</code> write register, <code>0x0B</code> read register, <code>0x0D</code> read FIFO.</li>
+                <li><strong>Register read:</strong> instruction (0x0B), 8-bit address, then the sensor returns the data byte on MISO: 24 clocks with CS held low.</li>
+                <li><strong>Register write:</strong> instruction (0x0A), address, data byte, all on MOSI; MISO stays high impedance.</li>
+                <li>The register summary lists each register's address, name, reset value and access, e.g. 0x00 DEVID_AD = 0xAD, 0x02 PARTID = 0xF2, and the XDATA/YDATA/ZDATA acceleration registers.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/adxl362-timing.png" alt="ADXL362 4-wire SPI connection, pinout, register read and register write timing" width="1300" height="911"></div>
+              <figcaption><b>Slide 20.</b> Connection, pinout and register read/write timing. Source: ADXL362 datasheet by Analog Devices.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/adxl362-registers.png" alt="ADXL362 register summary table" width="1300" height="286"></div>
+              <figcaption><b>Slide 20.</b> Register summary (first rows).</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="adxl"></div>
+        <div class="quiz" data-quiz="adxl362"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 3</span><h2>Synchronous serial: I2C</h2></div>
+
+      <!-- 17 -->
+      <section class="topic" id="i2c" data-part="I2C" data-short="I2C basics">
+        <header class="topic-head">
+          <span class="topic-num">17</span>
+          <div><h2>I2C (Inter-Integrated Circuit)</h2><p class="kicker">Two wires, open-drain, shared by many</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>SPI is fast but hungry for pins. I2C asks: can we drop the chip selects and use one shared data wire in both directions? Then everyone needs a way to talk on the same wire without fighting.</p>
+              <p>The trick is the bus stop cord: anyone may pull it down, nobody pushes it up. A spring (the pull-up resistor) lifts it when everyone lets go.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>SPI is faster and cheaper than UART and supports multiple peripherals, but requires many more GPIO pins, which puts a practical limit on the number of peripherals. I2C reduces the pin count by <strong>eliminating chip select</strong> and using a <strong>bidirectional data bus</strong>.</li>
+                <li>Only <strong>2 wires</strong>: a clock (SCL) and a data bus (SDA), each with a pull-up resistor.</li>
+                <li>Outputs are <strong>open-drain</strong>: actively transmit '0' by pulling the line to GND, transmit '1' by disabling the output (the pull-up raises the line). This is different to SPI and UART, which are push-pull.</li>
+                <li>Multiple transmitters can therefore safely share the same bus.</li>
+                <li>The clock is generated by the controller, typically <strong>100 to 400 kHz</strong>: faster than UART, slower than SPI, because open-drain rising edges are slower than push-pull ones.</li>
+                <li>It consumes energy when transmitting '0': the pull-up has the full supply across it.
+                  <div class="formula">P = V<sub>S</sub>&sup2; / R <span class="eq-note">(5 V)&sup2; / 5 k&Omega; = 5 mW per line held low</span></div></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/i2c.png" alt="I2C controller and target connected by SCL and SDA with pull-up resistors to VS" width="1086" height="801"></div>
+              <figcaption><b>Slide 23.</b> SCL and SDA with their pull-up resistors.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="rise"></div>
+        <div class="quiz" data-quiz="i2c"></div>
+      </section>
+
+      <!-- 18 -->
+      <section class="topic" id="i2c-addressing" data-part="I2C" data-short="Addresses">
+        <header class="topic-head">
+          <span class="topic-num">18</span>
+          <div><h2>I2C: multiple peripherals and addresses</h2><p class="kicker">Addresses replace chip select</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Instead of tapping shoulders, you call people by <strong>name</strong>. Everyone hears the call, only the named one answers. Two people with the same name in one room would be chaos, so identical chips get a pin that changes the last letter of their name.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Peripherals, known as <strong>I2C targets</strong>, simply connect to the SCL and SDA buses.</li>
+                <li>The CS functionality is replaced by <strong>addresses</strong>. Each target has a <strong>7-bit address</strong>: 2<sup>7</sup> = 128 values, theoretically supporting up to <strong>112</strong> peripherals because some addresses are reserved.</li>
+                <li>Addresses are often fixed, sometimes configurable. It is vital not to have two peripherals with the same address on the same bus.</li>
+                <li>A variant of I2C with 10-bit addresses also exists.</li>
+                <li><strong>Configurable addresses:</strong> a sensor with address <code>0b011010x</code> reads bit x from its ADR pin. With ADR tied to V<sub>S</sub> it answers to 0b0110101; with ADR to GND, 0b0110100. A target may have zero, one or more configurable bits.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/serial-communication/i2c-multi.png" alt="One I2C controller and three targets on shared SCL and SDA" width="1032" height="1323"></div>
+              <figcaption><b>Slide 24.</b> Targets just hang on the two shared lines.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/i2c-addr-config.png" alt="Two identical targets, ADR pin tied to VS on one and GND on the other" width="1157" height="1113"></div>
+              <figcaption><b>Slide 25.</b> The ADR pin sets the last address bit.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="i2c-addressing"></div>
+      </section>
+
+      <!-- 19 -->
+      <section class="topic" id="addr-frame" data-part="I2C" data-short="Address frame">
+        <header class="topic-head">
+          <span class="topic-num">19</span>
+          <div><h2>I2C: the address frame</h2><p class="kicker">7 address bits plus read/write</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Every conversation starts with the controller calling a name and saying whether it wants to <strong>talk</strong> or <strong>listen</strong>, all packed into a single byte.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>All I2C data transfers are initiated by the controller.</li>
+                <li>The first byte the controller puts on the line is the <strong>7-bit address</strong> (most significant bit first, a6 to a0) followed by a bit that says whether the controller wants to <strong>read (1)</strong> from or <strong>write (0)</strong> to the peripheral.
+                  <div class="formula">address byte = (address &lt;&lt; 1) | R/W</div></li>
+                <li>Peripherals whose address does not match ignore it.</li>
+                <li>Example: peripheral address 0b0110101 (0x35). To write: <code>0b01101010</code> (0x6A). To read: <code>0b01101011</code> (0x6B).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/i2c-addr-bus.png" alt="I2C controller with three targets" width="794" height="1022"></div>
+              <figcaption><b>Slide 26.</b> All targets see the address frame.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/i2c-addr-frame.png" alt="SCL and SDA waveform with bits a6 to a0 and r/w" width="1288" height="207"></div>
+              <figcaption><b>Slide 26.</b> a6 first, R/W last.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="addrframe"></div>
+        <div class="quiz" data-quiz="addr-frame"></div>
+      </section>
+
+      <!-- 20 -->
+      <section class="topic" id="start-ack" data-part="I2C" data-short="Start and ACK">
+        <header class="topic-head">
+          <span class="topic-num">20</span>
+          <div><h2>I2C protocol: start condition and acknowledgement</h2><p class="kicker">Getting attention, and confirming receipt</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The controller clears its throat in a special way nobody uses during normal talk (the <strong>start condition</strong>), then calls the name. The named target answers with a quick "yes" by pulling the data line low (<strong>ACK</strong>). Silence means nobody by that name is there.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>During data bits, SDA only changes while SCL is low. A change of SDA while SCL is high is therefore reserved for special conditions.</li>
+                <li><strong>Start condition:</strong> to initiate a transaction, the controller leaves SCL high and pulls SDA low. All peripherals get ready to receive.</li>
+                <li>The controller writes the address frame byte (target address + read/write intention).</li>
+                <li>The controller then disables its output and gives control of SDA to the target.</li>
+                <li><strong>ACK bit:</strong> the target pulls SDA low to indicate successful reception. If there is an error (or no such target), the pull-up keeps the line high: a NACK.</li>
+                <li>Example 1: address 0b0110101, write, target acknowledges: <code>0110101 0 | 0</code>. Example 2: same address, read, error: <code>0110101 1 | 1</code>.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/i2c-start-ack.png" alt="I2C start condition, address frame and ack; example 1 acknowledged, example 2 not" width="1300" height="877"></div>
+              <figcaption><b>Slide 27.</b> General frame, an acknowledged write and a failed read.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="start-ack"></div>
+      </section>
+
+      <!-- 21 -->
+      <section class="topic" id="data-stop" data-part="I2C" data-short="Data and stop">
+        <header class="topic-head">
+          <span class="topic-num">21</span>
+          <div><h2>I2C protocol: data frames and stop condition</h2><p class="kicker">Bytes, acknowledgements, goodbye</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>After the name, bytes flow one at a time, and whoever <em>receives</em> each byte nods (ACK). When the controller is reading and has had enough, it shakes its head instead (NACK), then ends with another special throat-clear (the <strong>stop condition</strong>).</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>After a successful address frame the controller keeps generating clock pulses and data transmission begins.</li>
+                <li>SDA is controlled by either the controller or the target, according to the R/W bit.</li>
+                <li>Each <strong>data frame</strong> is a byte (8 bits, MSB first) followed by an acknowledgement bit from the <em>receiver</em>: 9 clocks per byte. One or more data frames can follow.</li>
+                <li>If the last data frame is a read, the controller sends a <strong>NACK</strong> to indicate it intends to terminate the transfer.</li>
+                <li><strong>Stop condition:</strong> (1) with SCL low, the controller pulls SDA low, (2) SCL goes low to high, (3) SDA goes low to high while SCL is high.</li>
+                <li>Slide 29, example 1 (write 0xA7 to 0x35): <code>0110101 0 | 0 | 10100111 | 0</code>. Example 2 (read 0x23 from 0x35): <code>0110101 1 | 0 | 00100011 | 1</code>. Blue bits are driven by the controller, green by the target.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/i2c-data-stop.png" alt="Full I2C transaction: start, address frame, ack, data frame, ack, stop" width="1300" height="136"></div>
+              <figcaption><b>Slide 28.</b> Start, address frame, data frame, stop ("end").</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/i2c-examples.png" alt="Two I2C transaction examples, write and read, colored by who drives SDA" width="1300" height="464"></div>
+              <figcaption><b>Slide 29.</b> A write and a read. Blue: controller drives SDA; green: target.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="i2ctx"></div>
+        <div class="quiz" data-quiz="data-stop"></div>
+      </section>
+
+      <!-- 22 -->
+      <section class="topic" id="clock-stretch" data-part="I2C" data-short="Clock stretching">
+        <header class="topic-head">
+          <span class="topic-num">22</span>
+          <div><h2>Open-drain output and clock stretching</h2><p class="kicker">'0' always wins</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>On a pull-cord bus, a single person holding the cord down beats everyone else. A slow target can use that on the <strong>clock</strong> wire: it simply holds SCL low, and the controller cannot make the next clap until it lets go. The target pauses time.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Open-drain mode has two states: logical '0' (low voltage) and Hi-Z (disconnected). It sets the line to '0' <strong>actively</strong> and to '1' <strong>indirectly</strong>, by disconnecting and letting the pull-up raise it.</li>
+                <li>The line is '1' only if nobody transmits '0': a <strong>wired-AND</strong>. If two devices control the line at the same time, '0' always wins, and there is never a short.</li>
+                <li><strong>Clock stretching:</strong> a target that needs more time to process data can pull SCL to '0'. The controller cannot generate the next high clock phase until SCL is released, so the target temporarily stops time.</li>
+                <li>The controller notices by reading SCL back after releasing it.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/serial-communication/open-drain.png" alt="Two open-drain MCUs with a shared pull-up and truth table" width="1119" height="1264"></div>
+              <figcaption><b>Slide 30.</b> Open-drain: '0' (both), '0' (one), '1' only via the pull-up.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/clock-stretch.png" alt="SCL held low between a1 and a0 by the target" width="1300" height="175"></div>
+              <figcaption><b>Slide 31.</b> The target holds SCL low before a0.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="stretch"></div>
+        <div class="quiz" data-quiz="clock-stretch"></div>
+      </section>
+
+      <!-- 23 -->
+      <section class="topic" id="arbitration" data-part="I2C" data-short="Multiple controllers">
+        <header class="topic-head">
+          <span class="topic-num">23</span>
+          <div><h2>I2C: multiple controllers and arbitration</h2><p class="kicker">Who backs off when two start together</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Two people start talking at the same instant. Each listens to the line while speaking. The first moment one hears a "0" where they said "1", they realise someone else is talking and politely stop. The other never even notices the collision.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>I2C supports <strong>multiple controllers</strong> thanks to the open-drain bus. Controllers monitor the bus for start/stop conditions and do not initiate a start while it is busy.</li>
+                <li>However, two controllers may start a transmission at the same time. <strong>Arbitration</strong> resolves it:
+                  <ul>
+                    <li>if two devices control the line at the same time, '0' always wins;</li>
+                    <li>when a device transmits '1' (by disabling its output), it reads the line in parallel;</li>
+                    <li>if the line remains '0', somebody else is active;</li>
+                    <li>the first controller that detects an inconsistency backs off and lets the other finish.</li>
+                  </ul></li>
+                <li>The one that holds out longer before sending a '1' wins. Since addresses go MSB first, the controller addressing the <strong>lower</strong> address wins. Nothing is lost: the winner's frame is intact.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/serial-communication/i2c-multi-ctrl.png" alt="Two I2C controllers and three targets on one bus" width="974" height="1258"></div>
+              <figcaption><b>Slide 32.</b> Two controllers on one bus.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="arb"></div>
+        <div class="quiz" data-quiz="arbitration"></div>
+      </section>
+
+      <!-- 24 -->
+      <section class="topic" id="repeated-start" data-part="I2C" data-short="Repeated start">
+        <header class="topic-head">
+          <span class="topic-num">24</span>
+          <div><h2>I2C: repeated start condition</h2><p class="kicker">Keep the floor between transactions</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Saying "goodbye" and then "hello" again gives others a chance to grab the conversation. A repeated start is saying "and another thing..." without ever hanging up.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The controller can make transactions back-to-back by generating a <strong>repeated start</strong> condition.</li>
+                <li>First it raises both SDA and SCL high <em>avoiding</em> a stop condition (SDA rises while SCL is still low).</li>
+                <li>Then it generates a new start condition by pulling SDA down before SCL.</li>
+                <li>Other I2C controllers do not interfere, because they wait for a stop condition. This keeps two-step operations (such as the register read in topic 25) atomic.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/repeated-start.png" alt="End of a data frame followed by a repeated start and a new address frame" width="1300" height="188"></div>
+              <figcaption><b>Slide 33.</b> d3 to ack, then a repeated start straight into a6.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="repeated-start"></div>
+      </section>
+
+      <!-- 25 -->
+      <section class="topic" id="register-rw" data-part="I2C" data-short="Register read/write">
+        <header class="topic-head">
+          <span class="topic-num">25</span>
+          <div><h2>I2C: write and read a target register</h2><p class="kicker">3 bytes to write, 4 to read</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Writing a drawer: "Hey sensor, drawer 15, put in 42." Reading a drawer takes two sentences: "Hey sensor, drawer 15" and then, without hanging up, "Hey sensor, what's in it?"</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Peripherals typically organise their internal memory in <strong>registers</strong>, each with an address and a value.</li>
+                <li>To read or write a register, the controller first writes the <strong>register address</strong> it wishes to access.</li>
+                <li><strong>Write to target register (3 bytes):</strong> Start &rarr; Target Address (W) &rarr; Register Address &rarr; Register Value &rarr; Stop.</li>
+                <li><strong>Read register from target (4 bytes):</strong> Start &rarr; Target Address (W) &rarr; Register Address &rarr; Re-Start &rarr; Target Address (R) &rarr; Register Value &rarr; Stop.</li>
+                <li>With an ACK/NACK after every byte, each byte costs 9 clocks: a read is at least 36 clocks, 360 µs at 100 kHz.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/i2c-register-rw.png" alt="SDA sequences for writing and reading a target register" width="1300" height="206"></div>
+              <figcaption><b>Slide 34.</b> Register write (top) and register read with repeated start (bottom).</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="regrw"></div>
+        <div class="quiz" data-quiz="register-rw"></div>
+      </section>
+
+      <!-- 26 -->
+      <section class="topic" id="tmp1075" data-part="I2C" data-short="Example: TMP1075">
+        <header class="topic-head">
+          <span class="topic-num">26</span>
+          <div><h2>Example of an I2C peripheral: the TMP1075 temperature sensor</h2><p class="kicker">Register map and configurable address</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A tiny thermometer chip that lives on the two-wire bus. Point at its temperature drawer, read two bytes, and you have the temperature. Four of them can share one bus, because two bits of their name can be set on the board.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>TMP1075:</strong> a temperature sensor with an I2C interface and a command/control interface over I2C.</li>
+                <li>Configurable I2C address <strong>10010xx</strong>: four addresses, 0x48 to 0x4B.</li>
+                <li>Its register map: 00h TEMP (R), 01h CFGR (R/W, configuration), 02h LLIM (R/W, low limit), 03h HLIM (R/W, high limit), 0Fh DIEID (R, device ID).</li>
+                <li>The datasheet figures show the register-pointer pattern from topic 25: write the pointer byte, then read the (16-bit) register as two data frames, the controller NACKing the last one.</li>
+                <li>Per the datasheet, TEMP holds a 12-bit two's-complement value in its upper bits with 0.0625 &deg;C per step, so the LLIM and HLIM reset values 4B00h and 5000h mean 75 &deg;C and 80 &deg;C.</li>
+                <li>The application circuit uses 5 k&Omega; pull-ups on SDA and SCL.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/tmp1075.png" alt="TMP1075 register map, application circuit and two-wire timing diagrams" width="1300" height="777"></div>
+              <figcaption><b>Slide 35.</b> Register map, wiring and write/read timing. Source: TMP1075N datasheet by Texas Instruments.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="tmp"></div>
+        <div class="quiz" data-quiz="tmp1075"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 4</span><h2>Choosing a bus</h2></div>
+
+      <!-- 27 -->
+      <section class="topic" id="summary" data-part="Choosing a bus" data-short="UART vs SPI vs I2C">
+        <header class="topic-head">
+          <span class="topic-num">27</span>
+          <div><h2>Summary: UART vs SPI vs I2C</h2><p class="kicker">Pins, speed, overhead, energy</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>UART is a private phone line. SPI is a fast conveyor belt with a separate "you're up" wire per guest. I2C is a party line where everyone is called by name: fewest wires, slowest, and it burns a little energy on every '0'.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Property</th><th>UART</th><th>SPI</th><th class="out">I2C</th></tr></thead>
+                  <tbody>
+                    <tr><td>No. peripherals</td><td>Point-to-point</td><td>Many (GPIO)</td><td class="out">Many (address)</td></tr>
+                    <tr><td>Multi-controller</td><td>No</td><td>No</td><td class="out">Yes</td></tr>
+                    <tr><td>Rate (typical)</td><td>10 to 100 kbps</td><td>1 to 20 Mbps</td><td class="out">100 to 400 kbps</td></tr>
+                    <tr><td>GPIOs required</td><td>2</td><td>3 + 1 per peripheral</td><td class="out">2</td></tr>
+                    <tr><td>Simultaneous Tx/Rx</td><td>Depends on hardware</td><td>Full-duplex</td><td class="out">Half-duplex</td></tr>
+                    <tr><td>Overhead</td><td>2 to 4 bits per byte</td><td>0</td><td class="out">11 + 1 per byte</td></tr>
+                    <tr><td>Energy requirements</td><td>++</td><td>+</td><td class="out">+++</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li>UART overhead: start + 1 or 2 stop bits + optional parity. I2C overhead: start, address frame with ACK and stop (11 bits per transaction), plus one ACK bit per data byte.</li>
+                <li>Energy: I2C's pull-ups draw current on every '0'; SPI's push-pull lines only draw current while switching.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="pins"></div>
+        <div class="quiz" data-quiz="summary"></div>
+      </section>
+
+      <!-- 28 -->
+      <section class="topic" id="i3c" data-part="Choosing a bus" data-short="I3C">
+        <header class="topic-head">
+          <span class="topic-num">28</span>
+          <div><h2>I3C</h2><p class="kicker">The best of both worlds</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>I3C keeps I2C's two wires and polite start, then, once everyone knows who is talking, switches to SPI-style strong pushing on the data line to go much faster.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Aims to be the best of both worlds (I2C and SPI).</li>
+                <li>A primary controller controls the clock; a secondary controller may exist.</li>
+                <li>Switches SDA from open-drain to <strong>push-pull</strong> whenever possible: after the start condition the controller switches SDA to push-pull, allowing the clock to be increased up to <strong>12.5 MHz</strong>.</li>
+                <li>Pull-up resistors are provided by the I3C controller.</li>
+                <li><strong>Not supported:</strong> clock stretching and 10-bit addresses.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/serial-communication/i3c.png" alt="Venn diagram: I3C in the overlap of I2C and SPI" width="214" height="308"></div>
+              <figcaption><b>Slide 37.</b> I3C sits between I2C and SPI. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="i3c"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="topic" id="cheat-sheet" data-toc-extra="Cheat sheet">
+        <header class="topic-head">
+          <span class="topic-num">&Sigma;</span>
+          <div><h2>Cheat sheet</h2><p class="kicker">The numbers and rules worth memorising</p></div>
+        </header>
+        <div class="cheat">
+          <div class="cheat-item"><h3>UART frame</h3><div class="formula">idle 1 | start 0 | b0 &hellip; b7 | (p) | stop 1</div><p>LSB first. 8N1 = 10 bits per byte.</p></div>
+          <div class="cheat-item"><h3>Bit time and throughput</h3><div class="formula">T<sub>bit</sub> = 1/baud, &nbsp;B/s = baud / frame bits</div><p>9600 8N1: 104 µs per bit, 960 bytes/s.</p></div>
+          <div class="cheat-item"><h3>Clock tolerance</h3><div class="formula">|e| &lt; 0.5 / (N - 0.5)</div><p>N = bits per frame; about 5% for 8N1, less in practice.</p></div>
+          <div class="cheat-item"><h3>Parity</h3><div class="formula">even: total 1s even &nbsp;|&nbsp; odd: total 1s odd</div><p>Detects 1 (any odd number of) flipped bits; corrects none.</p></div>
+          <div class="cheat-item"><h3>Electrical levels</h3><div class="formula">TTL: 1 = V<sub>S</sub>, 0 = 0 V &nbsp;|&nbsp; RS-232: 1 = -12 V, 0 = +12 V</div><p>Never connect RS-232 directly to an MCU pin.</p></div>
+          <div class="cheat-item"><h3>SPI modes</h3><div class="formula">mode = 2&middot;CPOL + CPHA</div><p>CPOL: clock idle level. CPHA = 0: read on leading edge; 1: read on trailing edge.</p></div>
+          <div class="cheat-item"><h3>SPI pins</h3><div class="formula">3 + n (separate CS) &nbsp;|&nbsp; 4 (daisy chain)</div><p>Only one CS low at a time; MISO in Hi-Z when deselected.</p></div>
+          <div class="cheat-item"><h3>I2C address byte</h3><div class="formula">(addr7 &lt;&lt; 1) | R/W &nbsp;&nbsp; 0x35 &rArr; 0x6A / 0x6B</div><p>7-bit address MSB first, R = 1, W = 0. 112 usable addresses.</p></div>
+          <div class="cheat-item"><h3>I2C conditions</h3><div class="formula">start: SDA &darr; while SCL high &nbsp;|&nbsp; stop: SDA &uarr; while SCL high</div><p>Data bits only change while SCL is low. ACK = 0 from the receiver; NACK = 1.</p></div>
+          <div class="cheat-item"><h3>I2C register access</h3><div class="formula">write: 3 bytes &nbsp;|&nbsp; read: 4 bytes (with re-start)</div><p>9 clocks per byte. Pull-up power while '0': V<sub>S</sub>&sup2;/R.</p></div>
+        </div>
+      </section>
+
+      <p class="page-foot">Figures cropped from the lecture slides "Week 5: Serial Communication" by Xenofon Fafoutis and Massimo Pavan, DTU Compute, with their original sources noted. For personal study.</p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/serial-communication.js"></script>
+</body>
+</html>

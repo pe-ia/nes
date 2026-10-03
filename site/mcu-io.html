@@ -1,0 +1,887 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>MCU Input/Output · NES Study</title>
+  <meta name="description" content="Interactive study page for the NES lecture on MCU input/output: GPIO, push-pull, tri-state, pull-ups, open-drain, ADC, DAC and PWM.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3162b'/%3E%3Cpath d='M7 21h5V11h8v10h5' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn" type="button" data-nav-toggle aria-label="Open contents">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Contents
+  </button>
+  <span class="topbar-progress"><span data-progress-answered>0 / 0</span> answered</span>
+</header>
+<div class="scrim"></div>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Lecture contents">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">NES</span>
+      <span class="brand-text"><b>NES Study</b><span>Networked Embedded Systems</span></span>
+    </a>
+
+    <div class="progress-card">
+      <div class="progress-row"><span>Questions answered</span><b data-progress-answered>0 / 0</b></div>
+      <div class="progress-bar"><span data-progress-bar></span></div>
+      <div class="progress-sub"><span>Right on first try: <b data-progress-first>0</b></span><button class="link-btn" type="button" data-quiz-reset>Reset</button></div>
+    </div>
+
+    <nav class="toc" data-toc></nav>
+
+    <div class="sidebar-foot">
+      <a class="icon-btn" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        All lectures
+      </a>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Theme
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+
+      <div class="hero">
+        <div class="crumbs"><a href="index.html">NES Study</a> / Week 4: MCU Input/Output</div>
+        <h1>MCU Input/Output</h1>
+        <p class="hero-lead">How a microcontroller talks to the physical world: digital pins that drive and read wires, converters that measure and produce voltages, and PWM to control power efficiently.</p>
+        <div class="hero-meta">
+          <span class="chip">20 topics</span>
+          <span class="chip">15 interactive labs</span>
+          <span class="chip">44 questions</span>
+          <span class="chip">Slides: X. Fafoutis, DTU Compute</span>
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 1</span><h2>Digital I/O: GPIO</h2></div>
+
+      <!-- 01 -->
+      <section class="topic" id="digital-logic" data-part="Digital I/O" data-short="Digital logic">
+        <header class="topic-head">
+          <span class="topic-num">01</span>
+          <div><h2>Digital logic</h2><p class="kicker">Two voltage levels, one bit</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A computer only understands <strong>yes and no</strong>: 1 and 0. On a wire we represent that with voltage: "lots of voltage" means 1, "almost none" means 0.</p>
+              <p>Think of a light switch rather than a dimmer. The chip does not care whether the wire is at 97% or 100% of the supply: it is simply "on". That tolerance is why digital circuits keep working even when the wire is noisy.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>High voltage</strong> (typically the supply, V<sub>S</sub>) is logic <strong>'1'</strong>; <strong>low voltage</strong> (typically ground, 0 V) is logic <strong>'0'</strong>.</li>
+                <li>The receiver makes a <strong>threshold decision</strong>. The simplest rule:
+                  <div class="formula">V &gt; V<sub>S</sub>/2 &rArr; '1' &nbsp;&nbsp; otherwise '0'</div></li>
+                <li>Noise that does not push the voltage across the threshold is removed completely: the bit comes out exactly as sent. In analog signals, noise stays in the signal forever.</li>
+                <li>Real datasheets give two limits rather than one: V<sub>IL,max</sub> (highest voltage guaranteed to read '0') and V<sub>IH,min</sub> (lowest guaranteed '1'), often around 0.3&middot;V<sub>DD</sub> and 0.7&middot;V<sub>DD</sub>. In between, the reading is not guaranteed.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/digital-logic.png" alt="Bit sequence as square wave, and a noisy analog signal still readable as 1 0 1 1" width="847" height="770"></div>
+              <figcaption><b>Slide 3.</b> Top: bits as clean voltage levels. Bottom: a real, noisy signal still decodes as 1, 0, 1, 1.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="noise"></div>
+        <div class="quiz" data-quiz="digital-logic"></div>
+      </section>
+
+      <!-- 02 -->
+      <section class="topic" id="gpio" data-part="Digital I/O" data-short="GPIO">
+        <header class="topic-head">
+          <span class="topic-num">02</span>
+          <div><h2>General Purpose Input/Output (GPIO)</h2><p class="kicker">Pins whose job software decides</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A GPIO is a pin on the chip whose role your program chooses. As an <strong>output</strong> it is a tiny switch that connects the wire to the supply or to ground. As an <strong>input</strong> it is a tiny voltmeter that only ever answers "high" or "low".</p>
+              <p>Buttons, status LEDs, chip-select lines, interrupt signals from sensors: they are all GPIOs.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Three basic operations, all under software control: <strong>set the line high</strong> ('1'), <strong>set it low</strong> ('0'), <strong>read its logic level</strong>.</li>
+                <li>The nRF52832 has <strong>32 GPIOs</strong>, labelled <code>P0.00</code> to <code>P0.31</code> (one port, P0).</li>
+                <li>Pins are <strong>multiplexed</strong>: <code>P0.02</code> is also <code>AIN0</code> (an ADC input), <code>P0.00/P0.01</code> double as <code>XL1/XL2</code> for a 32.768 kHz crystal, and <code>P0.09/P0.10</code> as the NFC antenna pins. Firmware decides which function is active.</li>
+                <li>Pins are configured through memory-mapped registers. On the nRF52, <code>PIN_CNF[n]</code> sets direction, input buffer, pull resistor, drive mode and sense; <code>OUTSET</code>/<code>OUTCLR</code> change outputs and <code>IN</code> reads them. In Zephyr you call <code>gpio_pin_configure()</code> and <code>gpio_pin_set()</code> instead.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/mcu-io/nrf52832-pins.png" alt="nRF52832 QFN48 package pinout" width="810" height="966"></div>
+              <figcaption><b>Slide 4.</b> nRF52832 (QFN48) pinout. Source: Nordic Semiconductor datasheet.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="gpio"></div>
+      </section>
+
+      <!-- 03 -->
+      <section class="topic" id="push-pull" data-part="Digital I/O" data-short="Push-pull output">
+        <header class="topic-head">
+          <span class="topic-num">03</span>
+          <div><h2>GPIO output: push-pull mode</h2><p class="kicker">Actively driving both levels</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Picture the pin behind two doors: one opens to the supply (V<sub>S</sub>), the other to ground. In push-pull mode <strong>exactly one door is open</strong> at any time.</p>
+              <p>Write '1' and the MCU opens the top door: it <strong>pushes</strong> the pin up. Write '0' and it opens the bottom door: it <strong>pulls</strong> the pin down. The pin is always firmly held one way or the other.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The MCU drives the output by <strong>actively</strong> connecting it either to V<sub>S</sub> or to ground.</li>
+                <li>Implemented with two <strong>MOSFET switches</strong>: a high-side switch (PMOS) to V<sub>S</sub> and a low-side switch (NMOS) to ground, the classic CMOS output stage.</li>
+                <li>An input of '1' closes the upper switch and <em>simultaneously</em> opens the lower one; '0' does the opposite. Both closed would short V<sub>S</sub> to ground inside the chip, so that never happens.</li>
+                <li>Low resistance in both directions gives strong, fast rising <em>and</em> falling edges.</li>
+                <li>Push-pull is often the default output mode, and it is selected in software.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/push-pull.png" alt="MCU pushing output to VS, and pulling output to ground" width="1168" height="583"></div>
+              <figcaption><b>Slide 5.</b> Left: pushed to V<sub>S</sub>. Right: pulled to 0.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/push-pull-mosfet.png" alt="Two MOSFET switches between VS, output and ground" width="825" height="839"></div>
+              <figcaption><b>Slide 6.</b> Two complementary switches; input '1' connects the pin to V<sub>S</sub>.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="pushpull"></div>
+        <div class="quiz" data-quiz="push-pull"></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="topic" id="source-sink" data-part="Digital I/O" data-short="Current source &amp; sink">
+        <header class="topic-head">
+          <span class="topic-num">04</span>
+          <div><h2>GPIO as a current source and sink</h2><p class="kicker">Using a pin as a (small) power switch</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A GPIO can switch a small load such as an LED directly. As a <strong>source</strong>, the pin at '1' pushes current out through the LED to ground. As a <strong>sink</strong>, the LED hangs from the supply and the pin at '0' swallows the current, so the logic is reversed.</p>
+              <p>But pins are weak: a few milliamps. Enough for an indicator LED, nowhere near enough for a motor.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Communication signals are low-current; powering components is not.</li>
+                <li><strong>Source:</strong> current flows <em>out</em> of the pin. Pin '1' &rArr; LED on.</li>
+                <li><strong>Sink:</strong> current flows <em>into</em> the pin and the pin closes the circuit to ground. Pin '1' &rArr; LED <em>off</em>, '0' &rArr; LED on (active-low).</li>
+                <li>Output current is limited, typically <strong>2 to 12 mA</strong> per pin. Some MCUs have <strong>high-drive</strong> pins (e.g. 40 mA). There is usually also a limit on the total for all pins together.</li>
+                <li>Pick the series resistor for the current you want:
+                  <div class="formula">R = (V<sub>S</sub> - V<sub>F</sub>) / I <span class="eq-note">(3.3 V - 2.0 V) / 4 mA &asymp; 330 &Omega;</span></div></li>
+                <li>High-power loads (motors, relays, LED strips) are connected directly to the power source and only <em>switched</em> by the GPIO via a transistor or driver IC.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/current-source.png" alt="GPIO sourcing current to LED: on when output high, off when low" width="621" height="1086"></div>
+              <figcaption><b>Slide 7.</b> Source: '1' turns the LED on.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/current-sink.png" alt="GPIO sinking current from LED: off when output high, on when low" width="622" height="1099"></div>
+              <figcaption><b>Slide 8.</b> Sink: '0' turns the LED on.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="led"></div>
+        <div class="quiz" data-quiz="source-sink"></div>
+      </section>
+
+      <!-- 05 -->
+      <section class="topic" id="two-mcus" data-part="Digital I/O" data-short="Two MCUs, one line">
+        <header class="topic-head">
+          <span class="topic-num">05</span>
+          <div><h2>Two MCUs on one line</h2><p class="kicker">Why two push-pull outputs must never disagree</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Several devices often share one wire. Now imagine two push-pull outputs on it: one opens its door to the supply, the other opens its door to ground. The supply is now connected <strong>straight to ground</strong> through both chips.</p>
+              <p>That is a short circuit: lots of current, heat, and a wire whose value is nonsense.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>MCU1</th><th>MCU2</th><th class="out">V<sub>out</sub></th></tr></thead>
+                  <tbody>
+                    <tr><td>0</td><td>0</td><td class="out v-lo">0</td></tr>
+                    <tr><td>0</td><td>1</td><td class="out v-bad">SHORT</td></tr>
+                    <tr><td>1</td><td>0</td><td class="out v-bad">SHORT</td></tr>
+                    <tr><td>1</td><td>1</td><td class="out v-hi">1</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li>In a short, the current is limited only by the <strong>on-resistance</strong> of the two transistors (a few tens of ohms), far above any pin rating.</li>
+                <li>The line settles at some in-between voltage set by those two resistances: not a valid logic level.</li>
+                <li>Rule: <strong>only one device should drive a line</strong> at a time. Two output states are not enough; we need a way to <strong>disconnect</strong> the output.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/mcu-io/two-mcus.png" alt="Two MCUs with push-pull outputs connected together, with truth table showing shorts" width="913" height="1133"></div>
+              <figcaption><b>Slides 9 and 10.</b> Two push-pull outputs tied together.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="bus-basic"></div>
+        <div class="quiz" data-quiz="two-mcus"></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="topic" id="tristate" data-part="Digital I/O" data-short="Tri-state &amp; Hi-Z">
+        <header class="topic-head">
+          <span class="topic-num">06</span>
+          <div><h2>Tri-state logic and GPIO output states</h2><p class="kicker">'0', '1', and "not here"</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Add a third option: <strong>both doors closed</strong>. The pin is neither pushed nor pulled; electrically it is simply not there. This is called <strong>high impedance</strong>, or Hi-Z.</p>
+              <p>It is like a meeting where people who are not speaking keep quiet. A device that has nothing to say steps off the line so someone else can drive it.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Three states: logical <strong>'0'</strong> (low voltage), logical <strong>'1'</strong> (high voltage), and <strong>Hi-Z</strong> (disconnected).</li>
+                <li>A <strong>tri-state buffer</strong> passes IN to OUT when ENABLE = 1, and disconnects OUT when ENABLE = 0. It is built from MOSFETs switched fully off, whose resistance is so high that no current flows: equivalent to an open circuit.</li>
+                <li>A GPIO output therefore has <strong>two controls</strong>: the output value <strong>A</strong> and the enable <strong>EN</strong>. It can be actively pushed to '1', actively pulled to '0', or disabled (Hi-Z).</li>
+                <li>Hi-Z is <em>not</em> 0 V. A Hi-Z pin has no voltage of its own; whatever else is connected to the line decides it.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/tristate.png" alt="Tri-state buffer symbol with enable and truth table" width="955" height="706"></div>
+              <figcaption><b>Slide 11.</b> Tri-state buffer and its truth table.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/gpio-output-states.png" alt="GPIO output stage with A and EN controls and truth table" width="850" height="816"></div>
+              <figcaption><b>Slide 12.</b> GPIO output with value A and enable EN.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="tristate"></div>
+        <div class="quiz" data-quiz="tristate"></div>
+      </section>
+
+      <!-- 07 -->
+      <section class="topic" id="hysteresis" data-part="Digital I/O" data-short="Input &amp; hysteresis">
+        <header class="topic-head">
+          <span class="topic-num">07</span>
+          <div><h2>GPIO input and input hysteresis</h2><p class="kicker">Reading a pin without flickering</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Reading a pin means asking: "is the voltage above half the supply?" The trouble starts when a slow, noisy signal hovers right around that halfway mark: the answer flickers yes, no, yes, no.</p>
+              <p><strong>Hysteresis</strong> fixes this the way a thermostat does: heat on below 19&deg;, off above 21&deg;, instead of clicking on and off around 20&deg; every few seconds. Two thresholds, with a "keep what you had" zone in between.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A <strong>comparator</strong> compares two analog voltages and outputs '0' or '1' depending on which is larger. A GPIO input can be built by comparing the pin to V<sub>S</sub>/2.</li>
+                <li>Noise near the threshold causes several quick successive changes (glitches): one button press counted many times, spurious interrupts.</li>
+                <li><strong>Input hysteresis</strong> (a Schmitt trigger) uses two thresholds:
+                  <div class="formula">'0' &rarr; '1' when V &gt; V<sub>S</sub>/2 + V<sub>H</sub><br>'1' &rarr; '0' when V &lt; V<sub>S</sub>/2 - V<sub>H</sub></div>
+                  Between the two, the output keeps its previous value (it has memory).</li>
+                <li>Noise smaller than the band (2&middot;V<sub>H</sub> wide) can no longer cause toggling. The cost is a small shift in when the switch happens.</li>
+                <li>Mechanical button bounce (large swings for a few ms) still needs debouncing, in software or with an RC filter.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/hysteresis.png" alt="Noisy signal U, plain comparator output A with glitches, hysteresis output B clean" width="637" height="550"></div>
+              <figcaption><b>Slide 13.</b> Signal U, plain comparator A (glitches), with hysteresis B (clean). Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="hyst"></div>
+        <div class="quiz" data-quiz="hysteresis"></div>
+      </section>
+
+      <!-- 08 -->
+      <section class="topic" id="input-hardwired" data-part="Digital I/O" data-short="Input mode &amp; hardwired">
+        <header class="topic-head">
+          <span class="topic-num">08</span>
+          <div><h2>Input mode and hardwired inputs</h2><p class="kicker">Listening to another chip, or to a fixed wire</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>An input is the listening end. When one MCU's enabled output is wired to another MCU's input, the input simply reads what the output says.</p>
+              <p>An input can also be <strong>soldered permanently</strong> to the supply or to ground, like a tiny switch set at the factory. Two boards can run exactly the same firmware and still behave differently, because each reads its own fixed pins to find out who it is.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>With the sender enabled (EN = 1), the receiver reads <strong>IN = A</strong>.</li>
+                <li>An input buffer has very high input impedance: it senses the voltage but draws almost no current, so it does not disturb the line.</li>
+                <li><strong>Hardwired input:</strong> tied to a constant value on the circuit board. Uses:
+                  <ul>
+                    <li><em>Permanent configuration</em>, e.g. boot-mode strapping pins, or address-select pins on sensors so two identical sensors can share a bus.</li>
+                    <li><em>Identification</em>: two MCUs with the same software, one with Pin 3 tied to '0' and the other to '1'. Reading Pin 3 is a form of self-identification. <em>n</em> pins give 2<sup><em>n</em></sup> IDs.</li>
+                  </ul></li>
+                <li>A hardwired pin must stay an input. Driving it as a push-pull output to the opposite level would short it to the rail.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/gpio-input-mode.png" alt="MCU output with EN=1 connected to another MCU input" width="1149" height="760"></div>
+              <figcaption><b>Slide 14.</b> With EN = 1, the input reads A.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/hardwired.png" alt="MCU input pin 3 tied directly to VS, reading 1" width="634" height="717"></div>
+              <figcaption><b>Slide 15.</b> Input hardwired to V<sub>S</sub>: always reads '1'.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="input-hardwired"></div>
+      </section>
+
+      <!-- 09 -->
+      <section class="topic" id="floating" data-part="Digital I/O" data-short="Floating inputs">
+        <header class="topic-head">
+          <span class="topic-num">09</span>
+          <div><h2>Reading a Hi-Z output: floating inputs</h2><p class="kicker">When nobody drives the wire</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>What if nobody is talking? The output is disconnected (Hi-Z) and the input only listens, so the wire is connected to... nothing. Asking its value is like asking a question in an empty room and trying to interpret the echo.</p>
+              <p>The pin picks up whatever electrical noise is around it and reads 0, then 1, then 0. That is a <strong>floating</strong> pin.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Hi-Z output + high-impedance input: nothing defines the line voltage. The input is <strong>undefined</strong>: it can be 0, 1, or switch between them.</li>
+                <li>The pin has a few pF of capacitance and an enormous resistance to everything, so charge couples in from neighbouring signals, mains wiring or a nearby hand. It acts as a <strong>tiny antenna</strong>.</li>
+                <li>Consequences: random readings, interrupts firing on their own, and extra current draw, because a CMOS input sitting near V<sub>S</sub>/2 has both input transistors partly on.</li>
+                <li>Hence the rule: never leave a line you read floating. Unused pins are disconnected, pulled, or driven. (On the nRF52, a pin's input buffer is disconnected after reset for exactly this reason.)</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/hiz-floating.png" alt="Disabled output connected to an input: IN undefined" width="1186" height="773"></div>
+              <figcaption><b>Slides 16 and 17.</b> A disabled (Hi-Z) output feeding an input: what is IN?</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="floating"></div>
+      </section>
+
+      <!-- 10 -->
+      <section class="topic" id="pullup" data-part="Digital I/O" data-short="Pull-up &amp; pull-down">
+        <header class="topic-head">
+          <span class="topic-num">10</span>
+          <div><h2>Pull-up and pull-down resistors</h2><p class="kicker">A default value for when nobody drives the line</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A pull-up resistor is a <strong>weak spring</strong> that holds the line at '1' whenever nobody touches it. Any device that actively drives the line overpowers the spring easily.</p>
+              <p>A pull-down is the same spring pulling towards '0'. Either way, the line is never left floating.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Nobody drives:</strong> the pull-up raises the line to '1'.</li>
+                <li><strong>Driven to '1':</strong> both ends of the resistor are at V<sub>S</sub>: no current, line is '1'.</li>
+                <li><strong>Driven to '0':</strong> the full V<sub>S</sub> is across the resistor, current flows, line is '0' (the driver's on-resistance is far smaller than R).
+                  <div class="formula">I = V<sub>S</sub> / R <span class="eq-note">3.3 V / 10 k&Omega; = 0.33 mA</span></div></li>
+                <li>Output with pull-up: EN = 0 &rArr; IN = 1 (the resistor decides); EN = 1 &rArr; IN = A.</li>
+              </ul>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>EN</th><th>A</th><th class="out">IN</th></tr></thead>
+                  <tbody>
+                    <tr><td>0</td><td>0</td><td class="out v-hi">1</td></tr>
+                    <tr><td>0</td><td>1</td><td class="out v-hi">1</td></tr>
+                    <tr><td>1</td><td>0</td><td class="out v-lo">0</td></tr>
+                    <tr><td>1</td><td>1</td><td class="out v-hi">1</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li><strong>Choosing R</strong> is a trade-off. Smaller R pulls harder: faster rising edges (the line capacitance charges with &tau; = R&middot;C) and better noise immunity, but more current whenever the line is low. MCUs provide weak internal pull-ups/pull-downs (the nRF52832's are about 13 k&Omega;).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/mcu-io/pullup-pulldown.png" alt="Pull-up resistor giving 1, pull-down resistor giving 0" width="713" height="1117"></div>
+              <figcaption><b>Slide 18.</b> Top: pull-up &rArr; '1'. Bottom: pull-down &rArr; '0'.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/output-with-pullup.png" alt="GPIO output with EN, A and a pull-up resistor feeding an input, with truth table" width="1086" height="944"></div>
+              <figcaption><b>Slide 19.</b> GPIO output with pull-up.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="input"></div>
+        <div class="quiz" data-quiz="pullup"></div>
+      </section>
+
+      <!-- 11 -->
+      <section class="topic" id="open-drain" data-part="Digital I/O" data-short="Open-drain">
+        <header class="topic-head">
+          <span class="topic-num">11</span>
+          <div><h2>Multiple MCUs and open-drain mode</h2><p class="kicker">Sharing a line safely</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Tri-state helps, but a single bug that enables two outputs can still cause a short. So let's make it <strong>impossible</strong>: remove the top door entirely. Each device can only <strong>pull the line down</strong> or <strong>let go</strong>, and a pull-up resistor lifts the line when everyone lets go.</p>
+              <p>Like the stop-request cord on a bus: anyone can pull it, and it is only released when nobody is pulling.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Several push-pull outputs plus a pull-up are fine <em>if only one is enabled at a time</em>, but shorts are still possible (see the SHORT rows in the slide table). Not safe enough.</li>
+                <li><strong>Open-drain</strong> has two states: logical <strong>'0'</strong> (actively pulled low) and <strong>Hi-Z</strong>. A '1' is produced <em>indirectly</em> by the pull-up resistor (external or internal).</li>
+                <li>The line behaves as a <strong>wired-AND</strong>: it is '1' only if every device lets go, and any device can force '0'. No two drivers can ever fight, so it is safe from shorts.</li>
+                <li>The name: the drain of the low-side NMOS transistor is left "open" instead of being tied to a high-side transistor.</li>
+                <li>Used where many devices share a line: <strong>I&sup2;C</strong> (SDA/SCL), shared interrupt and reset lines. The pull-up can also go to a different voltage for simple level shifting (within the pins' tolerance).</li>
+                <li>Trade-off: rising edges are slow (the pull-up charges the line capacitance), which limits the bus speed. On the nRF52 this mode is <code>DRIVE = S0D1</code> ("standard 0, disconnect 1"); Zephyr calls it <code>GPIO_OPEN_DRAIN</code>.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/multiple-mcus.png" alt="Two push-pull MCUs with enable and a shared pull-up, 16-row truth table" width="1181" height="1127"></div>
+              <figcaption><b>Slide 20.</b> Tri-state outputs + pull-up: shorts still possible.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/open-drain.png" alt="Two open-drain MCUs with pull-up and truth table" width="966" height="1088"></div>
+              <figcaption><b>Slide 21.</b> Open-drain: '0' or let go, never a short.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="bus"></div>
+        <div class="quiz" data-quiz="open-drain"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 2</span><h2>Analog I/O: ADC and DAC</h2></div>
+
+      <!-- 12 -->
+      <section class="topic" id="adc" data-part="Analog I/O" data-short="ADC basics">
+        <header class="topic-head">
+          <span class="topic-num">12</span>
+          <div><h2>Analog-to-Digital Converter (ADC)</h2><p class="kicker">From "high or low?" to "how much?"</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A digital input only answers "high or low?". An ADC answers "<strong>how much?</strong>": it measures the voltage and hands you a number.</p>
+              <p>Think of a ruler with a fixed number of tick marks. The reading is always the nearest tick. A 12-bit ADC has 4096 ticks; an 8-bit one only 256.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>An ADC converts an analog signal (a voltage) into a digital signal (a series of numbers). It measures the input voltage and maps it to a number.</li>
+                <li>Two steps: <strong>sampling</strong> (measure at discrete moments in time) and <strong>quantisation</strong> (round each measurement to one of a finite set of levels).</li>
+                <li>The <strong>bit resolution M</strong> sets how many discrete values exist:
+                  <div class="formula">values = 2<sup>M</sup>, codes 0 &hellip; 2<sup>M</sup> - 1 <span class="eq-note">12-bit: 0 to 4095</span></div></li>
+                <li>MCUs typically integrate a successive-approximation (SAR) ADC. The nRF52832's SAADC offers 8, 10 or 12-bit resolution (14 bit with oversampling).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/adc.png" alt="Continuous sine wave converted into bars of discrete values" width="667" height="764"></div>
+              <figcaption><b>Slide 22.</b> Continuous signal &rarr; discrete samples with discrete values. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="adc"></div>
+      </section>
+
+      <!-- 13 -->
+      <section class="topic" id="adc-single" data-part="Analog I/O" data-short="Single-ended ADC">
+        <header class="topic-head">
+          <span class="topic-num">13</span>
+          <div><h2>Single-ended ADC and quantisation</h2><p class="kicker">Measuring against ground, in steps of Q</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>"Single-ended" means the voltage is measured relative to ground. You pick a <strong>reference voltage V<sub>ref</sub></strong>: the top end of the ruler. 0 V gives 0, V<sub>ref</sub> gives the biggest number.</p>
+              <p>Above V<sub>ref</sub> the ruler simply ends, and the reading is stuck at the maximum. That is called <strong>saturation</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Measures V<sub>in</sub> referenced to ground: the input and the ADC share a common ground.</li>
+                <li>V<sub>ref</sub> is the maximum measurable value; it can equal the supply voltage or be lower. Voltages in [0, V<sub>ref</sub>] are mapped <strong>linearly</strong> to [0, 2<sup>M</sup> - 1]:
+                  <div class="formula">DOUT &asymp; V<sub>in</sub> / V<sub>ref</sub> &middot; 2<sup>M</sup> <span class="eq-note">if V<sub>in</sub> &ge; V<sub>ref</sub>: DOUT = 2<sup>M</sup> - 1</span></div></li>
+                <li>Example, 12-bit, V<sub>ref</sub> = 5 V: 0 V &rarr; 0, 2.5 V &rarr; 2048, 5 V &rarr; 4095, 6 V &rarr; 4095 (saturated).</li>
+                <li><strong>Quantisation error:</strong> each value is rounded to the closest integer, so measurements come in steps (quanta) of
+                  <div class="formula">Q = V<sub>ref</sub> / 2<sup>M</sup> <span class="eq-note">error at most &plusmn;Q/2</span></div></li>
+              </ul>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>M</th><th>V<sub>ref</sub></th><th class="out">Q</th></tr></thead>
+                  <tbody>
+                    <tr><td>12</td><td>5 V</td><td class="out">1.22 mV</td></tr>
+                    <tr><td>12</td><td>2.5 V</td><td class="out">0.61 mV</td></tr>
+                    <tr><td>8</td><td>5 V</td><td class="out">19.5 mV</td></tr>
+                    <tr><td>8</td><td>2.5 V</td><td class="out">9.77 mV</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>The trade-off this reveals: <strong>range vs resolution</strong> (next topic).</p>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/adc-single-ended.png" alt="ADC block with single input Vin and output DOUT approx Vin/Vref times 2^M" width="1018" height="466"></div>
+              <figcaption><b>Slide 23.</b> Single-ended ADC.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="adc"></div>
+        <div class="quiz" data-quiz="adc-single"></div>
+      </section>
+
+      <!-- 14 -->
+      <section class="topic" id="adc-range" data-part="Analog I/O" data-short="Range vs resolution">
+        <header class="topic-head">
+          <span class="topic-num">14</span>
+          <div><h2>ADC: range vs resolution</h2><p class="kicker">Fit the ruler to the thing you measure</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The ruler always has the same number of ticks. Make it longer (bigger V<sub>ref</sub>) and the ticks move further apart. To measure something small precisely, use a <strong>short ruler</strong>.</p>
+              <p>Just do not make it shorter than the thing you are measuring, or the end gets cut off.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Assume an 8-bit ADC and a 5 V supply. Measuring [0, 5] V works with a <strong>19.5 mV</strong> resolution.</li>
+                <li>For a small [0, 1] V signal with subtle variations, V<sub>ref</sub> = 5 V is a poor fit: 19.5 mV may be too coarse, and codes 52 to 255 are never used.</li>
+                <li>With <strong>V<sub>ref</sub> = 1 V</strong> you get <strong>3.9 mV</strong> steps and use all codes 0 to 255. The slide makes 1 V from 5 V with a voltage divider:
+                  <div class="formula">V<sub>ref</sub> = 5 V &middot; 20 k / (80 k + 20 k) = 1 V</div></li>
+                <li>The price: anything above 1 V now saturates at 255.</li>
+                <li>Open question from the slide: <em>how do you measure a signal in [4, 5] V with 3.9 mV resolution?</em> A small V<sub>ref</sub> alone does not help, since the whole signal is above it. The answer is the differential ADC.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/mcu-io/adc-range-resolution.png" alt="ADC with Vref tied to 5V giving Q=19.5 mV, and with Vref from an 80k/20k divider giving Q=3.9 mV" width="757" height="1006"></div>
+              <figcaption><b>Slides 25 and 26.</b> Same ADC, two references.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="range"></div>
+        <div class="quiz" data-quiz="adc-range"></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="topic" id="adc-diff" data-part="Analog I/O" data-short="Differential ADC">
+        <header class="topic-head">
+          <span class="topic-num">15</span>
+          <div><h2>Differential ADC and removing a DC offset</h2><p class="kicker">Measure the difference, not the absolute value</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Instead of measuring one wire against ground, measure the <strong>difference between two wires</strong>. Noise that hits both wires equally cancels out.</p>
+              <p>It also lets you subtract a big constant part. To weigh a cat, weigh yourself holding it, then subtract your own weight: you only care about the difference. That is how you measure a 4 to 5 V signal with fine steps.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Measures V<sub>A</sub> - V<sub>B</sub>, which can be positive or negative. Better at rejecting noise: interference that couples equally into both inputs (common-mode) is subtracted away.</li>
+                <li>[-V<sub>ref</sub>, V<sub>ref</sub>] is mapped linearly to [-2<sup>M-1</sup>, 2<sup>M-1</sup> - 1], saturating at both ends:
+                  <div class="formula">DOUT &asymp; (V<sub>A</sub> - V<sub>B</sub>) / V<sub>ref</sub> &middot; 2<sup>M-1</sup> &nbsp;&nbsp; Q = V<sub>ref</sub> / 2<sup>M-1</sup></div>
+                  One bit is effectively spent on the sign.</li>
+                <li>Example, 12-bit, V<sub>ref</sub> = 5 V: (0 V, 5 V) &rarr; -2048; (5 V, 0 V) &rarr; 2047; (5 V, 5 V) &rarr; 0; (3 V, 2 V) &rarr; 410.</li>
+                <li><strong>Removing a DC offset</strong> (8-bit, 5 V supply, signal in [4, 5] V): put a fixed <strong>4.5 V</strong> on the negative input with a 20 k/180 k divider. Then V<sub>diff</sub> = V<sub>in</sub> - 4.5 V lies in [-0.5, 0.5] V.</li>
+                <li>With V<sub>ref</sub> = 0.5 V (another divider), the resolution is
+                  <div class="formula">Q = V<sub>ref</sub> / 2<sup>7</sup> = 0.5 V / 128 = 3.9 mV</div></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/adc-differential.png" alt="Differential ADC with inputs VA and VB" width="902" height="424"></div>
+              <figcaption><b>Slide 27.</b> Differential ADC.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/adc-dc-offset.png" alt="Differential ADC with 4.5V offset divider and 0.5V reference divider" width="975" height="808"></div>
+              <figcaption><b>Slide 28.</b> Subtract 4.5 V, measure &plusmn;0.5 V with 3.9 mV steps.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="adc-diff"></div>
+        <div class="quiz" data-quiz="adc-diff"></div>
+      </section>
+
+      <!-- 16 -->
+      <section class="topic" id="adc-modes" data-part="Analog I/O" data-short="Channels &amp; modes">
+        <header class="topic-head">
+          <span class="topic-num">16</span>
+          <div><h2>ADC channels and modes of operation</h2><p class="kicker">Which pin, how often, how many times</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>An MCU usually has one ADC but <strong>many pins</strong> that can reach it through a selector switch (a multiplexer). Only one pin is measured at a time.</p>
+              <p>You also choose <strong>how</strong> it measures: once on request, continuously at a fixed rate, many times averaged together, or visiting several pins in turn. Continuous sampling must be fast enough, or a fast signal masquerades as a slow one.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Channels:</strong> the ADC input can be routed internally to several external pins. The nRF52832 has 8 input channels, <code>AIN0</code> to <code>AIN7</code>. Only one channel is converted at a time.</li>
+                <li><strong>One-shot:</strong> a single sample is taken. Ideal for low power: wake up, sample, sleep.</li>
+                <li><strong>Continuous:</strong> samples are taken at a sampling frequency f<sub>s</sub>. <strong>Nyquist theorem:</strong> to represent a signal accurately,
+                  <div class="formula">f<sub>s</sub> &gt; 2 &middot; f<sub>max</sub></div>
+                  Otherwise high frequencies fold down into false low ones (<strong>aliasing</strong>), which cannot be undone afterwards. That is why a low-pass (anti-aliasing) filter usually sits in front of the ADC.</li>
+                <li><strong>Oversampling:</strong> sample faster than Nyquist requires and average. Random noise shrinks with &radic;N: averaging 4 samples halves it, gaining roughly one extra bit.</li>
+                <li><strong>Scan:</strong> cycle through multiple channels to measure several inputs "in parallel". It is really sequential, so each channel gets a share of the total sample rate.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/mcu-io/nrf52832-pins.png" alt="nRF52832 pinout showing AIN0 to AIN7" width="810" height="966"></div>
+              <figcaption><b>Slide 29.</b> The analog channels AIN0 to AIN7 share pins with GPIOs P0.02 to P0.05 and P0.28 to P0.31.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="alias"></div>
+        <div class="quiz" data-quiz="adc-modes"></div>
+      </section>
+
+      <!-- 17 -->
+      <section class="topic" id="dac" data-part="Analog I/O" data-short="DAC">
+        <header class="topic-head">
+          <span class="topic-num">17</span>
+          <div><h2>Digital-to-Analog Converter (DAC)</h2><p class="kicker">Numbers in, voltage out</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The reverse of an ADC. A song on your phone is just a long list of numbers; a DAC turns those numbers back into the smoothly wiggling voltage that moves a speaker.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A DAC converts a digital signal (series of numbers) into an analog signal (a voltage). It creates a continuous signal out of discrete-time data.
+                  <div class="formula">V<sub>out</sub> = DOUT / 2<sup>M</sup> &middot; V<sub>ref</sub></div></li>
+                <li>Each value is held until the next one arrives (a <em>zero-order hold</em>), which produces a staircase. A <strong>reconstruction low-pass filter</strong> smooths it into a continuous waveform.</li>
+                <li>More bits give smaller steps in voltage; a higher sample rate gives shorter steps in time. Both make filtering easier.</li>
+                <li>Applications: audio, video, communications (generating wireless or optical waveforms), digitally controlled potentiometers.</li>
+                <li>Many low-power MCUs, the nRF52832 included, have no DAC at all. A low-pass filtered PWM output (Part 3) is the cheap substitute.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/dac.png" alt="Discrete bars converted into a continuous sine wave" width="667" height="764"></div>
+              <figcaption><b>Slide 31.</b> Discrete values &rarr; continuous signal. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="dac"></div>
+        <div class="quiz" data-quiz="dac"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 3</span><h2>Power control and PWM</h2></div>
+
+      <!-- 18 -->
+      <section class="topic" id="power-control" data-part="Power control" data-short="Resistive power control">
+        <header class="topic-head">
+          <span class="topic-num">18</span>
+          <div><h2>Power control with a series resistor</h2><p class="kicker">The naive way to dim a load</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Want a lamp at half power? The naive way: put a variable resistor in series to "eat" some of the voltage. It works, but the resistor turns everything it eats into <strong>heat</strong>.</p>
+              <p>At its worst it wastes as much energy as the lamp actually uses.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>R<sub>2</sub> is the load; R<sub>1</sub> is a variable resistor (or a transistor used as one) that controls the power reaching the load. This is a voltage divider:
+                  <div class="formula">V<sub>out</sub> = V<sub>in</sub> &middot; R<sub>2</sub> / (R<sub>1</sub> + R<sub>2</sub>)</div></li>
+                <li>R<sub>1</sub> &laquo; R<sub>2</sub>: the voltage drop across R<sub>1</sub> is negligible, so its power is negligible (but you are not dimming much).</li>
+                <li>R<sub>1</sub> &raquo; R<sub>2</sub>: the current is negligible, so R<sub>1</sub>'s power is negligible (but the load gets almost nothing).</li>
+                <li>R<sub>1</sub> = R<sub>2</sub>: R<sub>1</sub> consumes <strong>as much power as the load</strong>. In general
+                  <div class="formula">efficiency = P<sub>load</sub> / P<sub>total</sub> = R<sub>2</sub> / (R<sub>1</sub> + R<sub>2</sub>)</div></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/power-control.png" alt="Voltage divider with R1 in series and R2 to ground" width="727" height="638"></div>
+              <figcaption><b>Slide 32.</b> Series resistor R<sub>1</sub> controlling power to load R<sub>2</sub>.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="power"></div>
+        <div class="quiz" data-quiz="power-control"></div>
+      </section>
+
+      <!-- 19 -->
+      <section class="topic" id="pwm" data-part="Power control" data-short="PWM &amp; LED dimming">
+        <header class="topic-head">
+          <span class="topic-num">19</span>
+          <div><h2>Pulse Width Modulation (PWM) and dimming an LED</h2><p class="kicker">Switch fast, let the load average</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Instead of wasting energy in a resistor, <strong>flick the switch on and off very fast</strong>. On 25% of the time means the load gets 25% of the power on average.</p>
+              <p>Your eye is too slow to follow the flashing, so it averages the light: you see a dim LED, not a blinking one. Your eye is acting as a low-pass filter.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Dimming an LED: turn it on and off at a high frequency. The human eye cannot capture fast changes in brightness (it has inertia, a short-term memory), so it averages them: a <strong>low-pass filter</strong>.</li>
+                <li>A PWM signal is an on/off signal with two properties:
+                  <div class="formula">frequency f = 1 / T &nbsp;&nbsp; duty cycle D = t<sub>on</sub> / T</div></li>
+                <li>The average voltage (and, for a resistive load, the average power as a fraction of full power) follows the duty cycle:
+                  <div class="formula">V<sub>avg</sub> = D &middot; V<sub>S</sub></div></li>
+                <li>The frequency must be high enough for the load to average. For LEDs that means at least a few hundred Hz to avoid visible flicker.</li>
+                <li>MCUs generate PWM on GPIOs using hardware timers (a counter compared against a threshold), so the CPU is not involved. The nRF52832 has three PWM peripherals with four channels each.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/led-dimming.png" alt="LED switched on and off by a square wave, perceived by an eye" width="932" height="894"></div>
+              <figcaption><b>Slide 33.</b> Dimming an LED by switching it quickly.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/pwm-duty.png" alt="PWM waveforms at 50%, 75% and 25% duty cycle" width="975" height="599"></div>
+              <figcaption><b>Slide 34.</b> 50%, 75% and 25% duty cycle. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="pwm"></div>
+        <div class="quiz" data-quiz="pwm"></div>
+      </section>
+
+      <!-- 20 -->
+      <section class="topic" id="pwm-motor" data-part="Power control" data-short="PWM motor control">
+        <header class="topic-head">
+          <span class="topic-num">20</span>
+          <div><h2>PWM motor control</h2><p class="kicker">Why PWM beats a resistor</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A motor is like a heavy flywheel: it cannot react to every quick on/off pulse, so it settles at a speed set by the <strong>average</strong>. More on-time, more speed.</p>
+              <p>A switch that is either fully on or fully off wastes almost nothing, unlike a resistor. And since a GPIO is far too weak for a motor, a <strong>motor driver</strong> chip does the heavy switching on the GPIO's command.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The PWM duty cycle controls the power that goes to the motor.</li>
+                <li>Motors are <strong>inductive</strong>: they react slowly to changes in current (time constant L/R), so the current, and therefore the power, is averaged out. The mechanical inertia smooths the speed further. Motor PWM often runs above about 20 kHz so it cannot be heard.</li>
+                <li>Why not control power with a variable series resistor (a transistor in its linear region)?
+                  <ul>
+                    <li>Inefficient: the resistor consumes energy.</li>
+                    <li>Less power reaches the motor.</li>
+                    <li>Digital signals (PWM) are easier and cheaper to generate than analog ones.</li>
+                  </ul></li>
+                <li>A fully-on switch has almost no voltage across it; a fully-off switch has no current through it. Either way P = V&middot;I &asymp; 0.</li>
+                <li>The motor runs from its own supply V<sub>M</sub>. A driver IC such as the TI <strong>DRV8835</strong> (up to 1.5 A per channel) takes the PWM signal from the controller and switches the motor current.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/pwm-motor.png" alt="MCU GPIO PWM output controlling a switch in series with a motor from VM" width="771" height="755"></div>
+              <figcaption><b>Slide 35.</b> The GPIO's PWM signal switches the motor supply.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/mcu-io/drv8835.png" alt="DRV8835 simplified schematic: controller PWM into motor driver, driving a DC motor" width="591" height="406"></div>
+              <figcaption><b>Slide 35.</b> DRV8835 motor driver. Source: Texas Instruments datasheet.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="pwm-motor"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="topic" id="cheat-sheet" data-toc-extra="Cheat sheet">
+        <header class="topic-head">
+          <span class="topic-num">&Sigma;</span>
+          <div><h2>Cheat sheet</h2><p class="kicker">Everything you need to calculate, on one card</p></div>
+        </header>
+        <div class="cheat">
+          <div class="cheat-item"><h3>Logic threshold</h3><div class="formula">'1' if V &gt; V<sub>S</sub>/2</div><p>With hysteresis: up at V<sub>S</sub>/2 + V<sub>H</sub>, down at V<sub>S</sub>/2 - V<sub>H</sub>.</p></div>
+          <div class="cheat-item"><h3>Output modes</h3><div class="formula">push-pull: 0, 1 &nbsp;|&nbsp; tri-state: 0, 1, Z &nbsp;|&nbsp; open-drain: 0, Z</div><p>Open-drain needs a pull-up; the line is a wired-AND.</p></div>
+          <div class="cheat-item"><h3>LED series resistor</h3><div class="formula">R = (V<sub>S</sub> - V<sub>F</sub>) / I</div><p>Keep I within the pin limit (typically 2 to 12 mA).</p></div>
+          <div class="cheat-item"><h3>Pull resistor current</h3><div class="formula">I = V<sub>S</sub> / R</div><p>Flows only while the line is driven against the resistor.</p></div>
+          <div class="cheat-item"><h3>Single-ended ADC</h3><div class="formula">DOUT &asymp; V<sub>in</sub>/V<sub>ref</sub> &middot; 2<sup>M</sup>, &nbsp;Q = V<sub>ref</sub>/2<sup>M</sup></div><p>Range [0, 2<sup>M</sup> - 1]; saturates at V<sub>in</sub> &ge; V<sub>ref</sub>.</p></div>
+          <div class="cheat-item"><h3>Differential ADC</h3><div class="formula">DOUT &asymp; (V<sub>A</sub> - V<sub>B</sub>)/V<sub>ref</sub> &middot; 2<sup>M-1</sup>, &nbsp;Q = V<sub>ref</sub>/2<sup>M-1</sup></div><p>Range [-2<sup>M-1</sup>, 2<sup>M-1</sup> - 1].</p></div>
+          <div class="cheat-item"><h3>Voltage divider</h3><div class="formula">V<sub>out</sub> = V<sub>in</sub> &middot; R<sub>2</sub> / (R<sub>1</sub> + R<sub>2</sub>)</div><p>Used for V<sub>ref</sub>, offsets, and the resistive power-control model.</p></div>
+          <div class="cheat-item"><h3>Nyquist</h3><div class="formula">f<sub>s</sub> &gt; 2 &middot; f<sub>max</sub></div><p>Below that: aliasing. Oversampling N&times; cuts random noise by &radic;N.</p></div>
+          <div class="cheat-item"><h3>DAC</h3><div class="formula">V<sub>out</sub> = DOUT / 2<sup>M</sup> &middot; V<sub>ref</sub></div><p>Staircase output, smoothed by a low-pass filter.</p></div>
+          <div class="cheat-item"><h3>PWM</h3><div class="formula">D = t<sub>on</sub>/T, &nbsp;V<sub>avg</sub> = D &middot; V<sub>S</sub></div><p>Load must be slower than the PWM period (eye, inductance, inertia).</p></div>
+        </div>
+      </section>
+
+      <p class="page-foot">Figures cropped from the lecture slides "MCU Input/Output" by Xenofon Fafoutis, DTU Compute, with their original sources noted. For personal study.</p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/mcu-io.js"></script>
+</body>
+</html>

@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>NES Study</title>
+  <meta name="description" content="Interactive study notes for Networked Embedded Systems.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3162b'/%3E%3Cpath d='M7 21h5V11h8v10h5' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+  <div class="hub">
+    <div class="hub-top">
+      <span class="brand">
+        <span class="brand-mark">NES</span>
+        <span class="brand-text"><b>NES Study</b><span>Networked Embedded Systems</span></span>
+      </span>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Theme
+      </button>
+    </div>
+
+    <div class="hub-hero">
+      <h1>Study Networked Embedded Systems</h1>
+      <p>Each lecture page explains every concept twice, first in plain words and then technically, with the slide figures, hands-on labs and questions that explain every answer.</p>
+    </div>
+
+    <div class="hub-grid">
+      <a class="lecture-card" href="nes-intro.html" data-summary="nes-intro">
+        <div class="lc-top"><span class="lc-num">Week 1</span><span class="lc-status ready">Ready</span></div>
+        <h2>Introduction to NES</h2>
+        <p>What an embedded system is, how embedded systems get connected, where the intelligence lives (cloud, fog, edge), and the anatomy of a node.</p>
+        <div class="lc-foot"><span class="chip">22 topics</span><span class="chip">8 labs</span><span class="chip lc-progress" data-summary-text>44 questions</span></div>
+      </a>
+
+      <a class="lecture-card" href="electronics-basics.html" data-summary="electronics-basics">
+        <div class="lc-top"><span class="lc-num">Week 2</span><span class="lc-status ready">Ready</span></div>
+        <h2>Practical electronics</h2>
+        <p>Voltage, current, resistance and power, the building blocks (dividers, capacitors, diodes, transistors), PCB design and test instruments.</p>
+        <div class="lc-foot"><span class="chip">31 topics</span><span class="chip">15 labs</span><span class="chip lc-progress" data-summary-text>70 questions</span></div>
+      </a>
+
+      <a class="lecture-card" href="embedded-software.html" data-summary="embedded-software">
+        <div class="lc-top"><span class="lc-num">Week 3</span><span class="lc-status ready">Ready</span></div>
+        <h2>Embedded software</h2>
+        <p>Embedded operating systems, scheduling and concurrency, registers, timers, watchdogs, low power, and bit-level C.</p>
+        <div class="lc-foot"><span class="chip">25 topics</span><span class="chip">12 labs</span><span class="chip lc-progress" data-summary-text>57 questions</span></div>
+      </a>
+
+      <a class="lecture-card" href="mcu-io.html" data-summary="mcu-io">
+        <div class="lc-top"><span class="lc-num">Week 4</span><span class="lc-status ready">Ready</span></div>
+        <h2>MCU Input/Output</h2>
+        <p>GPIO, push-pull and open-drain outputs, tri-state, pull-ups, hysteresis, ADC and DAC, and PWM for power control.</p>
+        <div class="lc-foot"><span class="chip">20 topics</span><span class="chip">15 labs</span><span class="chip lc-progress" data-summary-text>44 questions</span></div>
+      </a>
+
+      <a class="lecture-card" href="serial-communication.html" data-summary="serial-communication">
+        <div class="lc-top"><span class="lc-num">Week 5</span><span class="lc-status ready">Ready</span></div>
+        <h2>Serial communication</h2>
+        <p>Synchronising sender and receiver, UART frames and parity, RS-232 levels, SPI and its modes, I2C addressing, ACKs and arbitration, and choosing a bus.</p>
+        <div class="lc-foot"><span class="chip">28 topics</span><span class="chip">19 labs</span><span class="chip lc-progress" data-summary-text>63 questions</span></div>
+      </a>
+    </div>
+  </div>
+
+  <script src="assets/js/core.js"></script>
+  <script>
+    document.querySelectorAll("[data-theme-toggle]").forEach(function (b) { b.addEventListener("click", NES.toggleTheme); });
+    document.querySelectorAll("[data-summary]").forEach(function (card) {
+      var s = NES.store.get("nes-summary-" + card.dataset.summary, null);
+      var el = card.querySelector("[data-summary-text]");
+      if (s && s.total && el) el.textContent = s.answered + " / " + s.total + " answered";
+    });
+  </script>
+</body>
+</html>
