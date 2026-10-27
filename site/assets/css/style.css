@@ -815,3 +815,5 @@ a.lecture-card:hover { transform: translateY(-2px); border-color: var(--accent);
 .device-cap { font-size: 12px; color: var(--muted); text-align: center; line-height: 1.35; }
 @media (max-width: 600px) { .pwm-row { grid-template-columns: minmax(0, 1fr); } }
 .cheat-item .formula { white-space: normal; }
+
+.fig figcaption { overflow-wrap: anywhere; }

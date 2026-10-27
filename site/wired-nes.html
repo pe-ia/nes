@@ -1,0 +1,1401 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wired Networked Embedded Systems · NES Study</title>
+  <meta name="description" content="Interactive study page for the NES Week 7 lecture on wired networked embedded systems: OSI layers, line coding, differential signalling, USB, medium access (polling, CSMA/CD, CSMA/CA), CAN bus and Ethernet.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3162b'/%3E%3Cpath d='M7 21h5V11h8v10h5' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/wired-nes.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn" type="button" data-nav-toggle aria-label="Open contents">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Contents
+  </button>
+  <span class="topbar-progress"><span data-progress-answered>0 / 0</span> answered</span>
+</header>
+<div class="scrim"></div>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Lecture contents">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">NES</span>
+      <span class="brand-text"><b>NES Study</b><span>Networked Embedded Systems</span></span>
+    </a>
+
+    <div class="progress-card">
+      <div class="progress-row"><span>Questions answered</span><b data-progress-answered>0 / 0</b></div>
+      <div class="progress-bar"><span data-progress-bar></span></div>
+      <div class="progress-sub"><span>Right on first try: <b data-progress-first>0</b></span><button class="link-btn" type="button" data-quiz-reset>Reset</button></div>
+    </div>
+
+    <nav class="toc" data-toc></nav>
+
+    <div class="sidebar-foot">
+      <a class="icon-btn" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        All lectures
+      </a>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Theme
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+
+      <div class="hero">
+        <div class="crumbs"><a href="index.html">NES Study</a> / Week 7: Wired Networked Embedded Systems</div>
+        <h1>Wired Networked Embedded Systems</h1>
+        <p class="hero-lead">From wires between chips on one board to local networks: how bits survive long cables, how devices share one medium without talking over each other, and how the CAN bus and Ethernet put it all together.</p>
+        <div class="hero-meta">
+          <span class="chip">35 topics</span>
+          <span class="chip">24 interactive labs</span>
+          <span class="chip">70 questions</span>
+          <span class="chip">Slides: X. Fafoutis, DTU Compute</span>
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 1</span><h2>The physical layer</h2></div>
+
+      <!-- 01 -->
+      <section class="topic" id="osi" data-part="Physical layer" data-short="OSI reference model">
+        <header class="topic-head">
+          <span class="topic-num">01</span>
+          <div><h2>From intra-board communication to local networks</h2><p class="kicker">The OSI reference model: seven layers of abstraction</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Sending a parcel involves many people who never meet: you write the letter, someone packs it, a courier picks the route, a driver moves the truck. Each only talks to the step directly above and below.</p>
+              <p>Networks are organised the same way, in <strong>layers</strong>. In Week 5, UART, SPI and I2C connected chips on one board. This lecture climbs up to the bottom two layers of real networks: getting bits across a cable (<strong>physical</strong>) and turning them into frames that many devices can share (<strong>data link</strong>).</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>#</th><th>Layer</th><th>Data unit</th><th class="out">Function</th></tr></thead>
+                  <tbody>
+                    <tr><td>7</td><td>Application</td><td>Data</td><td class="out">Distributed application protocols</td></tr>
+                    <tr><td>6</td><td>Presentation</td><td>Data</td><td class="out">Translation of data (encryption/decryption, compression, etc.)</td></tr>
+                    <tr><td>5</td><td>Session</td><td>Data</td><td class="out">Managing communication sessions</td></tr>
+                    <tr><td>4</td><td>Transport</td><td>Segment</td><td class="out">Transmission of segments to processes</td></tr>
+                    <tr><td>3</td><td>Network</td><td>Packet</td><td class="out">Transmission of packets to nodes over multiple networks</td></tr>
+                    <tr><td>2</td><td>Data Link</td><td>Frame</td><td class="out">Transmission of frames between physically-connected nodes</td></tr>
+                    <tr><td>1</td><td>Physical</td><td>Bit</td><td class="out">Transmission and reception of bits over a physical medium</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li>Each layer offers a service to the layer above and hides how it is done. Layer 2 does not care whether layer 1 uses Manchester coding or MLT-3; it just gets bits.</li>
+                <li>Wired embedded networks such as CAN and Ethernet are defined at <strong>layers 1 and 2</strong>, which is what the rest of this lecture covers.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="layers"></div>
+        <div class="quiz" data-quiz="osi"></div>
+      </section>
+
+      <!-- 02 -->
+      <section class="topic" id="phy" data-part="Physical layer" data-short="Physical layer (PHY)">
+        <header class="topic-head">
+          <span class="topic-num">02</span>
+          <div><h2>The Physical Layer (PHY)</h2><p class="kicker">Raw bits over a physical medium</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The physical layer is the part that actually touches the cable. Everything messy (voltages, timing, noise, how a '1' looks on the wire) is handled here, often by a dedicated chip.</p>
+              <p>Upwards it offers a simple promise: <strong>bits go in on one end and come out on the other</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The Physical Layer defines the means for transmitting <strong>raw bits</strong> over a physical medium.</li>
+                <li>It is typically implemented in <strong>hardware</strong>: a PHY chip, such as the RTL8201 Ethernet PHY in the photo.</li>
+                <li>It abstracts the physical aspects of communication: modulation, demodulation, bit synchronisation, <strong>line coding</strong>, multiplexing, filtering, and more.</li>
+                <li>All these procedures are abstracted to: bits transmitted on one end and received on the other.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/phy-chip.jpg" alt="Photo of a Realtek RTL8201CL Ethernet PHY chip on a circuit board" width="460" height="449"></div>
+              <figcaption><b>Slide 4.</b> RTL8201 Ethernet PHY chip. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="phy"></div>
+      </section>
+
+      <!-- 03 -->
+      <section class="topic" id="line-coding" data-part="Physical layer" data-short="Line coding">
+        <header class="topic-head">
+          <span class="topic-num">03</span>
+          <div><h2>Line coding: NRZ and RZ</h2><p class="kicker">How a '0' and a '1' look on the wire</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A line code is the agreement about what a bit physically looks like. The obvious choice ("high means 1") is only one option. You can also say "a <em>change</em> means 1", or "a short pulse means 1".</p>
+              <p>Why bother? Because some codes keep the line moving even when the data does not, which helps the receiver stay in step.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>NRZ (Non-Return-to-Zero):</strong> the signal does not return to zero in the middle of the bit.
+                  <ul>
+                    <li><strong>NRZ-L</strong> (level): '0' is zero voltage, '1' is positive voltage. This is what UART uses.</li>
+                    <li><strong>NRZ-M</strong> (mark): '0' keeps the same voltage, '1' is a transition.</li>
+                    <li><strong>NRZ-S</strong> (space): '1' keeps the same voltage, '0' is a transition.</li>
+                    <li><strong>NRZ-I</strong> (inverted) refers to NRZ-M or NRZ-S: the bit is carried by a change, not by a level.</li>
+                  </ul></li>
+                <li><strong>RZ (Return-to-Zero):</strong> '0' is zero voltage, '1' is positive voltage that returns to zero in the middle of the bit.</li>
+                <li>In the NRZ-I codes the transition happens at the start of the bit, so the receiver must remember the previous level.</li>
+                <li>Long runs of identical bits leave NRZ-L flat; NRZ-M stays flat on runs of '0', NRZ-S on runs of '1'; RZ stays flat on runs of '0'.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/line-coding.png" alt="Waveforms of NRZ-L, NRZ-M, NRZ-S and RZ for the bits 1 0 1 1 0 0 0 1 1 0 1" width="1192" height="445"></div>
+              <figcaption><b>Slide 5.</b> The same 11 bits in four line codes. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="linecode"></div>
+        <div class="quiz" data-quiz="line-coding"></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="topic" id="manchester" data-part="Physical layer" data-short="Manchester coding">
+        <header class="topic-head">
+          <span class="topic-num">04</span>
+          <div><h2>Manchester coding</h2><p class="kicker">A transition in the middle of every bit</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Manchester never lets the line rest: every bit is a "flip" in the middle, either up or down, and the <strong>direction</strong> of the flip is the bit.</p>
+              <p>Because there is a flip in every bit, the receiver can lock onto the rhythm without a separate clock wire. The price: the line changes up to twice per bit, so it needs twice the bandwidth.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Encodes the logical value as a <strong>transition in the middle of the bit</strong>.</li>
+                <li><strong>Original</strong> (G. E. Thomas): '0' is a low-to-high transition, '1' is a high-to-low transition.</li>
+                <li><strong>IEEE 802.3 (Ethernet)</strong>: '0' is a high-to-low transition, '1' is a low-to-high transition. The two conventions are exact inverses.</li>
+                <li><strong>Self-clocking:</strong> digital inputs can detect the transitions without needing a clock line.</li>
+                <li><strong>Requires double the bandwidth:</strong> a run of identical bits needs an extra transition at every bit boundary, so the line may change twice per bit.</li>
+                <li>With the clock drawn as in the slide (high in the first half of each bit), the 802.3 version equals data XOR clock, and the Thomas version is its inverse.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/manchester.png" alt="Clock, data 1 0 1 0 0 1 1 1 0 0 1, and the Manchester code as per G. E. Thomas and as per IEEE 802.3" width="1300" height="567"></div>
+              <figcaption><b>Slide 6.</b> Clock, data and both Manchester conventions. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="manchester"></div>
+        <div class="quiz" data-quiz="manchester"></div>
+      </section>
+
+      <!-- 05 -->
+      <section class="topic" id="long-wires" data-part="Physical layer" data-short="Long wires">
+        <header class="topic-head">
+          <span class="topic-num">05</span>
+          <div><h2>Transmission over long wires</h2><p class="kicker">Why a long cable produces bit errors</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>On a circuit board a wire is a few centimetres: it behaves almost perfectly. Stretch it to tens of metres and it starts acting like an antenna and a sponge. It picks up interference, it smears the sharp edges of the signal, and the two ends may not even agree on what "0 V" is.</p>
+              <p>The receiver still just compares against a threshold, so enough distortion turns into <strong>bit errors</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Wires are imperfect conductors: they have a small <strong>resistance</strong> (milliohms per metre) and a small <strong>capacitance</strong>.</li>
+                <li>These imperfections are negligible in short wires, but have side-effects when the wires are longer:
+                  <ul>
+                    <li>Wires pick up <strong>electromagnetic interference (EMI)</strong>.</li>
+                    <li>The <strong>ground level</strong> at the two sides is not the same.</li>
+                    <li><strong>High frequencies get attenuated</strong>: the resistance and capacitance act like a low-pass filter that rounds the edges.</li>
+                  </ul></li>
+                <li>Result: <strong>bit errors</strong>. In the slide, the noise picked up on the wire pushes several samples across the threshold.</li>
+                <li>A faster bit rate makes it worse: shorter bits have less time to reach their level through a rounded edge.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/long-wire.png" alt="Two devices connected by a long wire on the DATA pin" width="914" height="412"></div>
+              <figcaption><b>Slide 7.</b> Two devices joined by one long data wire.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/wired-nes/long-wire-plots.png" alt="Plots of the transmitted signal, the noise picked up and the received signal with wrongly read bits" width="971" height="1364"></div>
+              <figcaption><b>Slide 7.</b> Transmitted signal + noise = received signal, read against a threshold.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="wire"></div>
+        <div class="quiz" data-quiz="long-wires"></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="topic" id="differential" data-part="Physical layer" data-short="Differential signalling">
+        <header class="topic-head">
+          <span class="topic-num">06</span>
+          <div><h2>Differential signalling with balanced lines</h2><p class="kicker">Send the signal twice, once upside down</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Two people shout the same message, one of them saying the opposite. A passing truck drowns both out by the same amount, so if you only listen to the <strong>difference</strong> between them, the truck disappears.</p>
+              <p>That is differential signalling: two matched wires, one carrying the data and one its inverse. Noise lands on both equally and cancels when the receiver subtracts them.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The two devices are connected with <strong>two wires of the same type and length</strong> (balanced lines).</li>
+                <li>We transmit the signal and the inverted signal:
+                  <ul>
+                    <li>Non-inverted signal (P): '0' is GND, '1' is V<sub>S</sub>.</li>
+                    <li>Inverted signal (N): '0' is V<sub>S</sub>, '1' is GND.</li>
+                  </ul></li>
+                <li>Similar to a differential ADC (Week 4), the receiver measures the difference <strong>P - N</strong>: a positive difference means '1', a negative one '0'.</li>
+                <li>Advantages:
+                  <ul>
+                    <li><strong>Noise cancellation</strong> thanks to the balanced lines: noise that couples equally into both wires disappears in P - N.</li>
+                    <li><strong>Additional noise resilience</strong> because the receiver sees double the signal voltage: P - N swings between -V<sub>S</sub> and +V<sub>S</sub>.</li>
+                    <li>Enables <strong>low-voltage operation</strong>: lower consumption and higher speeds.</li>
+                  </ul></li>
+                <li>A ground offset between the two devices is also common to both wires, so it cancels too.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/balanced-lines.png" alt="Two devices connected by two long wires P and N" width="1012" height="493"></div>
+              <figcaption><b>Slide 8.</b> Pins P and N joined by a pair of balanced wires.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/diff-example.png" alt="Transmitted and inverted signals, the noise on both wires, the received signals and the received differential signal decoded correctly" width="1300" height="777"></div>
+          <figcaption><b>Slide 9.</b> Both wires pick up almost the same noise; the received differential signal P - N decodes every bit correctly, while each wire alone (middle right) would not.</figcaption>
+        </figure>
+        <div data-lab="diff"></div>
+        <div class="quiz" data-quiz="differential"></div>
+      </section>
+
+      <!-- 07 -->
+      <section class="topic" id="sync" data-part="Physical layer" data-short="Synchronisation">
+        <header class="topic-head">
+          <span class="topic-num">07</span>
+          <div><h2>Synchronisation at longer distances</h2><p class="kicker">No clock wire, so use the transitions</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Two musicians without a conductor agree on a tempo, but their sense of time is never perfect. They stay together by listening to each other's notes and adjusting. If one stops playing for a long time, they drift apart.</p>
+              <p>Receivers do the same: every change on the line is a chance to re-align. Long stretches without a change are dangerous, so protocols <strong>stuff</strong> in extra bits just to create a change.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Devices operate <strong>asynchronously</strong>, each with its own clock (no clock line, unlike SPI or I2C in Week 5). The clocks <strong>drift</strong> relative to each other.</li>
+                <li>Transmission rates are pre-agreed and defined by the protocol.</li>
+                <li>Changes on the line (high-to-low, low-to-high) in predetermined patterns are used for synchronisation.</li>
+                <li>Long periods without a change on the line can cause de-synchronisation. <strong>Bit stuffing</strong>: adding bits to force a transition. The receiver knows the rule and removes them again.</li>
+                <li>UART (Week 5) re-synchronises only on the start bit of each byte, which is why it tolerates only a few percent of clock error. Re-aligning on every edge, with stuffing to guarantee edges, removes the limit on frame length.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/sync-clocks.png" alt="Two devices with their own clocks connected by a pair of long wires" width="1238" height="608"></div>
+              <figcaption><b>Slide 10.</b> Each device has its own clock; only P and N connect them.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="resync"></div>
+        <div class="quiz" data-quiz="sync"></div>
+      </section>
+
+      <!-- 08 -->
+      <section class="topic" id="usb" data-part="Physical layer" data-short="USB 2.0">
+        <header class="topic-head">
+          <span class="topic-num">08</span>
+          <div><h2>USB 2.0 (Universal Serial Bus)</h2><p class="kicker">Differential pair, NRZ-I and bit stuffing in one familiar cable</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The USB cable on your desk uses all the tricks so far: a twisted pair of data wires driven in opposite directions, data carried by <em>changes</em> rather than levels, and an extra bit slipped in whenever the line would stay still for too long.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Uses <strong>differential signalling with balanced lines</strong>; the lines are <strong>twisted</strong> to reduce noise.</li>
+                <li>Differential '1': D+ high, D- low. Differential '0': D+ low, D- high.</li>
+                <li>Encodes data in <strong>NRZ-I (NRZ-S)</strong> with bit stuffing:
+                  <ul>
+                    <li>Logic '1': no change in voltage level.</li>
+                    <li>Logic '0': change in voltage level.</li>
+                    <li>To maintain synchronisation, after <strong>6 consecutive '1's</strong> a '0' is added to force a transition (red in the figure).</li>
+                  </ul></li>
+              </ul>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Name</th><th>Colour</th><th class="out">Function</th></tr></thead>
+                  <tbody>
+                    <tr><td>VBUS</td><td>Red</td><td class="out">5 V power supply</td></tr>
+                    <tr><td>D-</td><td>White</td><td class="out">Data (-), 3.3 V</td></tr>
+                    <tr><td>D+</td><td>Green</td><td class="out">Data (+), 3.3 V</td></tr>
+                    <tr><td>GND</td><td>Black</td><td class="out">Ground</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/usb-twisted.png" alt="Drawing of the twisted Data+ and Data- wires" width="968" height="100"></div>
+              <figcaption><b>Slide 11.</b> D+ and D- are twisted together. Image source named on the slide: AN57294 by Cypress Semiconductor.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/usb-timing.png" alt="USB data+ and data- waveforms for the logic bits 0 0 0 1 1 1 1 1 1, a stuffed 0, then 1 1 0 0 1 1" width="1300" height="176"></div>
+          <figcaption><b>Slide 11.</b> NRZ-S on D+ and D-; the stuffed '0' after six '1's is shown in red. Source: AN57294 by Cypress Semiconductor.</figcaption>
+        </figure>
+        <div data-lab="usb"></div>
+        <div class="quiz" data-quiz="usb"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 2</span><h2>Data link layer and medium access</h2></div>
+
+      <!-- 09 -->
+      <section class="topic" id="data-link" data-part="Data link and MAC" data-short="Data link layer">
+        <header class="topic-head">
+          <span class="topic-num">09</span>
+          <div><h2>The Data Link Layer</h2><p class="kicker">Frames between physically-connected nodes</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The physical layer delivers a stream of bits. The data link layer turns that stream into <strong>frames</strong> with a beginning, an end, an address and a checksum, and it decides <strong>who may talk</strong> when several devices share the same wire.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Responsible for the transmission of data frames between <strong>physically-connected nodes</strong> (local networks).</li>
+                <li><strong>Logical Link (LLC) sublayer:</strong>
+                  <ul>
+                    <li>Common interface to the protocols above.</li>
+                    <li>Error control (retransmissions, acknowledgements, etc.).</li>
+                    <li>Flow control.</li>
+                  </ul></li>
+                <li><strong>Medium Access Control (MAC) sublayer:</strong>
+                  <ul>
+                    <li>Frame format and synchronisation.</li>
+                    <li>Physical addressing.</li>
+                    <li>Error detection.</li>
+                    <li>Coordinates access to a shared medium.</li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="data-link"></div>
+      </section>
+
+      <!-- 10 -->
+      <section class="topic" id="frames" data-part="Data link and MAC" data-short="Frames">
+        <header class="topic-head">
+          <span class="topic-num">10</span>
+          <div><h2>Frames</h2><p class="kicker">Giving meaning to a sequence of bits</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A frame is an envelope for bits. A recognisable start lets the receiver lock on, a header says who it is for and what is inside, the payload is the letter itself, a check code reveals damage in transit, and a recognisable end closes it.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A frame defines the meaning of sequences of bits. Typical fields:
+                  <ul>
+                    <li><strong>Start:</strong> designates the beginning of the frame; used by the receiver to synchronise.</li>
+                    <li><strong>Header:</strong> protocol-specific information, such as configuration and addresses.</li>
+                    <li><strong>Payload:</strong> higher-level data.</li>
+                    <li><strong>Error detection:</strong> a code used to detect errors (bit flips).</li>
+                    <li><strong>End:</strong> designates the end of the frame.</li>
+                  </ul></li>
+                <li>The CAN and Ethernet frames later in this lecture are concrete versions of this template.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/frame.png" alt="Generic frame: start, header, payload, error detection, end" width="1300" height="89"></div>
+          <figcaption><b>Slide 13.</b> The typical fields of a frame.</figcaption>
+        </figure>
+        <div class="quiz" data-quiz="frames"></div>
+      </section>
+
+      <!-- 11 -->
+      <section class="topic" id="error-detection" data-part="Data link and MAC" data-short="Error detection">
+        <header class="topic-head">
+          <span class="topic-num">11</span>
+          <div><h2>Error detection: parity and CRC</h2><p class="kicker">Spotting bit flips before trusting a frame</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The sender computes a short fingerprint of the frame and sends it along. The receiver computes the fingerprint again from what it received: if the two differ, something was damaged and the frame is thrown away.</p>
+              <p>A parity bit is a one-bit fingerprint (catches a single flip); a CRC is a longer, smarter one (catches far more).</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Main idea:</strong> add a code to the frame that is generated from the header/payload. The receiver repeats the process; if it generates a different code, the frame is <strong>discarded</strong>.</li>
+                <li><strong>Parity check</strong> (as in UART, Week 5): adds one bit so that the total number of '1's is odd or even, as pre-agreed. Detects 1-bit errors (in fact any odd number of flips), but misses two flips.</li>
+                <li><strong>Cyclic Redundancy Check (CRC):</strong> adds a code of N bits (e.g. CRC-15 adds 15 bits). Detects more sophisticated errors.</li>
+                <li>How a CRC is computed: append N zeros to the data and divide by an agreed (N+1)-bit <em>generator</em> using XOR instead of subtraction; the N-bit remainder is the CRC. The receiver divides data + CRC by the same generator and expects remainder 0.
+                  <div class="formula">CRC = remainder of (data &middot; 2<sup>N</sup>) / G, &nbsp; computed with XOR</div></li>
+                <li>Detection, not correction: a damaged frame is dropped, and recovery (retransmission) is left to error control.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="crc"></div>
+        <div class="quiz" data-quiz="error-detection"></div>
+      </section>
+
+      <!-- 12 -->
+      <section class="topic" id="sharing" data-part="Data link and MAC" data-short="Sharing the medium">
+        <header class="topic-head">
+          <span class="topic-num">12</span>
+          <div><h2>Sharing the medium</h2><p class="kicker">One bus, many talkers</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A shared bus is a meeting room with one microphone. If two people speak at once, nobody understands either of them. Someone has to set rules: who speaks next, and who goes first when it matters.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>This is the job of <strong>Medium Access Control (MAC)</strong>.</li>
+                <li>Two devices cannot transmit at the same time on a shared bus: their signals overlap and both frames are destroyed (a <strong>collision</strong>).</li>
+                <li>The two questions every MAC scheme must answer:
+                  <ul>
+                    <li>How can we avoid such collisions?</li>
+                    <li>Who gets priority?</li>
+                  </ul></li>
+                <li>The answers in this lecture: <strong>polling</strong> (a coordinator decides), the <strong>CSMA</strong> family (listen before talk, back off randomly), and CAN's <strong>arbitration</strong> (priority by ID).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/shared-bus.png" alt="Five devices connected to one shared data bus" width="1128" height="666"></div>
+              <figcaption><b>Slide 15.</b> Five devices on one shared data line.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="sharing"></div>
+      </section>
+
+      <!-- 13 -->
+      <section class="topic" id="polling" data-part="Data link and MAC" data-short="Polling">
+        <header class="topic-head">
+          <span class="topic-num">13</span>
+          <div><h2>Polling</h2><p class="kicker">Speak only when you are asked</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A teacher goes round the class: "Anna? Ben? Carla?" Nobody speaks unless asked, so nobody talks over anyone. It is simple and fair, and you know when your turn comes. But the teacher spends time asking people who have nothing to say, and if the teacher leaves, the class goes silent.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A <strong>coordinator</strong> polls the other devices; a device does not transmit unless polled. (This is how SPI and I2C controllers work in Week 5.)</li>
+                <li>All communication goes through the coordinator: <strong>device-to-device communication is not possible</strong> directly.</li>
+                <li>The coordinator can give more transmission opportunities to devices that need them, e.g. Device 1 &rarr; 2 &rarr; 3 &rarr; 3 &rarr; 4 &rarr; 1 ...</li>
+                <li><strong>Advantages:</strong> simple, and <strong>bounded latency</strong> (every device is polled within one cycle).</li>
+                <li><strong>Disadvantages:</strong> polling overhead, device-to-device overhead, not easily extendable, <strong>single point of failure</strong> (the coordinator).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/polling-net.png" alt="A coordinator and four devices on a shared bus" width="892" height="590"></div>
+              <figcaption><b>Slide 16.</b> Coordinator and devices on one bus.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/polling-timeline.png" alt="Timeline: addr 1, frame, addr 2, frame, addr 3, frame, addr 4, frame" width="1300" height="103"></div>
+          <figcaption><b>Slide 16.</b> The coordinator sends an address; the polled device answers with a frame.</figcaption>
+        </figure>
+        <div data-lab="polling"></div>
+        <div class="quiz" data-quiz="polling"></div>
+      </section>
+
+      <!-- 14 -->
+      <section class="topic" id="csma" data-part="Data link and MAC" data-short="CSMA">
+        <header class="topic-head">
+          <span class="topic-num">14</span>
+          <div><h2>CSMA: Carrier Sense Multiple Access</h2><p class="kicker">Listen before talk</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>No teacher this time: before speaking, you listen. If someone is talking, you wait until they finish, then go. Polite, and fast when the room is quiet. But if two people were both waiting politely, they both start the moment the speaker stops, and talk over each other.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Listen-before-talk:</strong> the transmitter monitors the wire for transmissions (<strong>carrier sense</strong>, cs).
+                  <ul>
+                    <li>If idle, it proceeds with the transmission.</li>
+                    <li>If busy, it waits and transmits when the medium becomes idle.</li>
+                  </ul></li>
+                <li><strong>Collisions can still happen</strong> if two devices transmit (almost) at the same time: both sensed an idle medium, or the other transmission had not yet reached them.</li>
+                <li>Transmitters are <strong>not aware</strong> that a collision happened: they send the whole frame, and the receiver gets a corrupted frame (red in the figure).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/csma.png" alt="CSMA timeline for tx 1, tx 2 and rx: carrier sense, busy, frames, and a corrupted frame when both transmit together" width="1300" height="185"></div>
+          <figcaption><b>Slide 17.</b> Blue: transmit. Green: receive. Red: receive with errors.</figcaption>
+        </figure>
+        <div data-lab="csma"></div>
+        <div class="quiz" data-quiz="csma"></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="topic" id="csma-cd" data-part="Data link and MAC" data-short="CSMA/CD">
+        <header class="topic-head">
+          <span class="topic-num">15</span>
+          <div><h2>CSMA/CD: Collision Detection</h2><p class="kicker">Keep listening while you talk</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Now you keep listening while you speak. The moment you hear someone else, you both stop, each waits a random short moment, and you try again. Little time is wasted, and the random wait makes it unlikely you clash again.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Collision detection:</strong> while transmitting, also sense the medium for other transmissions.</li>
+                <li>If a collision is detected, <strong>wait some time randomly</strong> (backoff, bo) and try again later.</li>
+                <li>Advantages: collisions are <strong>stopped early</strong> without wasting a lot of bandwidth (the frame is cut short, "fr.."), and the transmitters know to <strong>retransmit</strong>.</li>
+                <li>A device that detects a collision keeps transmitting briefly (a jam) so the other side hears it too; in the lab this lasts as long as the signal travel time.</li>
+                <li>Used by the original Ethernet on a shared coaxial cable.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/csma-cd.png" alt="CSMA/CD timeline: both transmitters detect a collision, back off for 2 and 1 time units and retry" width="1300" height="260"></div>
+          <figcaption><b>Slide 18.</b> Collision detected (CD), backoffs bo: 2 and bo: 1, then both frames get through.</figcaption>
+        </figure>
+        <div data-lab="csma-cd"></div>
+        <div class="quiz" data-quiz="csma-cd"></div>
+      </section>
+
+      <!-- 16 -->
+      <section class="topic" id="beb" data-part="Data link and MAC" data-short="Binary exponential backoff">
+        <header class="topic-head">
+          <span class="topic-num">16</span>
+          <div><h2>Binary exponential backoff</h2><p class="kicker">Wait longer the more you collide</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>After a clash, everyone rolls a die to decide how long to wait. If the room is crowded, small dice give too many ties, so after every clash you switch to a bigger die. Once you get through, you go back to the small one.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>After a collision, choose a random number <em>bo</em> and back off for <em>bo</em> time units:
+                  <div class="formula">bo &isin; [0, 2<sup>CW</sup> - 1]</div></li>
+                <li>How large should the <strong>contention window</strong> be?
+                  <ul>
+                    <li>Too small: high probability of another collision in high traffic.</li>
+                    <li>Too big: unnecessarily large idle time in low traffic.</li>
+                  </ul></li>
+                <li><strong>Exponential backoff</strong> (initially CW = 1): after each collision CW = CW + 1, so the window doubles; after a successful transmission it resets to CW = 1.</li>
+                <li>The window adapts to the traffic: the more devices contend, the more collisions, the larger the window.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/beb.png" alt="Timeline: first collision both back off 1, collide again, then back off 3 and 1" width="1300" height="241"></div>
+          <figcaption><b>Slide 19.</b> Both pick bo = 1 and collide again; with the larger window they pick 3 and 1 and succeed.</figcaption>
+        </figure>
+        <div data-lab="backoff"></div>
+        <div class="quiz" data-quiz="beb"></div>
+      </section>
+
+      <!-- 17 -->
+      <section class="topic" id="prioritisation" data-part="Data link and MAC" data-short="Probabilistic prioritisation">
+        <header class="topic-head">
+          <span class="topic-num">17</span>
+          <div><h2>Probabilistic prioritisation</h2><p class="kicker">Smaller dice for important devices</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Give the important device a small die and the unimportant one a huge die. The important one almost always rolls lower and goes first. Almost: once in a while the unimportant one rolls a zero and gets lucky.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Device prioritisation via the binary exponential backoff.</li>
+                <li><strong>Low priority</strong> devices start with a large contention window (e.g. CW = 8).</li>
+                <li><strong>High priority</strong> devices start with a small contention window (e.g. CW = 1).</li>
+                <li>Low priority devices <strong>can transmit before</strong> high priority devices if lucky: prioritisation is probabilistic, not guaranteed.</li>
+                <li>Example: with CW = 1 (bo 0 or 1) against CW = 8 (bo 0 to 255), the low-priority device goes first only if it draws 0 while the other draws 1: (1/256) &times; (1/2) = 1/512.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/prio.png" alt="Timeline: after a collision the low priority device backs off 7, the high priority device 1, so the high priority frame goes first" width="1300" height="240"></div>
+          <figcaption><b>Slide 20.</b> After the collision the low-priority device draws bo = 7, the high-priority one bo = 1.</figcaption>
+        </figure>
+        <div data-lab="prio"></div>
+        <div class="quiz" data-quiz="prioritisation"></div>
+      </section>
+
+      <!-- 18 -->
+      <section class="topic" id="csma-ca" data-part="Data link and MAC" data-short="CSMA/CA">
+        <header class="topic-head">
+          <span class="topic-num">18</span>
+          <div><h2>CSMA/CA: Collision Avoidance</h2><p class="kicker">When you cannot hear while you talk</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Some devices cannot listen while they speak. A clash then costs the whole sentence, so it is worth avoiding clashes in the first place: if the room is busy, don't jump in the moment it goes quiet; wait a random extra moment first.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Used when it is <strong>not physically possible to sense the medium while transmitting</strong>. Collisions are then more costly, as they cannot be stopped early.</li>
+                <li>If the channel is busy, <strong>wait some time randomly before attempting the first transmission</strong>, using binary exponential backoff.</li>
+                <li>Collisions are less likely to occur in the first place, but the random waiting <strong>costs bandwidth</strong>.</li>
+                <li>This is the approach of wireless networks, where a radio's own transmission drowns out what it could receive (later in the course).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/csma-ca.png" alt="CSMA/CA timeline with three transmitters taking turns after random waits" width="1300" height="206"></div>
+          <figcaption><b>Slide 21.</b> tx 2 and tx 3 find the channel busy, wait randomly, and transmit one after the other. Blue: transmit. Green: receive.</figcaption>
+        </figure>
+        <div data-lab="csma-ca"></div>
+        <div class="quiz" data-quiz="csma-ca"></div>
+      </section>
+
+      <!-- 19 -->
+      <section class="topic" id="csma-tradeoffs" data-part="Data link and MAC" data-short="CSMA trade-offs">
+        <header class="topic-head">
+          <span class="topic-num">19</span>
+          <div><h2>CSMA trade-offs</h2><p class="kicker">Great when quiet, poor when crowded</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>CSMA is like a conversation without a chairperson: quick and flexible when few people talk, chaotic when everyone does. There is no promise about when you will get to speak.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Pros</th><th class="out">Cons</th></tr></thead>
+                  <tbody>
+                    <tr><td>Low latency in low traffic (no waiting for your turn)</td><td class="out">Unbounded latency for individual frames (can in theory wait forever for an idle medium)</td></tr>
+                    <tr><td>Flexible to add/remove devices from the network</td><td class="out">Poor efficiency under heavy traffic (collisions very likely)</td></tr>
+                    <tr><td>Probabilistic prioritisation possible (smaller CW for high-priority devices)</td><td class="out"></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li>Compare with polling: polling has bounded latency and no collisions, but overhead, a single point of failure, and it is hard to extend.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="csma-tradeoffs"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 3</span><h2>The CAN bus</h2></div>
+
+      <!-- 20 -->
+      <section class="topic" id="can-bus" data-part="CAN bus" data-short="CAN bus and signal">
+        <header class="topic-head">
+          <span class="topic-num">20</span>
+          <div><h2>The CAN bus and its signal</h2><p class="kicker">The network inside a car</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A modern car has dozens of small computers (engine, brakes, windows, lights) talking over a shared pair of wires: the CAN bus. It uses a twisted differential pair like USB, with one twist: a '0' is shouted, a '1' is merely "nobody shouting".</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Uses <strong>differential signalling</strong> with two balanced lines, <strong>CANH</strong> and <strong>CANL</strong>.
+                  <ul>
+                    <li>'1' is transmitted <strong>passively</strong>: the <strong>recessive</strong> state.</li>
+                    <li>'0' is <strong>actively driven</strong>: the <strong>dominant</strong> state.</li>
+                  </ul></li>
+                <li><strong>Low-speed CAN</strong> (up to 125 Kbps): to transmit '1', resistors pull CANH to GND and CANL to 5 V; to transmit '0', CANH is actively driven to 5 V and CANL to GND.</li>
+                <li><strong>High-speed CAN</strong> (up to 1 Mbps): to transmit '1', pull-up resistors pull CANH and CANL to 2.5 V; to transmit '0', CANH is actively driven to 3.5 V and CANL to 1.5 V.</li>
+                <li>A car typically has several CAN buses joined by gateways: high-speed CAN for engine and transmission, low-speed CAN for body electronics such as windows and locks.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/can-car.png" alt="Five nodes on the CANH and CANL lines drawn over the outline of a car" width="1300" height="760"></div>
+              <figcaption><b>Slide 23.</b> Nodes share the CANH and CANL lines.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/can-network.png" alt="In-car network: high speed CAN for engine, transmission and suspension, low speed CAN for doors, seats and lights, joined by gateways" width="1000" height="797"></div>
+              <figcaption><b>Slide 24.</b> High- and low-speed CAN in a car. Source: https://www.eecs.umich.edu/courses/eecs461/doc/CAN_notes.pdf</figcaption>
+            </figure>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/can-signal.png" alt="CANH and CANL waveforms for the bits 0 1 0 0 1 1 0 1" width="1126" height="268"></div>
+          <figcaption><b>Slide 25.</b> CANH and CANL separate for every dominant '0' and come together for a recessive '1'.</figcaption>
+        </figure>
+        <div data-lab="canlevels"></div>
+        <div class="quiz" data-quiz="can-bus"></div>
+      </section>
+
+      <!-- 21 -->
+      <section class="topic" id="dominant" data-part="CAN bus" data-short="Dominant state wins">
+        <header class="topic-head">
+          <span class="topic-num">21</span>
+          <div><h2>Dominant state wins!</h2><p class="kicker">'0' always beats '1'</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A '1' is silence and a '0' is a shout. If one node shouts and the others stay silent, everybody hears a shout. So whenever anyone sends '0', the bus is '0'. It is the same "anyone can pull it low" idea as the open-drain I2C bus from Week 5.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>If <strong>one</strong> device transmits '0' and the others transmit '1' at the same time, the CAN bus state is '0':
+                  <ul>
+                    <li>'0' is actively driven (dominant), while '1' is passive via the pull-up resistors (recessive).</li>
+                    <li>Only if <strong>all</strong> nodes transmit '1' is the bus '1'.</li>
+                    <li>'0' always wins.</li>
+                  </ul></li>
+                <li>Logically the bus is the <strong>AND</strong> of all transmitted bits (a wired-AND). Nothing is damaged by "disagreeing": no short circuit, because a '1' is never driven.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/dominant.png" alt="CAN bus bits 0 0 1 1 0 1 0 1 as the AND of tx 1, tx 2 and tx 3" width="1300" height="468"></div>
+          <figcaption><b>Slide 26.</b> The bus shows a '1' only where all three transmitters send '1'.</figcaption>
+        </figure>
+        <div data-lab="dominant"></div>
+        <div class="quiz" data-quiz="dominant"></div>
+      </section>
+
+      <!-- 22 -->
+      <section class="topic" id="arbitration" data-part="CAN bus" data-short="Arbitration">
+        <header class="topic-head">
+          <span class="topic-num">22</span>
+          <div><h2>CSMA/CD with arbitration</h2><p class="kicker">Collisions that nobody loses data in</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Everyone starts talking at once, saying their ID number one digit at a time while listening. As soon as you say "1" but hear "0", you know someone more important is talking, and you go quiet. The most important speaker never even notices there was a contest.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Each node gets a <strong>unique 11-bit ID</strong>.</li>
+                <li>The frame starts with a <strong>SOF</strong> (Start Of Frame), a dominant '0', for synchronisation.</li>
+                <li>The first field after the SOF is the 11-bit node ID: <strong>the higher the priority of the node, the lower the ID</strong>.</li>
+                <li>Transmitters read the bus; if an inconsistency is observed (they transmit '1' but the bus is '0'), they stop transmitting and try later.</li>
+                <li>The collision is <strong>non-destructive</strong>: the highest-priority message goes through without errors. Compare with Ethernet's CSMA/CD, where both colliding frames are lost.</li>
+                <li>In the slide: tx 2 (01111000010) loses at the 4th ID bit, tx 3 (01101011100) at the 9th; tx 1 (01101011011) has the lowest ID and wins.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/arbitration.png" alt="Arbitration: three transmitters send SOF and their IDs; tx 2 and tx 3 drop out where they send 1 and read 0" width="1300" height="299"></div>
+          <figcaption><b>Slide 27.</b> Bitwise arbitration on the priority ID; the red '1's are where tx 2 and tx 3 lose.</figcaption>
+        </figure>
+        <div data-lab="canarb"></div>
+        <div class="quiz" data-quiz="arbitration"></div>
+      </section>
+
+      <!-- 23 -->
+      <section class="topic" id="can-frame-types" data-part="CAN bus" data-short="Frame types and stuffing">
+        <header class="topic-head">
+          <span class="topic-num">23</span>
+          <div><h2>CAN frame types and bit stuffing</h2><p class="kicker">Broadcast frames, two ID lengths, four frame types</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>CAN messages are announcements on a loudspeaker, not letters: everyone hears every frame and decides for themselves whether it matters to them. The ID says what the message is (and how important), not who it is for.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Communication is <strong>sender-initiated</strong> and <strong>broadcast-based</strong>: all nodes on the bus receive all frames, and higher-level protocols determine whether they should be ignored.</li>
+                <li><strong>Bit stuffing:</strong> to maintain synchronisation, a bit of opposite polarity is added after <strong>5 consecutive bits</strong> of the same polarity (USB uses 6 '1's).</li>
+                <li>Two ID formats:
+                  <ul>
+                    <li>Standard: 11-bit IDs (2<sup>11</sup> = 2048 unique identifiers).</li>
+                    <li>Extended: 29-bit IDs (2<sup>29</sup> &asymp; 537 million unique identifiers).</li>
+                  </ul></li>
+                <li>Four frame types:
+                  <ul>
+                    <li><strong>Data frame:</strong> a frame with data, sent by an ID.</li>
+                    <li><strong>Remote frame:</strong> a frame requesting data from an ID.</li>
+                    <li><strong>Error frame:</strong> transmitted by any node that detects an error.</li>
+                    <li><strong>Overload frame:</strong> a frame to inject a delay.</li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="can-frame-types"></div>
+      </section>
+
+      <!-- 24 -->
+      <section class="topic" id="can-frames" data-part="CAN bus" data-short="Standard and extended frames">
+        <header class="topic-head">
+          <span class="topic-num">24</span>
+          <div><h2>Standard, remote and extended frames</h2><p class="kicker">Every field, bit by bit</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A CAN frame is a short form with fixed boxes: a start mark, the ID (which doubles as the priority), a few control bits, up to 8 bytes of data, a checksum, a box the receivers tick to say "got it", and a long quiet end.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Field</th><th>Bits</th><th class="out">Meaning</th></tr></thead>
+                  <tbody>
+                    <tr><td>SOF</td><td>1</td><td class="out">Start of frame; must be dominant '0'</td></tr>
+                    <tr><td>ID</td><td>11</td><td class="out">Unique ID of the sender (receiver, for remote frames); also the message priority</td></tr>
+                    <tr><td>RTR</td><td>1</td><td class="out">Remote transmission request: '0' (dominant) for data frames, '1' for remote frames</td></tr>
+                    <tr><td>IDE</td><td>1</td><td class="out">Identifier extension: dominant '0' for standard frames</td></tr>
+                    <tr><td>R0</td><td>1</td><td class="out">Reserved for future extensions</td></tr>
+                    <tr><td>DLC</td><td>4</td><td class="out">Data length code: number of bytes that follow (0 to 8); in a remote frame, the expected number of bytes</td></tr>
+                    <tr><td>DATA</td><td>0 to 64</td><td class="out">The data; length defined by DLC. Absent in remote frames</td></tr>
+                    <tr><td>CRC</td><td>16</td><td class="out">15-bit error detection code, last bit recessive '1' as delimiter</td></tr>
+                    <tr><td>ACK</td><td>2</td><td class="out">Transmitter sends recessive '1'; a receiver that got the frame without errors overwrites it with dominant '0'; last bit recessive '1' as delimiter</td></tr>
+                    <tr><td>EOF</td><td>7</td><td class="out">End of frame: all recessive '1'</td></tr>
+                    <tr><td>IFS</td><td>3</td><td class="out">Inter-frame spacing: all recessive '1'</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li><strong>Remote frame:</strong> same fields without DATA; RTR is '1'. (The slide calls it "dominant '1'", but a '1' on CAN is the recessive level.) Because a data frame's RTR '0' is dominant, a data frame beats a remote frame with the same ID.</li>
+                <li><strong>Extended data frame:</strong> SOF, ID A (11 bits, most significant part), SRR (substitute remote request, recessive '1'), IDE (recessive '1' for extended frames), ID B (18 bits, least significant part), RTR, RB (2 reserved bits), then DLC, DATA, CRC, ACK, EOF, IFS as before. 11 + 18 = 29 ID bits.</li>
+                <li>A standard data frame is 47 bits plus 8 per data byte before stuffing (44 + 3 IFS). Stuffing applies from SOF to the end of the CRC sequence and can add bits.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="fig-stack">
+          <figure class="fig fig-wide">
+            <div class="fig-frame"><img src="img/wired-nes/can-data-frame.png" alt="Standard data frame fields: sof, id, rtr, ide, r0, dlc, data, crc, ack, eof, ifs" width="1300" height="59"></div>
+            <figcaption><b>Slide 29.</b> Standard data frame.</figcaption>
+          </figure>
+          <figure class="fig fig-wide">
+            <div class="fig-frame"><img src="img/wired-nes/can-remote-frame.png" alt="Standard remote frame fields: sof, id, rtr, ide, r0, dlc, crc, ack, eof, ifs" width="1300" height="66"></div>
+            <figcaption><b>Slide 30.</b> Standard remote frame: no data field.</figcaption>
+          </figure>
+          <figure class="fig fig-wide">
+            <div class="fig-frame"><img src="img/wired-nes/can-extended-frame.png" alt="Extended data frame fields: sof, id a, srr, ide, id b, rtr, rb, dlc, data, crc, ack, eof, ifs" width="1300" height="50"></div>
+            <figcaption><b>Slide 31.</b> Extended data frame with ID A and ID B.</figcaption>
+          </figure>
+        </div>
+        <div data-lab="canframe"></div>
+        <div class="quiz" data-quiz="can-frames"></div>
+      </section>
+
+      <!-- 25 -->
+      <section class="topic" id="can-pros-cons" data-part="CAN bus" data-short="CAN pros and cons">
+        <header class="topic-head">
+          <span class="topic-num">25</span>
+          <div><h2>CAN bus: advantages and disadvantages</h2><p class="kicker">Excellent for urgent traffic, harsh on the unimportant</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>CAN always lets the most important message through first and checks everything twice, which is exactly what brakes and airbags need. The downside: if important messages keep coming, unimportant ones may never get a turn.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Advantages</strong>
+                  <ul>
+                    <li>Low latency in light traffic.</li>
+                    <li>Strong prioritisation for vital traffic.</li>
+                    <li>Robustness: abundant error checking. CRC and ACK, SOF, EOF, delimiters and IFS at message level; transmitted bits are also read back for inconsistencies; the bit stuffing rule of no more than 5 consecutive bits of the same level.</li>
+                  </ul></li>
+                <li><strong>Disadvantages</strong>
+                  <ul>
+                    <li>Unfair to low-priority nodes: <strong>starvation</strong> in high traffic.</li>
+                    <li>Poor latency for low-priority nodes.</li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="can-pros-cons"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 4</span><h2>Ethernet</h2></div>
+
+      <!-- 26 -->
+      <section class="topic" id="ethernet" data-part="Ethernet" data-short="IEEE 802.3 Ethernet">
+        <header class="topic-head">
+          <span class="topic-num">26</span>
+          <div><h2>IEEE 802.3: Ethernet</h2><p class="kicker">One name, fifty years of standards</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>"Ethernet" is not one technology but a family that kept the same frame format while the cables and speeds changed completely: from a thick shared coaxial cable at a few megabits to fibre and copper links at hundreds of gigabits.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A standard for wired <strong>local area networks</strong> (LANs).</li>
+                <li>A family of standards evolving since 1983:
+                  <ul>
+                    <li>Originally by Xerox in 1976, at 2.94 Mbps.</li>
+                    <li>10BASE5: the first standard (10 Mbps).</li>
+                    <li>Now up to 400 Gbps (data centres).</li>
+                  </ul></li>
+                <li>Up to <strong>1500 bytes of data per frame</strong>.</li>
+                <li>Reading the names: the number is the rate in Mbps, BASE means baseband signalling, and the suffix describes the medium (5 and 2: coaxial cable of roughly 500 and 200 m; T: twisted pair).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="ethernet"></div>
+      </section>
+
+      <!-- 27 -->
+      <section class="topic" id="mac-address" data-part="Ethernet" data-short="MAC addresses">
+        <header class="topic-head">
+          <span class="topic-num">27</span>
+          <div><h2>Ethernet: MAC addresses</h2><p class="kicker">48 bits that name a network interface</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Every Ethernet interface is born with a serial number: its MAC address, often printed on a sticker. The first half says who made it, the second half which device it is.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A unique <strong>48-bit identifier (6 bytes)</strong> for each Ethernet interface, typically written in hex, e.g. <code>AA:BB:CC:DD:EE:FF</code>.</li>
+                <li>Composed of two 24-bit parts:
+                  <ul>
+                    <li><strong>Organizationally Unique Identifier (OUI):</strong> identifies the manufacturer (assigned by IEEE).</li>
+                    <li><strong>Hardware identifier:</strong> identifies the specific hardware (assigned by the owner of the OUI).</li>
+                  </ul></li>
+                <li><code>FF:FF:FF:FF:FF:FF</code> is the <strong>broadcast</strong> address.</li>
+                <li>Two bits of the first byte carry extra meaning: the lowest bit (I/G) is 1 for group (multicast) addresses, the next bit (U/L) is 1 for locally administered addresses that are not taken from an IEEE OUI.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/mac-label.jpg" alt="Label on the bottom of a router showing the LAN MAC address as a barcode" width="1000" height="255"></div>
+              <figcaption><b>Slide 34.</b> A router's label with its LAN MAC address. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="mac"></div>
+        <div class="quiz" data-quiz="mac-address"></div>
+      </section>
+
+      <!-- 28 -->
+      <section class="topic" id="eth-frame" data-part="Ethernet" data-short="Ethernet frame">
+        <header class="topic-head">
+          <span class="topic-num">28</span>
+          <div><h2>The Ethernet frame</h2><p class="kicker">Destination first, so others can stop listening early</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>An Ethernet frame starts with a drum roll (the preamble) for synchronisation, then puts the destination address first, so every other device can stop reading after six bytes. The data follows, then a CRC to check it.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Field</th><th>Bytes</th><th class="out">Meaning</th></tr></thead>
+                  <tbody>
+                    <tr><td>Preamble</td><td>7</td><td class="out">Seven bytes of 0b10101010 for synchronisation</td></tr>
+                    <tr><td>SFD</td><td>1</td><td class="out">Start of frame delimiter, 0b10101011: marks the beginning of the frame</td></tr>
+                    <tr><td>Dest MAC</td><td>6</td><td class="out">MAC address of the destination</td></tr>
+                    <tr><td>Src MAC</td><td>6</td><td class="out">MAC address of the source</td></tr>
+                    <tr><td>Length/Type</td><td>2</td><td class="out">Values up to 1500: payload length. Values from 1536 (0x0600): type of packet inside the payload</td></tr>
+                    <tr><td>Payload</td><td>46 to 1500</td><td class="out">Data; padding is added to reach the minimum of 46 bytes</td></tr>
+                    <tr><td>FCS</td><td>4</td><td class="out">Frame check sequence: error detection with CRC-32</td></tr>
+                    <tr><td>ESD</td><td>4</td><td class="out">End of stream delimiter: marks the end of the frame</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li>The <strong>destination address comes first</strong>, so receivers can quickly decide whether the frame is for them (process it) or not (ignore it).</li>
+                <li>The preamble's alternating 1010... pattern gives the receiver plenty of transitions to lock its clock onto before the real data starts.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wired-nes/eth-frame.png" alt="Ethernet frame fields: preamble, sfd, dest mac, src mac, len/type, payload, fcs, esd" width="1300" height="53"></div>
+          <figcaption><b>Slide 35.</b> The fields of an Ethernet frame.</figcaption>
+        </figure>
+        <div data-lab="ethframe"></div>
+        <div class="quiz" data-quiz="eth-frame"></div>
+      </section>
+
+      <!-- 29 -->
+      <section class="topic" id="original-ethernet" data-part="Ethernet" data-short="Original Ethernet">
+        <header class="topic-head">
+          <span class="topic-num">29</span>
+          <div><h2>The original Ethernet</h2><p class="kicker">One coaxial cable shared by everyone</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The first Ethernet was literally one long cable snaking past every computer in the building. Everyone shared it, so only one could talk at a time, using listen-before-talk with collision detection.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>10BASE2 and 10BASE5</strong> (10 Mbps): original implementations over a <strong>single coaxial cable</strong> (half-duplex: one direction at a time).</li>
+                <li><strong>Manchester encoding</strong> (IEEE 802.3 convention): '0' is a high-to-low transition, '1' is a low-to-high transition.</li>
+                <li><strong>Bus topology</strong> and repeater hubs.</li>
+                <li>Medium access with <strong>CSMA/CD</strong> and binary exponential backoff.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/eth-coax.png" alt="Five eth0 interfaces connected to one shared bus" width="1050" height="633"></div>
+              <figcaption><b>Slide 36.</b> Bus topology: every eth0 interface on one cable.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="original-ethernet"></div>
+      </section>
+
+      <!-- 30 -->
+      <section class="topic" id="switch" data-part="Ethernet" data-short="Ethernet switch">
+        <header class="topic-head">
+          <span class="topic-num">30</span>
+          <div><h2>Ethernet switch</h2><p class="kicker">A box that learns where everyone is</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A hub is a loudspeaker: whatever comes in on one cable goes out on all the others. A switch is a smart post office: it notices which cable each sender's letters come from, and from then on delivers letters for that address only through that cable.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A switch <strong>learns</strong> where each device is connected:
+                  <ul>
+                    <li>It maintains a table that maps MAC addresses to ports (learned from the <em>source</em> address of each incoming frame).</li>
+                    <li>Entries in the table have an expiration date.</li>
+                    <li>If the destination is in the table, the frame is forwarded to the correct port only.</li>
+                    <li>Otherwise the frame is repeated to all ports (flooding).</li>
+                  </ul></li>
+                <li>Unlike a <strong>repeater hub</strong>, which emulates a bus by repeating everything everywhere.</li>
+                <li>Because each cable then carries only the traffic meant for it, separate pairs of devices can communicate at the same time.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wired-nes/eth-switch.png" alt="Five eth0 interfaces connected to numbered ports of a switch" width="997" height="873"></div>
+              <figcaption><b>Slide 37.</b> Star topology around a switch (port numbers next to the links).</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="switch"></div>
+        <div class="quiz" data-quiz="switch"></div>
+      </section>
+
+      <!-- 31 -->
+      <section class="topic" id="common-ethernet" data-part="Ethernet" data-short="10BASE-T and 100BASE-TX">
+        <header class="topic-head">
+          <span class="topic-num">31</span>
+          <div><h2>The common Ethernet: 10BASE-T and 100BASE-TX</h2><p class="kicker">Twisted pairs, full duplex, no collisions</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The Ethernet cable you plug into a laptop has separate twisted pairs for sending and receiving. With a dedicated cable to a switch, nobody else shares your wires, so collisions simply cannot happen and you can send and receive at the same time.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>10BASE-T</strong> (10 Mbps) and <strong>100BASE-TX</strong> (100 Mbps):
+                  <ul>
+                    <li>Peer-to-peer and switched topologies.</li>
+                    <li><strong>Full-duplex:</strong> differential signalling over 2 twisted pairs (TX+, TX-, RX+, RX-).</li>
+                    <li><strong>No collisions</strong>, and throughput is doubled (both directions at once).</li>
+                  </ul></li>
+                <li>10BASE-T keeps <strong>Manchester</strong> encoding.</li>
+                <li>100BASE-TX uses <strong>MLT-3</strong> line coding together with <strong>4B/5B</strong> encoding (next two topics).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/wired-nes/eth-hub.png" alt="A point-to-point link between two eth0 interfaces, and five devices around a hub" width="996" height="1099"></div>
+              <figcaption><b>Slide 38.</b> Point-to-point (top) and star around a hub (bottom).</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="common-ethernet"></div>
+      </section>
+
+      <!-- 32 -->
+      <section class="topic" id="mlt3" data-part="Ethernet" data-short="MLT-3">
+        <header class="topic-head">
+          <span class="topic-num">32</span>
+          <div><h2>Multi-Level Transition 3 (MLT-3)</h2><p class="kicker">Three levels, small steps</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Picture a pendulum that can only stop at left, middle or right, always moving in the same order. Every '1' nudges it one step along; a '0' leaves it where it is. The steps are small, so the signal changes gently, which lets it go fast through a cable.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Three voltage levels: <strong>-1, 0, +1</strong>, visited in a fixed transition order: -1, 0, +1, 0, -1, ...</li>
+                <li>Line coding: a <strong>'0' is no transition</strong>; a <strong>'1' is a transition</strong> (one step in the order). It is NRZ-I with three levels.</li>
+                <li>Advantage: <strong>small transitions allow higher speeds</strong>. A run of '1's goes through a full cycle only every 4 bits, so the fundamental frequency is a quarter of the bit rate.</li>
+                <li>Disadvantage: many continuous '0's lead to no transitions and, eventually, <strong>loss of synchronisation</strong>. (4B/5B fixes this.)</li>
+              </ul>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Data</th><td>1</td><td>1</td><td>1</td><td>0</td><td>1</td><td>1</td><td>0</td><td>1</td></tr></thead>
+                  <tbody><tr><th>Code</th><td>-1</td><td>0</td><td>+1</td><td>+1</td><td>0</td><td>-1</td><td>-1</td><td>0</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div data-lab="mlt3"></div>
+        <div class="quiz" data-quiz="mlt3"></div>
+      </section>
+
+      <!-- 33 -->
+      <section class="topic" id="enc-4b5b" data-part="Ethernet" data-short="4B/5B encoding">
+        <header class="topic-head">
+          <span class="topic-num">33</span>
+          <div><h2>4B/5B encoding</h2><p class="kicker">Trade one bit in five for guaranteed transitions</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Before sending, every group of 4 data bits is swapped for a 5-bit "code word" from a table, chosen so that each word contains enough '1's. Since MLT-3 moves on every '1', the line never stays still for long, whatever the data.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Encodes <strong>4 bits of data into 5 bits</strong>; the 5 bits are then transmitted using MLT-3.</li>
+                <li>5 bits allow 32 values: 16 values for data (4 bits), plus signal codes such as Idle, start-of-stream (J, K), end-of-stream (T, R) and Transmit Error (H).</li>
+                <li>Ensures frequent transitions by <strong>avoiding 5-bit values that have fewer than two '1's</strong>. Data 0 (0000), for example, becomes 11110.</li>
+                <li>Needs a <strong>125 Mbps</strong> transmission rate to achieve 100 Mbps of data:
+                  <div class="formula">100 Mbps &times; 5/4 = 125 Mbaud</div></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/wired-nes/4b5b-table.png" alt="4B/5B encoding table: data codes 0 to F and the signal codes I, J, K, T, R, H" width="834" height="1280"></div>
+              <figcaption><b>Slide 40.</b> The 4B/5B table. Source: AN1120 by Microchip.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="4b5b"></div>
+        <div class="quiz" data-quiz="enc-4b5b"></div>
+      </section>
+
+      <!-- 34 -->
+      <section class="topic" id="automotive" data-part="Ethernet" data-short="Automotive Ethernet">
+        <header class="topic-head">
+          <span class="topic-num">34</span>
+          <div><h2>The automotive Ethernet</h2><p class="kicker">100 Mbps over a single pair, for 15 m</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Cameras and infotainment need far more bandwidth than CAN offers, but every gram of copper in a car costs fuel and money. Automotive Ethernet keeps the familiar Ethernet frames and squeezes 100 Mbps through a single twisted pair, because a car never needs 100 m of cable.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Requirements:
+                  <ul>
+                    <li>Infotainment and new sensors require higher data rates in vehicles than CAN.</li>
+                    <li>Need to reduce cable weight, cost, energy footprint and EMI.</li>
+                    <li>No need to support long cables: 15 m is enough.</li>
+                  </ul></li>
+                <li><strong>100BASE-T1:</strong> uses only <strong>1</strong> bi-directional full-duplex twisted pair (echo cancellation), with 4B3B to 3B2T conversion and <strong>PAM-3</strong> encoding (3 bits sent as 2 three-level symbols).</li>
+                <li><strong>Transparent to the MAC layer:</strong> the same frames, only the physical layer changes.</li>
+              </ul>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Property</th><th>Classic (100BASE-TX)</th><th class="out">Automotive (100BASE-T1)</th></tr></thead>
+                  <tbody>
+                    <tr><td>Data rate</td><td>100 Mbps</td><td class="out">100 Mbps</td></tr>
+                    <tr><td>Baud rate / clock</td><td>125 MHz</td><td class="out">66.66 MHz</td></tr>
+                    <tr><td>No. twisted pairs</td><td>2</td><td class="out">1</td></tr>
+                    <tr><td>Line code</td><td>4B5B MLT-3</td><td class="out">4B3B PAM-3</td></tr>
+                    <tr><td>Max distance</td><td>100 m</td><td class="out">15 m</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="automotive"></div>
+      </section>
+
+      <!-- 35 -->
+      <section class="topic" id="gigabit" data-part="Ethernet" data-short="Gigabit Ethernet">
+        <header class="topic-head">
+          <span class="topic-num">35</span>
+          <div><h2>Gigabit Ethernet</h2><p class="kicker">Four pairs, both ways at once</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>To reach a gigabit without raising the symbol rate, 1000BASE-T uses all four pairs in the cable at once, in both directions, and packs two bits into every symbol on every pair.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>1000BASE-T</strong> (1000 Mbps): differential signalling over <strong>4 bi-directional full-duplex twisted pairs</strong> (echo cancellation), each operating at <strong>125 MHz</strong>.</li>
+                <li><strong>4D-PAM-5</strong> encoding: five levels; -2, -1, 1, 2 encode 2 bits, and the level 0 is used for error correction.</li>
+                <li>8 bits are transmitted in parallel per symbol period:
+                  <div class="formula">4 pairs &times; 2 bits/symbol &times; 125 MBd = 1000 Mbps</div></li>
+                <li><strong>Gigabit automotive Ethernet</strong> also exists: 1000BASE-T1.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="rates"></div>
+        <div class="quiz" data-quiz="gigabit"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="topic" id="cheat-sheet" data-toc-extra="Cheat sheet">
+        <header class="topic-head">
+          <span class="topic-num">&Sigma;</span>
+          <div><h2>Cheat sheet</h2><p class="kicker">The rules and numbers worth memorising</p></div>
+        </header>
+        <div class="cheat">
+          <div class="cheat-item"><h3>OSI, bottom up</h3><div class="formula">1 Physical: bit &nbsp;|&nbsp; 2 Data Link: frame &nbsp;|&nbsp; 3 Network: packet &nbsp;|&nbsp; 4 Transport: segment</div><p>5 Session, 6 Presentation, 7 Application: data.</p></div>
+          <div class="cheat-item"><h3>NRZ and RZ</h3><div class="formula">NRZ-L: level &nbsp;|&nbsp; NRZ-M: 1 = change &nbsp;|&nbsp; NRZ-S: 0 = change &nbsp;|&nbsp; RZ: 1 = half-bit pulse</div><p>NRZ-I means NRZ-M or NRZ-S.</p></div>
+          <div class="cheat-item"><h3>Manchester</h3><div class="formula">802.3: 1 = low-to-high, 0 = high-to-low</div><p>Thomas is the inverse. Self-clocking, double bandwidth.</p></div>
+          <div class="cheat-item"><h3>Differential pair</h3><div class="formula">P - N &gt; 0 &rArr; '1' &nbsp;&nbsp; swing &plusmn;V<sub>S</sub></div><p>Common noise and ground offsets cancel; allows low voltages.</p></div>
+          <div class="cheat-item"><h3>Bit stuffing</h3><div class="formula">USB: 0 after six 1s &nbsp;|&nbsp; CAN: opposite bit after five equal bits</div><p>Forces transitions so drifting clocks can re-align.</p></div>
+          <div class="cheat-item"><h3>Error detection</h3><div class="formula">parity: 1 bit &nbsp;|&nbsp; CRC-N: remainder of data&middot;2<sup>N</sup> / G</div><p>Mismatch &rArr; frame discarded. CAN: CRC-15; Ethernet: CRC-32.</p></div>
+          <div class="cheat-item"><h3>Backoff</h3><div class="formula">bo &isin; [0, 2<sup>CW</sup> - 1], CW: 1 &rarr; +1 per collision &rarr; 1 after success</div><p>Smaller starting CW = higher (probabilistic) priority.</p></div>
+          <div class="cheat-item"><h3>MAC schemes</h3><div class="formula">polling | CSMA | CSMA/CD | CSMA/CA | CAN arbitration</div><p>Polling: bounded latency. CSMA: low latency when quiet, unbounded when busy.</p></div>
+          <div class="cheat-item"><h3>CAN levels</h3><div class="formula">HS: rec. 2.5/2.5 V, dom. 3.5/1.5 V &nbsp;|&nbsp; LS: rec. 0/5 V, dom. 5/0 V</div><p>'0' dominant, '1' recessive; lowest ID wins arbitration.</p></div>
+          <div class="cheat-item"><h3>CAN IDs and frames</h3><div class="formula">11 bits: 2048 IDs &nbsp;|&nbsp; 29 bits: 537 million</div><p>SOF, ID, RTR, IDE, R0, DLC, DATA (0 to 8 bytes), CRC, ACK, EOF, IFS.</p></div>
+          <div class="cheat-item"><h3>Ethernet frame</h3><div class="formula">7 + 1 + 6 + 6 + 2 + (46 to 1500) + 4 + 4 bytes</div><p>Destination MAC first. MAC: 48 bits = 24-bit OUI + 24-bit hardware ID.</p></div>
+          <div class="cheat-item"><h3>Line rates</h3><div class="formula">100BASE-TX: 100 &times; 5/4 = 125 MBd &nbsp;|&nbsp; 1000BASE-T: 4 &times; 2 &times; 125</div><p>100BASE-T1: 1 pair, PAM-3, 66.66 MBd, 15 m.</p></div>
+        </div>
+      </section>
+
+      <p class="page-foot">Figures cropped from the lecture slides "Wired Networked Embedded Systems" by Xenofon Fafoutis, DTU Compute, with their original sources noted. For personal study.</p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/wired-nes.js"></script>
+</body>
+</html>

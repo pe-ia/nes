@@ -1,0 +1,98 @@
+/* Week 7, Wired Networked Embedded Systems: lecture-specific styles (loaded after style.css). */
+
+/* full-width slide figures for wide timing diagrams */
+.fig-wide .fig-frame { padding: 12px 14px; min-height: 0; }
+.fig-wide .fig-frame img { max-height: none; width: 100%; }
+.fig-stack { display: flex; flex-direction: column; gap: 14px; }
+
+/* clickable bit editor */
+.bit-editor { display: grid; gap: 3px; }
+.bit-editor button {
+  font: inherit; font-family: var(--mono); font-weight: 700; font-size: 13px;
+  min-width: 0; padding: 4px 0; border-radius: 5px; cursor: pointer;
+  background: var(--card); border: 1px solid var(--line-2); color: var(--ink-2);
+}
+.bit-editor button:hover { border-color: var(--accent); }
+.bit-editor button:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.bit-editor button.b1 { color: var(--hi); }
+.bit-editor button.b0 { color: var(--lo); }
+.bit-editor.flip button { border-style: dashed; }
+.bit-editor.flip button.par { color: var(--warn); border-color: var(--warn); }
+.bit-editor.flip button.crc { color: var(--tech); border-color: var(--tech); }
+.bit-editor.flip button.flipped { background: var(--bad-soft); border: 1px solid var(--bad); color: var(--bad); }
+
+.preset-row, .btn-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn.btn-sm { padding: 4px 9px; font-size: 12px; }
+
+.bits span.hdr { background: transparent; border-color: transparent; color: var(--muted); font-weight: 600; font-size: 10.5px; }
+.bits span.stuffed { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); }
+.bits span.over { background: var(--warn-soft); border-color: var(--warn); color: var(--warn); }
+.bits span.gone { color: var(--muted); opacity: 0.45; }
+
+/* OSI layer sorter */
+.sorter-card { border: 1px solid var(--line); border-radius: 10px; background: var(--card); padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+.sorter-item { font-size: 15.5px; font-weight: 600; color: var(--ink); margin: 0; }
+.layer-btns { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 6px; }
+.layer-btn {
+  font: inherit; font-size: 13px; text-align: left; cursor: pointer;
+  padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--lab-bg); color: var(--ink-2);
+}
+.layer-btn b { font-family: var(--mono); color: var(--muted); margin-right: 4px; }
+.layer-btn:hover { border-color: var(--accent); color: var(--ink); }
+.layer-btn.right { background: var(--ok-soft); border-color: var(--ok); color: var(--ink); }
+.layer-btn.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--ink); }
+
+/* CRC long division */
+.steps-wrap summary { cursor: pointer; font-size: 13px; color: var(--ink-2); font-weight: 600; }
+pre.steps {
+  font-family: var(--mono); font-size: 12px; line-height: 1.45; margin: 8px 0 0;
+  background: var(--lab-bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px 12px;
+  overflow-x: auto; white-space: pre;
+}
+
+/* backoff draws */
+.draw-chips { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.draw-chip { font-family: var(--mono); font-size: 12px; font-weight: 700; padding: 4px 8px; border-radius: 7px; border: 1px solid var(--line-2); background: var(--card); }
+.draw-chip.win { background: var(--ok-soft); border-color: var(--ok); color: var(--ok); }
+.draw-chip.tie { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+.draw-note { font-size: 13px; color: var(--ink-2); }
+
+/* CAN frame fields */
+.can-fields { display: flex; flex-wrap: wrap; gap: 6px; }
+.can-field { border: 1px solid var(--tech); background: var(--tech-soft); border-radius: 8px; padding: 4px 7px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.can-field.fixed { border-color: var(--line-2); background: var(--lab-bg); }
+.can-field .fname { font-size: 10.5px; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+.can-field .fbits { font-family: var(--mono); font-size: 12.5px; font-weight: 700; color: var(--ink); overflow-wrap: anywhere; word-break: break-all; }
+.can-field .fbits span.stuff { color: var(--bad); background: var(--bad-soft); border-radius: 3px; }
+
+/* MAC address */
+.text-in {
+  font: inherit; font-family: var(--mono); font-size: 14px; width: 100%;
+  padding: 7px 10px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--card); color: var(--ink);
+}
+.text-in:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.mac-box { display: flex; flex-direction: column; gap: 8px; }
+.mac-bytes { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 4px; }
+.mac-bytes span { text-align: center; font-family: var(--mono); font-weight: 700; font-size: 18px; padding: 8px 0; border-radius: 8px; }
+.mac-bytes span.oui, .mac-legend span.oui { background: var(--accent-soft); color: var(--accent); }
+.mac-bytes span.nic, .mac-legend span.nic { background: var(--tech-soft); color: var(--tech); }
+.mac-legend { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; font-size: 12px; font-weight: 600; text-align: center; }
+.mac-legend span { border-radius: 6px; padding: 2px 0; }
+.mac-first { font-family: var(--mono); font-size: 13px; color: var(--ink-2); }
+.mac-first span.ig, .mac-first span.ul { color: var(--warn); font-weight: 800; text-decoration: underline; }
+.mac-first small { font-family: var(--font); color: var(--muted); }
+
+/* Ethernet frame bar */
+.eth-bar { display: flex; height: 38px; border-radius: 8px; overflow: hidden; gap: 1px; }
+.eth-bar span { min-width: 3px; display: flex; align-items: center; justify-content: center; font-size: 11px; font-weight: 700; color: #fff; opacity: 0.9; overflow: hidden; white-space: nowrap; }
+
+.rate-eq .formula { margin: 0; white-space: normal; }
+
+@media (max-width: 600px) {
+  .bit-editor button { font-size: 11.5px; padding: 3px 0; }
+  .mac-bytes span { font-size: 15px; }
+  .layer-btns { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+.fig { min-width: 0; max-width: 100%; }
+.fig-wide .fig-zoom { width: 100%; }
+@media (max-width: 600px) { .seg button { padding: 7px 4px; font-size: 12px; } }
