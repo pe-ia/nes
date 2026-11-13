@@ -1,0 +1,36 @@
+/* Week 9, Time Synchronisation: lecture-specific styles (loaded after style.css). */
+
+/* full-width slide figures (wide strips) */
+.fig-wide .fig-frame { padding: 12px 14px; min-height: 0; }
+.fig-wide .fig-frame img { max-height: none; width: 100%; }
+.fig { min-width: 0; max-width: 100%; }
+.fig-wide .fig-zoom { width: 100%; }
+
+/* system-level / application-level sorter */
+.ts-sort { display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+.ts-sort-item { font-size: 15.5px; font-weight: 600; color: var(--ink); margin: 0; min-height: 2.6em; }
+.ts-choices { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.ts-choice.right { background: var(--ok-soft); border-color: var(--ok); color: var(--ink); }
+.ts-choice.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--ink); }
+.ts-choice:disabled { cursor: default; }
+
+/* message-exchange timelines */
+.ts-svg .ts-axis { stroke: var(--ink-2); stroke-width: 2; }
+.ts-svg .ts-ah { fill: var(--ink-2); }
+.ts-svg .ts-msg { stroke: var(--ink-2); stroke-width: 2.2; }
+.ts-svg .ts-msg.fwd { stroke: var(--hi); }
+.ts-svg .ts-ah.fwd { fill: var(--hi); }
+.ts-svg .ts-msg.back { stroke: var(--lo); }
+.ts-svg .ts-ah.back { fill: var(--lo); }
+.ts-svg text.t-tech { fill: var(--tech); }
+.ts-svg .ts-rx { fill: var(--card); stroke: var(--ink); stroke-width: 2; }
+.ts-svg .ts-est1 { fill: var(--hi); opacity: 0.85; }
+.ts-svg .ts-est2 { fill: var(--lo); opacity: 0.85; }
+
+@media (max-width: 600px) {
+  .seg button { padding: 7px 4px; font-size: 12px; }
+  .ts-choices { grid-template-columns: minmax(0, 1fr); }
+}
+
+.tech .formula { white-space: normal; }
+@media (max-width: 600px) { .meter-row { grid-template-columns: 88px minmax(0, 1fr) 70px; } }

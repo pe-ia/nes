@@ -314,7 +314,8 @@
   NES.initPage = function () {
     // Table of contents from sections
     const toc = document.querySelector("[data-toc]");
-    const topics = Array.from(document.querySelectorAll("section.topic"));
+    // Review cards (cheat sheet, summary) are listed separately via data-toc-extra, so skip them here
+    const topics = Array.from(document.querySelectorAll("section.topic:not([data-toc-extra])"));
     if (toc) {
       const parts = new Map();
       topics.forEach((sec) => {

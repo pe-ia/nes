@@ -1,0 +1,44 @@
+/* Week 8, Embedded AI: lecture-specific styles (loaded after style.css). */
+
+/* full-width slide figures for wide strips */
+.fig-wide .fig-frame { padding: 12px 14px; min-height: 0; }
+.fig-wide .fig-frame img { max-height: none; width: 100%; }
+.fig { min-width: 0; max-width: 100%; }
+.fig-wide .fig-zoom { width: 100%; }
+
+/* code listing in the braking-rule lab */
+pre.ea-code {
+  margin: 0;
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 12px 14px; overflow-x: auto;
+  font-family: var(--mono); font-size: 12.5px; line-height: 1.55; color: var(--ink);
+}
+pre.ea-code .c { color: var(--muted); }
+pre.ea-code .hl-yes { background: var(--bad-soft); border-radius: 4px; }
+pre.ea-code .hl-no { background: var(--ok-soft); border-radius: 4px; }
+
+/* clickable prediction cells in the metrics lab */
+.ea-cells { display: grid; gap: 4px; align-items: center; margin-bottom: 6px; }
+.ea-cells .cell {
+  font: inherit; font-family: var(--mono); font-weight: 700; font-size: 13px;
+  text-align: center; padding: 4px 0; min-width: 0; border-radius: 5px;
+  background: var(--lab-bg); border: 1px solid var(--line); color: var(--ink-2);
+}
+.ea-cells .cell.b1 { color: var(--hi); }
+.ea-cells .cell.b0 { color: var(--lo); }
+.ea-cells button.cell { cursor: pointer; background: var(--card); border-color: var(--line-2); }
+.ea-cells button.cell:hover { border-color: var(--accent); }
+.ea-cells button.cell:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.ea-cells button.cell.right { background: var(--ok-soft); border-color: var(--ok); }
+.ea-cells button.cell.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--bad); }
+
+.btn-row { display: flex; flex-wrap: wrap; gap: 6px; }
+.btn.btn-sm { padding: 4px 9px; font-size: 12px; }
+
+@media (max-width: 600px) {
+  .seg button { padding: 7px 4px; font-size: 12px; }
+  .ea-cells { gap: 2px; }
+  .ea-cells .cell { font-size: 12px; }
+}
+
+.stat-k { overflow-wrap: anywhere; }

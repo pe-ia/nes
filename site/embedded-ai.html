@@ -1,0 +1,1369 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Embedded AI · NES Study</title>
+  <meta name="description" content="Interactive study page for the NES Week 8 lecture on embedded AI: why process on the device (BLERP), neurons, layers and training, the TinyML workflow, quantization, deployment and on-device learning.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3162b'/%3E%3Cpath d='M7 21h5V11h8v10h5' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/embedded-ai.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn" type="button" data-nav-toggle aria-label="Open contents">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Contents
+  </button>
+  <span class="topbar-progress"><span data-progress-answered>0 / 0</span> answered</span>
+</header>
+<div class="scrim"></div>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Lecture contents">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">NES</span>
+      <span class="brand-text"><b>NES Study</b><span>Networked Embedded Systems</span></span>
+    </a>
+
+    <div class="progress-card">
+      <div class="progress-row"><span>Questions answered</span><b data-progress-answered>0 / 0</b></div>
+      <div class="progress-bar"><span data-progress-bar></span></div>
+      <div class="progress-sub"><span>Right on first try: <b data-progress-first>0</b></span><button class="link-btn" type="button" data-quiz-reset>Reset</button></div>
+    </div>
+
+    <nav class="toc" data-toc></nav>
+
+    <div class="sidebar-foot">
+      <a class="icon-btn" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        All lectures
+      </a>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Theme
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+
+      <div class="hero">
+        <div class="crumbs"><a href="index.html">NES Study</a> / Week 8: Embedded AI</div>
+        <h1>Embedded AI</h1>
+        <p class="hero-lead">Running machine learning on the device itself: why it pays off, a minimal primer on neurons, layers and training, the TinyML workflow from collecting data to quantizing and deploying a model, and what to do when the world changes after deployment.</p>
+        <div class="hero-meta">
+          <span class="chip">34 topics</span>
+          <span class="chip">12 interactive labs</span>
+          <span class="chip">73 questions</span>
+          <span class="chip">Slides: M. Pavan, DTU Compute</span>
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 1</span><h2>Intro and motivation</h2></div>
+
+      <!-- 01 -->
+      <section class="topic" id="why" data-part="Motivation" data-short="Why embedded AI">
+        <header class="topic-head">
+          <span class="topic-num">01</span>
+          <div><h2>Why embedded AI in this course?</h2><p class="kicker">One more thing the device can do with its data</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>So far the course has built the body of an embedded system: sensors that measure, processors that compute, and wires that carry the data around. Embedded AI gives it a small brain.</p>
+              <p>Instead of only collecting numbers and passing them on, the device itself works out what they <strong>mean</strong>: "someone said the wake word", "this machine sounds wrong", "there is a person in the room".</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Earlier weeks covered the hardware used in IoT embedded systems, the sensors that collect data from the environment, and how to move that data between chips (Week 5) and between boards (Week 7); wireless links between devices come later in the course.</li>
+                <li>The question of this lecture: <strong>is there something more we can do, directly on the device?</strong></li>
+                <li>For certain applications, yes. The slide's examples of analysing the data directly on the device:
+                  <ul>
+                    <li><strong>Wake-word detection</strong> on a smart speaker.</li>
+                    <li><strong>Presence detection</strong>: is a person in front of the camera?</li>
+                    <li><strong>Anomaly detection</strong> on industrial machinery.</li>
+                    <li><strong>Health parameter monitoring</strong> on a smartwatch.</li>
+                  </ul></li>
+                <li>All of them turn a continuous stream of raw sensor data into a rare, compact decision.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/applications.jpg" alt="Smart speaker, person with a detection box, industrial machine and a smartwatch" width="900" height="480"></div>
+              <figcaption><b>Slide 5.</b> Wake-word detection, presence detection, anomaly detection and health parameter monitoring.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="why"></div>
+      </section>
+
+      <!-- 02 -->
+      <section class="topic" id="blerp" data-part="Motivation" data-short="BLERP">
+        <header class="topic-head">
+          <span class="topic-num">02</span>
+          <div><h2>BLERP: why process on the device?</h2><p class="kicker">Bandwidth, Latency, Economics, Reliability, Privacy</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Imagine every smoke detector in a city phoning a call centre and describing the air, every second, all day. The phone lines would be jammed, the call centre would cost a fortune, and when the line is down nobody gets warned.</p>
+              <p>A smoke detector instead decides by itself and only calls when there is smoke. Embedded AI does the same for smarter decisions. The five reasons spell <strong>BLERP</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>B</strong>andwidth: transmitting raw data from thousands of devices would clog the infrastructure.</li>
+                <li><strong>L</strong>atency: local processing lowers the response time, enabling real-time applications.</li>
+                <li><strong>E</strong>conomics: maintaining a cloud infrastructure and transmitting data to it is expensive.</li>
+                <li><strong>R</strong>eliability: fewer external dependencies make the system more fault-tolerant.</li>
+                <li><strong>P</strong>rivacy: when data stays on the device there are fewer opportunities for breaches and abuse.</li>
+              </ul>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Example</th><th>On-device</th><th class="out">BLERP letters</th></tr></thead>
+                  <tbody>
+                    <tr><td>Early wildfire detection</td><td>Bosch BME688 gas sensors on trees; an ML model recognises fire-related gases; an alert goes to a gateway over an ultra-low-power, always-on LoRaWAN mesh</td><td class="out">B, E, R (our reading)</td></tr>
+                    <tr><td>Keyword spotting at home</td><td>Microphone arrays always listening; the audio stream is analysed locally</td><td class="out">P, B, E, L (named on the slide)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>For keyword spotting the slide spells it out: streaming every home's audio to the cloud would make "the internet explode" (bandwidth and economics), local analysis keeps the recordings private, and the user needs early feedback (latency).</p>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/examples.jpg" alt="Wildfire sensor node on a tree and a smart speaker, with bullet points" width="900" height="581"></div>
+              <figcaption><b>Slide 7.</b> Two real-world examples: early wildfire detection and keyword spotting on home devices.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="blerp"></div>
+        <div class="quiz" data-quiz="blerp"></div>
+      </section>
+
+      <!-- 03 -->
+      <section class="topic" id="ai-ml-dl" data-part="Motivation" data-short="AI vs ML vs DL">
+        <header class="topic-head">
+          <span class="topic-num">03</span>
+          <div><h2>AI vs ML vs DL</h2><p class="kicker">Three nested circles</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>"Vehicle", "car" and "electric car" describe ever narrower groups. AI, machine learning and deep learning work the same way: every deep learning system is a machine learning system, and every machine learning system is a form of AI, but not the other way round.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Artificial Intelligence</strong>: attempting to perform complex tasks by mimicking human intelligence.</li>
+                <li><strong>Machine Learning</strong>: the subfield of AI focusing on <strong>learning from data</strong> rather than explicit rules.</li>
+                <li><strong>Deep Learning</strong>: the subset of ML techniques based on <em>deep neural networks</em>. Contemporary AI is mostly deep learning, and so is most of this lecture.</li>
+                <li>"Deep" refers to the many stacked layers of neurons (topic 10).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/ai-ml-dl.png" alt="Nested circles: artificial intelligence contains machine learning, which contains deep learning" width="1000" height="490"></div>
+              <figcaption><b>Slide 8.</b> Deep learning inside machine learning inside artificial intelligence.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="ai-ml-dl"></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="topic" id="rules-vs-ml" data-part="Motivation" data-short="Rules vs learning">
+        <header class="topic-head">
+          <span class="topic-num">04</span>
+          <div><h2>Conditional logic vs machine learning</h2><p class="kicker">Write the rules, or learn them from examples</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>If you can explain a task in a few sentences ("brake if you will hit the wall before you can stop"), just program it. But try writing rules for recognising a handwritten "2": which pixels, at which angles, in whose handwriting?</p>
+              <p>For tasks like that, it is easier to show the computer thousands of labelled examples and let it <strong>learn</strong> the rule itself.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Conditional logic</th><th class="out">Machine learning</th></tr></thead>
+                  <tbody>
+                    <tr><td>Deterministic</td><td class="out">Requires training data</td></tr>
+                    <tr><td>Efficient</td><td class="out">Does not require a human to generate the model, so it scales better</td></tr>
+                    <tr><td>Does not require training data</td><td class="out">The lecture focuses mainly on deep learning</td></tr>
+                    <tr><td>Requires a human able to describe how to do the task</td><td class="out"></td></tr>
+                    <tr><td>Does not scale with feature dimension and the complexity of the task</td><td class="out"></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li>The slide's example program brakes a car when <code>distance_from_wall / current_speed &lt; seconds_to_stop + safety_buffer</code>: four inputs and physics anyone can write down.</li>
+                <li>Handwritten digits have hundreds of inputs (one per pixel) and no rule anyone can write. A model is learned from pairs such as (image, "2").</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/rule-code.png" alt="Python-like code that applies the brakes when the time until crash is below the stopping time plus a safety buffer" width="1000" height="434"></div>
+              <figcaption><b>Slide 9.</b> Conditional logic: the braking rule, written by a human.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/learn-model.png" alt="Handwritten digits with labels feed a learning step that produces an ML model; the model maps a new digit to 2" width="927" height="532"></div>
+              <figcaption><b>Slide 9.</b> Machine learning: the model is learned from labelled examples.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="rule"></div>
+        <div class="quiz" data-quiz="rules-vs-ml"></div>
+      </section>
+
+      <!-- 05 -->
+      <section class="topic" id="tinyml" data-part="Motivation" data-short="Edge AI and TinyML">
+        <header class="topic-head">
+          <span class="topic-num">05</span>
+          <div><h2>Edge AI, TinyML, embedded AI/ML</h2><p class="kicker">Many names for ML close to the data</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>"Edge AI" is anything that runs the model on the device instead of in a data centre, from a laptop to a phone. <strong>TinyML</strong> is the hard end of that: getting models to run on tiny, cheap, battery-powered chips with a few hundred kilobytes of memory. That is this course's focus.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Edge AI</strong>: running ML models directly on edge devices (PCs, smartphones, consumer electronics, IoT) rather than in the cloud.</li>
+                <li><strong>TinyML</strong>: the subfield of ML/DL dealing with the challenge of running models on low-power, resource-constrained devices. It is the overlap of machine learning and embedded systems.</li>
+                <li>Less common aliases: AIoT, edge computing, embedded ML, resource-constrained ML, resource-efficient ML.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/tinyml-venn.png" alt="Venn diagram: machine learning and embedded system overlap in TinyML" width="1000" height="372"></div>
+              <figcaption><b>Slide 10.</b> TinyML sits where machine learning meets embedded systems.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="tinyml"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 2</span><h2>Machine learning and neural networks primer</h2></div>
+
+      <!-- 06 -->
+      <section class="topic" id="learning-model" data-part="ML primer" data-short="Learning a model">
+        <header class="topic-head">
+          <span class="topic-num">06</span>
+          <div><h2>Learning a model of the data generating process</h2><p class="kicker">Explain the past, predict the future</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Somewhere there is a real-world process that produces the data: people writing digits, a machine vibrating. You never see the process itself, only examples of what it produced.</p>
+              <p>Learning means building a model from those examples that behaves like the process, so it also gets <strong>new</strong> examples right. A student who memorises last year's exam answers has not learned; one who understands the subject has.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>An unknown <strong>data generating process P</strong> produces a dataset of N examples (x<sub>1</sub>, y<sub>1</sub>) &hellip; (x<sub>N</sub>, y<sub>N</sub>): inputs x and their labels y.</li>
+                <li>An ML model is learned from the dataset. Given a new input x<sub>N+1</sub> from the same process, it outputs an estimate ȳ<sub>N+1</sub>.</li>
+                <li>The goal of learning is to build the <strong>simplest approximating model</strong> able to explain past data <strong>and future instances</strong> provided by the data generating process.</li>
+                <li>Too simple a model cannot capture the process (underfitting); too complex a model also fits the noise in the examples and generalises badly (overfitting). The lab shows both.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/data-process.png" alt="A data generating process P produces a dataset; an ML model learned from it predicts y for a new x; below, a person writing digits produces labelled examples" width="1000" height="779"></div>
+              <figcaption><b>Slide 12.</b> From the data generating process to a dataset, a model and a prediction.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="overfit"></div>
+        <div class="quiz" data-quiz="learning-model"></div>
+      </section>
+
+      <!-- 07 -->
+      <section class="topic" id="tasks" data-part="ML primer" data-short="Classification and regression">
+        <header class="topic-head">
+          <span class="topic-num">07</span>
+          <div><h2>Types of tasks: classification and regression</h2><p class="kicker">Pick a label, or estimate a number</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p><strong>Classification</strong> answers "which one?": is this sound a keyword or not, is the forklift idle or moving. <strong>Regression</strong> answers "how much?": how full is the cup, how many people are in the room.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Tasks addressed with machine and deep learning include classification, regression, object detection, segmentation, anomaly detection, prediction and feature reduction, among others.</li>
+                <li><strong>Classification</strong> examples: whether a keyword is present in an audio segment; whether machinery is moving or standing idle, from accelerometer data. The output is a label, often with a confidence per class (e.g. idle 96%, moving 4%).</li>
+                <li><strong>Regression</strong> examples: measuring the level of a liquid in a cup; counting the people in a room from radar data. The output is a quantity.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/classification.png" alt="A forklift and two accelerometer plots labelled idle 96 percent and moving 98 percent" width="1000" height="286"></div>
+              <figcaption><b>Slide 14.</b> Classification with possible labels [idle, moving].</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/regression.png" alt="Radar heat map with two people tracked as boxes" width="656" height="395"></div>
+              <figcaption><b>Slide 15.</b> Regression: counting people from radar data.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="tasks"></div>
+      </section>
+
+      <!-- 08 -->
+      <section class="topic" id="neuron" data-part="ML primer" data-short="The artificial neuron">
+        <header class="topic-head">
+          <span class="topic-num">08</span>
+          <div><h2>The artificial neuron</h2><p class="kicker">A weighted vote, then a squash</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A neuron is a tiny committee. Every input casts a vote, but some voters matter more than others: that is the <strong>weight</strong>. The neuron adds up the weighted votes plus a fixed nudge (the <strong>bias</strong>) and then decides how strongly to "fire" using an activation function.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Compute a <strong>linear combination</strong> (weighted sum) of the inputs, then apply an <strong>activation</strong>: some non-linear operation, e.g. an s-shaped function.
+                  <div class="formula">y = φ( w<sub>1</sub>x<sub>1</sub> + w<sub>2</sub>x<sub>2</sub> + &hellip; + w<sub>m</sub>x<sub>m</sub> + b )</div></li>
+                <li>The weights represent how important each input is.</li>
+                <li>Common activations: the s-shaped sigmoid σ(z) = 1 / (1 + e<sup>-z</sup>), the step function, and ReLU(z) = max(0, z).</li>
+                <li>"Pretty useless by itself, but if we stack many in series&hellip;": a single neuron separates its inputs with one straight boundary (where the weighted sum is 0). XOR needs two lines, so it needs more neurons.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/neuron.png" alt="Inputs x1 to xm multiplied by weights, summed with a bias, passed through an activation function to give the output y" width="1000" height="437"></div>
+              <figcaption><b>Slide 16.</b> Inputs, weights, bias, sum and activation function.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="neuron"></div>
+        <div class="quiz" data-quiz="neuron"></div>
+      </section>
+
+      <!-- 09 -->
+      <section class="topic" id="dense" data-part="ML primer" data-short="Dense layer">
+        <header class="topic-head">
+          <span class="topic-num">09</span>
+          <div><h2>Many neurons form a dense layer</h2><p class="kicker">Every input connected to every neuron</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Put several neurons side by side, all listening to the same inputs, and you get a layer. Each neuron has its own set of weights, so each one looks for something different in the same data. Because every input is wired to every neuron, the number of weights grows quickly, and on a microcontroller every weight costs memory.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A dense (fully connected) layer is a set of units characterised by <strong>weights W</strong> and a <strong>bias b</strong>. Its outputs are also called <strong>activations</strong>. The input is usually 1D (a vector).</li>
+                <li>Output: <span class="mono">x̄ × W + b</span>, followed by the activation function. W<sub>ij</sub> connects input i to output neuron j.</li>
+                <li>Size of a layer from n<sub>in</sub> inputs to n<sub>out</sub> neurons:
+                  <div class="formula">parameters = n<sub>in</sub> · n<sub>out</sub> + n<sub>out</sub> &nbsp;&nbsp; MACs = n<sub>in</sub> · n<sub>out</sub></div></li>
+                <li>The slide's layer: 7 inputs, 5 outputs: 35 weights + 5 biases = 40 parameters, 35 multiply-accumulates per inference.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/dense.png" alt="Seven input neurons fully connected to five output neurons, each output a sum" width="955" height="957"></div>
+              <figcaption><b>Slide 17.</b> A dense layer with 7 input neurons and 5 output neurons.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="dense"></div>
+        <div class="quiz" data-quiz="dense"></div>
+      </section>
+
+      <!-- 10 -->
+      <section class="topic" id="dnn" data-part="ML primer" data-short="Deep neural network">
+        <header class="topic-head">
+          <span class="topic-num">10</span>
+          <div><h2>Many layers form a deep neural network</h2><p class="kicker">The multilayer perceptron</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Stack layers one after the other and each layer builds on what the previous one found: edges, then shapes, then "cat ears". With enough layers and neurons, a network can model almost any relationship between input and output, even "is this bunch of pixels a cat?".</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>An input layer, multiple hidden layers and an output layer of dense layers form a <strong>multilayer perceptron</strong> (MLP), a deep neural network.</li>
+                <li>Interesting property: it <strong>can approximate any (continuous) function</strong>, even a very complex one, given enough neurons (the universal approximation property).</li>
+                <li>The slide's MLP: 5 inputs, three hidden layers of 5, and 3 outputs. Weights: 3 × (5·5) + 5·3 = 90; biases: 5 + 5 + 5 + 3 = 18; 108 parameters in total.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/mlp.png" alt="Input layer of 5, three hidden layers of 5 and an output layer of 3, fully connected" width="962" height="638"></div>
+              <figcaption><b>Slide 18.</b> A multilayer perceptron.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="dnn"></div>
+      </section>
+
+      <!-- 11 -->
+      <section class="topic" id="training" data-part="ML primer" data-short="How learning happens">
+        <header class="topic-head">
+          <span class="topic-num">11</span>
+          <div><h2>How does the learning happen?</h2><p class="kicker">Loss, backpropagation and gradient descent</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Picture standing on a foggy hillside, trying to reach the bottom of the valley. You cannot see the bottom, but you can feel which way the ground slopes under your feet, so you take a step downhill, and repeat.</p>
+              <p>Training does exactly that. The height is the <strong>loss</strong> (how wrong the network is), your position is the set of weights, and each step nudges the weights downhill.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The weights are <strong>randomly initialised</strong>.</li>
+                <li>Compute the output on the <strong>training data</strong>.</li>
+                <li>Compute an appropriate <strong>loss function</strong>: how far is the computed output from the label (the actual output)?</li>
+                <li>Use the loss to estimate how the weights should be updated to obtain a better prediction (<strong>backpropagation + gradient descent</strong>). Backpropagation computes the slope of the loss for every weight; gradient descent then steps against it:
+                  <div class="formula">w ← w - η · ∂L/∂w <span class="eq-note">η is the learning rate</span></div></li>
+                <li>Repeat. The goal is to find the minimum of the loss function, or to get close to it.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/learning.png" alt="Make a guess, measure your accuracy, optimize your guess, repeat; below, a U-shaped loss function with its minimum marked" width="1000" height="935"></div>
+              <figcaption><b>Slide 19.</b> The training loop and a loss function with its minimum.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="gd"></div>
+        <div class="quiz" data-quiz="training"></div>
+      </section>
+
+      <!-- 12 -->
+      <section class="topic" id="beyond-mlp" data-part="ML primer" data-short="Is it that simple?">
+        <header class="topic-head">
+          <span class="topic-num">12</span>
+          <div><h2>Is it really that simple?</h2><p class="kicker">Yes and no, and beyond multilayer perceptrons</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The recipe works: big networks, lots of data, lots of computing power. The catch is that someone has to label all that data by hand, and big networks are expensive to train and to run, which matters a lot on a battery. And a photo is not just a long list of pixels: which pixel sits next to which carries meaning, so images, sound and text get network designs of their own.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Yes</th><th class="out">No</th></tr></thead>
+                  <tbody>
+                    <tr><td>DL is proving effective at many tasks</td><td class="out">Data labelling is mostly manual, so it is expensive and time-consuming</td></tr>
+                    <tr><td>How? Larger models plus lots of data and compute</td><td class="out">Training and running big models is (computationally) expensive</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li><strong>Beyond multilayer perceptrons</strong>: do we just treat a picture as a vector of pixels? Different types of data (text, images, audio, sensors) require different model architectures: convolutional neural networks, recurrent neural networks, transformers, etc.</li>
+                <li>A convolutional network, for example, slides the same small set of weights over neighbouring pixels, which both uses the image's structure and needs far fewer weights than a dense layer on every pixel.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="beyond-mlp"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 3</span><h2>TinyML and embedded AI</h2></div>
+
+      <!-- 13 -->
+      <section class="topic" id="continuum" data-part="Embedded AI" data-short="Computing continuum">
+        <header class="topic-head">
+          <span class="topic-num">13</span>
+          <div><h2>The computing continuum</h2><p class="kicker">Cloud, fog and edge</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Think of a company: head office (cloud) with all the experts and resources but far away, regional offices (fog) that collect and sort the local paperwork, and staff on the shop floor (edge) who must react on the spot with what they have. Real work usually involves all three.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Cloud</strong>: centralised, large-scale compute and storage: high throughput, high latency.</li>
+                <li><strong>Fog</strong>: intermediate gateways or local servers: pre-processing, caching, aggregation, filtering.</li>
+                <li><strong>Edge</strong>: end nodes (IoT, industrial or user devices): real-time operation, limited resources.</li>
+                <li>Real-world solutions often operate at multiple levels. <strong>Example, smart speaker</strong>: edge processing for wake-word detection and noise suppression; cloud processing for speech recognition and the voice assistant.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/continuum.png" alt="A cloud at the top, fog servers in the middle and many edge devices at the bottom" width="824" height="559"></div>
+              <figcaption><b>Slide 22.</b> Cloud, fog and edge levels.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="continuum"></div>
+      </section>
+
+      <!-- 14 -->
+      <section class="topic" id="edge-different" data-part="Embedded AI" data-short="What makes it different">
+        <header class="topic-head">
+          <span class="topic-num">14</span>
+          <div><h2>What makes embedded ML different?</h2><p class="kicker">Constrained, always on, hard to update, and a whole pipeline</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Cooking in a restaurant kitchen versus on a camping stove. In the cloud you have every tool and can change the menu every day. On the edge you have one burner, a small pot and a fixed recipe, it has to work every time, and once the device is in the field you can hardly change the recipe.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>In the cloud</th><th class="out">On the edge</th></tr></thead>
+                  <tbody>
+                    <tr><td>Virtually unlimited compute, memory and storage</td><td class="out">Constrained resources (cost, battery operation)</td></tr>
+                    <tr><td>Less latency-sensitive; data processed in batches</td><td class="out">Always-on, streaming, real-time processing</td></tr>
+                    <tr><td>Models retrained often and deployed instantly</td><td class="out">After deployment, updating models is difficult or impossible</td></tr>
+                    <tr><td>Relatively general-purpose hardware; can run any model</td><td class="out">Application-dependent hardware with limited flexibility and support</td></tr>
+                    <tr><td></td><td class="out">Models must be tailored to the hardware (or vice versa)</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li><strong>Embedded ML is not just ML: it includes the whole pipeline.</strong> Sensors &rarr; preprocessing and feature extraction &rarr; the machine and deep learning algorithm &rarr; post-processing and decision making &rarr; actuators, all running in software on the device's hardware.</li>
+                <li>Applications shown: wake-word detection, person detection, gesture recognition.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/pipeline.jpg" alt="Sensors, preprocessing, ML algorithm, postprocessing and actuators in software, on top of a hardware board; example applications on the left" width="900" height="638"></div>
+              <figcaption><b>Slide 24.</b> The embedded ML pipeline from sensors to actuators, on hardware.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="edge-different"></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="topic" id="requirements" data-part="Embedded AI" data-short="Define requirements">
+        <header class="topic-head">
+          <span class="topic-num">15</span>
+          <div><h2>Define requirements</h2><p class="kicker">Application &rarr; device &rarr; algorithm</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Before choosing a model, decide what the product must do: how fast it must answer, how much it may cost, how long the battery must last, how accurate it must be. Those answers pick the chip, and the chip decides how big and how heavy the model is allowed to be. Starting from the model is like buying furniture before measuring the room.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Application requirements</strong>:
+                  <ul>
+                    <li>How fast should the algorithm execute once? (<strong>latency budget</strong>, algorithm + device)</li>
+                    <li>How much should the system cost? (<strong>cost budget</strong>, device)</li>
+                    <li>How long should the system work without recharging? (<strong>energy budget</strong>, algorithm + device)</li>
+                    <li>How accurate should the system be? (<strong>accuracy</strong>, algorithm)</li>
+                  </ul></li>
+                <li>These define the <strong>device requirements</strong>: how much on-board memory, how fast a processor, which hardware components, how large a battery.</li>
+                <li>Which in turn define the <strong>algorithm requirements</strong>: how many operations the algorithm can do and still fit in the latency budget, and how many parameters it can have and still fit in memory.</li>
+                <li>Handy relations:
+                  <div class="formula">t = MACs / (MACs per second) &nbsp;&nbsp; E = P · t &nbsp;&nbsp; battery life = capacity / average power</div></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/requirements.png" alt="Three boxes: application, then device, then algorithm" width="480" height="946"></div>
+              <figcaption><b>Slide 25.</b> Requirements flow from the application to the device to the algorithm.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="budget"></div>
+        <div class="quiz" data-quiz="requirements"></div>
+      </section>
+
+      <!-- 16 -->
+      <section class="topic" id="hardware" data-part="Embedded AI" data-short="Hardware platforms">
+        <header class="topic-head">
+          <span class="topic-num">16</span>
+          <div><h2>Hardware in embedded AI</h2><p class="kicker">From MCUs to NPUs, often combined</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Different jobs, different tools: a Swiss army knife (CPU) does everything reasonably, a crowd of helpers (GPU) does one simple thing in huge numbers, and a dedicated machine (NPU, ASIC) does exactly one job very efficiently. Real products often carry several.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Platform</th><th>Characteristics</th><th class="out">Examples</th></tr></thead>
+                  <tbody>
+                    <tr><td>Microprocessor (CPU/MPU)</td><td>High frequency, multi-core, sophisticated instructions and cache hierarchy</td><td class="out">x86, ARM Cortex-A</td></tr>
+                    <tr><td>Microcontroller (MCU)</td><td>Low frequency, low power, built-in memory and peripherals</td><td class="out">ARM Cortex-M, RISC-V, ESP32</td></tr>
+                    <tr><td>GPU</td><td>Single instruction, multiple threads; high parallelism, bandwidth and throughput</td><td class="out">NVIDIA Jetson, Adreno</td></tr>
+                    <tr><td>NPU</td><td>Heterogeneous designs, low-precision math, multi-level local memory, static graph execution</td><td class="out">Qualcomm HTA, ARM Ethos-U/N, Google EdgeTPU, Myriad X, NVIDIA DLA</td></tr>
+                    <tr><td>DSP</td><td>Optimised instructions (SIMD, fixed-point math, hardware loops); audio, radar, image, telecom</td><td class="out"></td></tr>
+                    <tr><td>SoC</td><td>Processing, memory, storage and connectivity on one die; from phones to IoT</td><td class="out"></td></tr>
+                    <tr><td>FPGA</td><td>Reconfigurable digital logic; prototyping or low-volume domain-specific tasks</td><td class="out"></td></tr>
+                    <tr><td>ASIC</td><td>High-efficiency, single-purpose chip (e.g. video encoding); like an FPGA but for large volumes</td><td class="out"></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>Real-world solutions often combine multiple platforms, for example an MCU with a small NPU next to it.</p>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/hw-table.png" alt="Table of CPU/MPU, MCU, GPU and NPU with characteristics, applications and examples" width="1000" height="619"></div>
+              <figcaption><b>Slide 26.</b> Processor families used in embedded AI.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/hw-other.jpg" alt="Boxes describing DSP, SoC, FPGA and ASIC with chip photos" width="900" height="622"></div>
+              <figcaption><b>Slide 27.</b> DSP, SoC, FPGA and ASIC.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="hardware"></div>
+      </section>
+
+      <!-- 17 -->
+      <section class="topic" id="accelerators" data-part="Embedded AI" data-short="Why accelerators">
+        <header class="topic-head">
+          <span class="topic-num">17</span>
+          <div><h2>CPU, GPU, NPU: why custom accelerators?</h2><p class="kicker">Neural networks are a very regular kind of work</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A neural network is like an assembly line that always does the same steps in the same order, mostly "multiply and add". A general-purpose CPU spends much of its effort being ready for surprises that never come. An NPU drops that and fills the chip with multiply-add units instead.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Different hardware for different workloads. <strong>CPU</strong>: few cores with many specialised instructions, general-purpose. <strong>GPU</strong>: many simpler cores running the same instruction, parallel processing. <strong>NPU</strong>: fixed-function hardware (MAC arrays, activations), neural networks.</li>
+                <li>What is special about neural networks:
+                  <ul>
+                    <li>Pre-determined, <strong>static computational graphs</strong> (no conditional branching, fixed-length loops), so no need for control flow.</li>
+                    <li>Inputs and weights are <strong>used multiple times</strong>, so keep data close to the computation and avoid unnecessary memory transfers.</li>
+                    <li>They mostly boil down to <strong>multiply-accumulate (MAC)</strong> operations: acc ← acc + w · x.</li>
+                    <li>They can often run with very <strong>low-precision arithmetic</strong> (INT8 or less).</li>
+                  </ul></li>
+                <li>Design priorities for NPUs: energy efficiency over flexibility, minimal data movement, high compute utilisation, and maximum <strong>throughput per watt</strong>.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/cpu-gpu-npu.png" alt="Block diagrams of a CPU with caches and branch prediction, a GPU with many stream multiprocessors, and an NPU with tensor and function units" width="1000" height="689"></div>
+              <figcaption><b>Slide 28.</b> Different hardware for different workloads.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/matmul.png" alt="Inputs times weights equals outputs" width="670" height="193"></div>
+              <figcaption><b>Slide 29.</b> Neural network layers are matrix products of inputs and weights.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="accelerators"></div>
+      </section>
+
+      <!-- 18 -->
+      <section class="topic" id="ethos" data-part="Embedded AI" data-short="NPU case study">
+        <header class="topic-head">
+          <span class="topic-num">18</span>
+          <div><h2>Case study: the Arm Ethos-U microNPU</h2><p class="kicker">How an NPU sits next to an MCU</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The microcontroller is the manager and the NPU is a specialist workshop next door. The manager hands over a job ("run this network on this input"), a conveyor belt (DMA) brings the materials, the workshop's foreman reads the work order and runs the machines, and the result comes back.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Target: IoT, wearables, consumer devices. The microNPU sits next to a Cortex-M host and shares the system flash and SRAM.</li>
+                <li><strong>Control logic</strong>: the <strong>host MCU</strong> requests an inference job; the <strong>DMA</strong> handles the different streams (commands, input, output, weights); the <strong>control unit</strong> parses the command stream and orchestrates data transfer and computation.</li>
+                <li><strong>Compute units</strong>: the <strong>MAC engine</strong> accelerates dot products; the <strong>elementwise engine</strong> parallelises activation functions and other operations; the weights for the current layer and partial results are kept in <strong>local memory</strong>. A weight decoder unpacks compressed weights.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/ethos.png" alt="Arm block diagram: a Cortex-M next to an Ethos-U55 microNPU with configurable MAC engine, elementwise engine, local memory, weight decode, control unit and DMA, above system flash and system SRAM" width="721" height="713"></div>
+              <figcaption><b>Slide 30.</b> A Cortex-M with an Ethos-U microNPU. The slide's text names the Ethos-U65, while the diagram is labelled Ethos-U55; both belong to the same Ethos-U family. Source named on the slide: Riccardo Miccini, Embedded Machine Learning Hardware → Neural network acceleration.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="ethos"></div>
+      </section>
+
+      <!-- 19 -->
+      <section class="topic" id="workflow" data-part="Embedded AI" data-short="TinyML workflow">
+        <header class="topic-head">
+          <span class="topic-num">19</span>
+          <div><h2>The TinyML (algorithm) workflow</h2><p class="kicker">Eight steps from data to inference</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Building an embedded ML product is a production line: gather the ingredients (data), prepare them, design and train the model, check it and slim it down, translate it for the target chip, install it, and finally use it. The rest of this part walks through the steps one by one.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Step</th><th>Stage</th><th class="out">AI infrastructure area</th></tr></thead>
+                  <tbody>
+                    <tr><td>1</td><td>Collect data</td><td class="out" rowspan="2">Data engineering</td></tr>
+                    <tr><td>2</td><td>Pre-process data</td></tr>
+                    <tr><td>3</td><td>Design model</td><td class="out" rowspan="2">Model engineering</td></tr>
+                    <tr><td>4</td><td>Train a model</td></tr>
+                    <tr><td>5</td><td>Evaluate, optimise</td><td class="out" rowspan="3">Model deployment</td></tr>
+                    <tr><td>6</td><td>Convert model</td></tr>
+                    <tr><td>7</td><td>Deploy model</td></tr>
+                    <tr><td>8</td><td>Make inference</td><td class="out">Product analytics</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>The grouping follows the colours on the slide. This is the algorithm part of the application &rarr; device &rarr; algorithm chain.</p>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/embedded-ai/workflow.png" alt="AI infrastructure layers above a chain of steps: collect data, pre-process, design, train, evaluate and optimize, convert, deploy, make inference" width="1000" height="335"></div>
+          <figcaption><b>Slide 31.</b> The TinyML workflow and the AI infrastructure behind it.</figcaption>
+        </figure>
+        <div class="quiz" data-quiz="workflow"></div>
+      </section>
+
+      <!-- 20 -->
+      <section class="topic" id="data-collection" data-part="Embedded AI" data-short="Data collection">
+        <header class="topic-head">
+          <span class="topic-num">20</span>
+          <div><h2>Data collection: am I collecting the right data?</h2><p class="kicker">The model is only as good as its examples</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>If you teach a child what a cat is using only photos of ginger cats in sunshine, they may not recognise a black cat in the dark, or one curled up behind a sofa. The model is the same: it is good at exactly what its dataset shows it.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>What should the dataset contain? Example: image classification, detect cats.</li>
+                <li>Which situations will the system encounter after deployment?
+                  <ul>
+                    <li>Different illuminations and viewpoints.</li>
+                    <li>Occluded and deformed targets.</li>
+                    <li>Examples of different objects of the same class.</li>
+                  </ul></li>
+                <li><strong>What is (well) represented in the dataset is what the algorithm will perform well on.</strong></li>
+                <li><strong>Data labelling</strong> is equally important (if not more) and bothersome.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/data-collection.jpg" alt="Cat photos in different light, poses, backgrounds and with partial occlusion" width="900" height="642"></div>
+              <figcaption><b>Slide 32.</b> Cats in different illuminations, poses, occlusions and backgrounds.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="data-collection"></div>
+      </section>
+
+      <!-- 21 -->
+      <section class="topic" id="preprocessing" data-part="Embedded AI" data-short="Preprocessing">
+        <header class="topic-head">
+          <span class="topic-num">21</span>
+          <div><h2>Data preprocessing</h2><p class="kicker">Raw data, hand-picked features, or learned features</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>To tell a running engine from a silent one, you do not need every vibration sample: "how much does it shake?" is enough. Preprocessing turns piles of raw samples into a few numbers that make the answer obvious, so the model can be smaller and more accurate.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Objective: make it easier for the ML algorithm to learn the patterns, and be more accurate during inference.</li>
+                <li>Three options from the slide:
+                  <ul>
+                    <li>Sometimes the network takes in the <strong>raw data</strong>.</li>
+                    <li>Sometimes we perform statistical or <strong>hand-selected feature extraction</strong> (mean, variance, peak-to-peak distance&hellip;).</li>
+                    <li>Sometimes we even use <strong>parts of other pre-trained neural networks</strong> for this purpose.</li>
+                  </ul></li>
+                <li>For a window of N samples s<sub>i</sub>:
+                  <div class="formula">mean = (1/N) Σ s<sub>i</sub> &nbsp;&nbsp; variance = (1/N) Σ (s<sub>i</sub> - mean)² &nbsp;&nbsp; peak-to-peak = max - min</div></li>
+                <li>Preprocessing runs on the device too, so it costs time and energy at every inference.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/preprocessing.png" alt="Three variants: raw signal into a network; signal into mean and variance features into a network; signal into a pre-trained network whose output feeds a second network" width="1000" height="660"></div>
+              <figcaption><b>Slide 33.</b> Raw input, hand-selected features, or features from a pre-trained network.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="features"></div>
+        <div class="quiz" data-quiz="preprocessing"></div>
+      </section>
+
+      <!-- 22 -->
+      <section class="topic" id="design-train" data-part="Embedded AI" data-short="Design and train">
+        <header class="topic-head">
+          <span class="topic-num">22</span>
+          <div><h2>Model design and training</h2><p class="kicker">The questions to answer for a multilayer perceptron</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Designing a network is choosing the size and shape of the building; training is the construction work. Both come with decisions nobody can make for you: how many floors (layers), how many rooms per floor (neurons), how to judge the result, and when to stop working.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Design</th><th class="out">Train</th></tr></thead>
+                  <tbody>
+                    <tr><td>How many layers should I stack?</td><td class="out">Other hyperparameters for the training?</td></tr>
+                    <tr><td>How many neurons for each layer?</td><td class="out">Where should the training run? My PC, a local server, a data centre?</td></tr>
+                    <tr><td>Which activation functions should I use?</td><td class="out">When should the training stop?</td></tr>
+                    <tr><td>Which evaluation metric(s) are correct?</td><td class="out"></td></tr>
+                    <tr><td>Which loss function is the best?</td><td class="out"></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li>Settings chosen before training (layers, neurons, learning rate, number of training passes) are called <strong>hyperparameters</strong>; the weights and biases are the parameters that training learns.</li>
+                <li>In TinyML the design questions are bounded by the algorithm requirements of topic 15: every layer and neuron adds parameters (memory) and MACs (latency, energy). The lab in topic 9 counts them.</li>
+                <li>Training normally runs off the device, on a PC or server; only inference runs on the MCU, until on-device learning (Part 4).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="design-train"></div>
+      </section>
+
+      <!-- 23 -->
+      <section class="topic" id="evaluation" data-part="Embedded AI" data-short="Evaluation metrics">
+        <header class="topic-head">
+          <span class="topic-num">23</span>
+          <div><h2>Evaluation: MAE and accuracy on test data</h2><p class="kicker">Measure on data the model has never seen</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>To grade a student you ask questions they have not seen before; repeating the homework only tests their memory. A model is graded the same way, on <strong>test data</strong> kept aside during training. For "how much" tasks you measure how far off the answers are on average; for "which one" tasks you count how often they are right.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>With <strong>X</strong> the input, <strong>T</strong> the target label and <strong>Y = f(X)</strong> the output of the ML algorithm, over the test inputs:</li>
+                <li><strong>Regression</strong>, mean absolute error:
+                  <div class="formula">MAE = (1/N) Σ |Y<sub>n</sub> - T<sub>n</sub>|</div></li>
+                <li><strong>Classification</strong> (binary or k classes), accuracy:
+                  <div class="formula">Accuracy = (1/N) Σ (Y<sub>n</sub> == T<sub>n</sub>)</div>
+                  where (Y<sub>n</sub> == T<sub>n</sub>) counts 1 when the prediction is right and 0 otherwise.</li>
+                <li><strong>Use new data, not used for training, for this evaluation</strong> (test data). A model can fit its training data almost perfectly and still fail on new data: see the overfitting lab in topic 6.</li>
+                <li>Another common regression metric is the mean squared error, MSE = (1/N) Σ (Y<sub>n</sub> - T<sub>n</sub>)², which punishes large errors more.</li>
+              </ul>
+              <p class="aside-note">Note on the slide's formulas: they write the sum from n = 0 to N while dividing by N, which adds up N + 1 terms. With N test inputs the sum should run over exactly N terms (n = 1 to N, or n = 0 to N - 1). The meaning is unchanged: the average over the test set.</p>
+            </div>
+          </div>
+        </div>
+        <div data-lab="metrics"></div>
+        <div class="quiz" data-quiz="evaluation"></div>
+      </section>
+
+      <!-- 24 -->
+      <section class="topic" id="compression" data-part="Embedded AI" data-short="Model compression">
+        <header class="topic-head">
+          <span class="topic-num">24</span>
+          <div><h2>Model compression techniques</h2><p class="kicker">Fewer bits, fewer weights, or a smaller design</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Three ways to fit a trained model into a small chip, like packing for a trip with hand luggage only: write each number with fewer digits (resolution), leave out what you barely need (complexity), or bring a smaller item that does the same job (topology).</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Family</th><th>Technique</th><th class="out">Variants</th></tr></thead>
+                  <tbody>
+                    <tr><td>Resolution</td><td>Quantization</td><td class="out">PTQ, QAT</td></tr>
+                    <tr><td>Resolution</td><td>Binarization</td><td class="out"></td></tr>
+                    <tr><td>Complexity</td><td>Pruning</td><td class="out">Unstructured, structured</td></tr>
+                    <tr><td>Complexity</td><td>Low-rank approximation</td><td class="out"></td></tr>
+                    <tr><td>Topology</td><td>Knowledge distillation</td><td class="out">Response-based, feature-based</td></tr>
+                    <tr><td>Topology</td><td>Neural architecture search</td><td class="out"></td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <ul>
+                <li>Quantization stores weights and activations with fewer bits; binarization goes to the extreme of 1 bit.</li>
+                <li>Pruning removes weights (unstructured) or whole neurons or channels (structured); low-rank approximation replaces a big weight matrix by a product of two thin ones.</li>
+                <li>Knowledge distillation trains a small "student" network to mimic a large "teacher"; neural architecture search looks for an efficient network design automatically.</li>
+                <li>Compression belongs to the "evaluate, optimise" step of the workflow; the next topics focus on quantization.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/compression.png" alt="Tree of model compression: resolution (quantization with PTQ and QAT, binarization), complexity (pruning, low-rank approximation), topology (knowledge distillation, neural architecture search)" width="1000" height="693"></div>
+              <figcaption><b>Slide 36.</b> A taxonomy of model compression techniques.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="compression"></div>
+      </section>
+
+      <!-- 25 -->
+      <section class="topic" id="quantization" data-part="Embedded AI" data-short="Quantization">
+        <header class="topic-head">
+          <span class="topic-num">25</span>
+          <div><h2>Quantization and de-quantization</h2><p class="kicker">From 32-bit floats to 8-bit integers and back</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Instead of writing a weight as 13.45678, write it as one of 256 marks on a ruler: "mark 48". You only need to remember where the ruler starts and how far apart the marks are. Every weight then fits in one byte instead of four, at the price of a small rounding error.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Quantization maps model weights and activations into <strong>lower-precision approximations</strong> (e.g. int8 or int4).</li>
+                <li><strong>Uniform quantization</strong> (the most common method) is a linear mapping between integer values and floating-point values.</li>
+                <li>During quantization we estimate a <strong>zero point</strong> and a <strong>scale</strong>:
+                  <div class="formula">q = round( x / scale ) + zero_point</div></li>
+                <li>During de-quantization (reconstruction) the formula is reversed:
+                  <div class="formula">x = ( q - zero_point ) × scale</div></li>
+                <li>A common way to pick them for a range [min, max] and b bits (asymmetric quantization): scale = (max - min) / (2<sup>b</sup> - 1) and zero_point = round(-min / scale), so that 0.0 is exactly representable. Values outside the range are clipped to 0 or 2<sup>b</sup> - 1.</li>
+                <li>The slide's example: [-5.4, +4.5] to 8 bits gives scale = 9.9 / 255 ≈ 0.0388 and zero_point = 139, so -5.4 &rarr; 0, 0.0 &rarr; 139, +4.5 &rarr; 255. Nearby floats that round to the same code (the red box in the slide) all come back as the same value: that is the quantization error, at most scale / 2.</li>
+                <li>The network figure simply rounds each weight to the nearest integer (scale 1, zero point 0) to illustrate the idea.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/quant-net.png" alt="A small network whose float weights such as 13.45678 and 71.324 become integers such as 13 and 71 after quantization" width="1000" height="487"></div>
+              <figcaption><b>Slide 37.</b> Weights before and after quantization. Source named on the slide: Embedded Machine Learning Software → Model compression.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/embedded-ai/quant-line.png" alt="Float values from -5.4 to +4.5 mapped onto 8-bit codes 0 to 255, with the quantization formula" width="1000" height="387"></div>
+          <figcaption><b>Slide 38.</b> Quantization: float values mapped onto the 8-bit encoding.</figcaption>
+        </figure>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/embedded-ai/dequant.png" alt="8-bit codes mapped back to reconstructed float values; two different floats that shared code 2 come back as the same value" width="1000" height="498"></div>
+          <figcaption><b>Slide 39.</b> De-quantization: codes mapped back to reconstructed floats.</figcaption>
+        </figure>
+        <div data-lab="quant"></div>
+        <div class="quiz" data-quiz="quantization"></div>
+      </section>
+
+      <!-- 26 -->
+      <section class="topic" id="why-quantize" data-part="Embedded AI" data-short="Why quantize">
+        <header class="topic-head">
+          <span class="topic-num">26</span>
+          <div><h2>Why quantizing is (almost) always a good idea</h2><p class="kicker">Smaller, faster, cheaper, more portable, slightly less accurate</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Switching from long decimals to whole numbers makes the model about four times smaller, the arithmetic quicker and the battery happier, and it runs on chips that cannot do decimals at all. In exchange you usually lose a little accuracy, a price most embedded products gladly pay.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Storage and memory size</strong>: an immediate ≈4x reduction in storage (float32 &rarr; int8), and a 2 to 4x reduction in peak RAM usage depending on the type of quantization.</li>
+                <li><strong>Inference latency</strong>: integer arithmetic instead of floating point makes the computations on the device much faster; expect roughly 2 to 4x.</li>
+                <li><strong>Energy saving</strong>: for the same reasons, 8-bit operations need much less energy than 32-bit floating-point arithmetic.</li>
+                <li><strong>Portability</strong>: not every device can perform 32-bit floating-point arithmetic; every device can perform 8-bit integer arithmetic.</li>
+                <li><strong>Accuracy-latency (/memory) trade-off</strong>: quantization works well, but the model can suffer an accuracy loss during inference. This loss is usually small compared with the gains: in the slide's plot the 8-bit models reach almost the same top-1 accuracy as the float models at about half the latency.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/quant-benefits.png" alt="RAM usage bar, a Raspberry Pi and an Arduino, and checkmarks for cost, power and engineering effort" width="808" height="987"></div>
+              <figcaption><b>Slide 40.</b> Memory, portability and cost benefits of quantization.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/accuracy-latency.png" alt="Scatter plot of top-1 accuracy against latency for float and 8-bit models" width="803" height="670"></div>
+              <figcaption><b>Slide 41.</b> Accuracy against latency for float and 8-bit models.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="why-quantize"></div>
+      </section>
+
+      <!-- 27 -->
+      <section class="topic" id="ptq-qat" data-part="Embedded AI" data-short="PTQ vs QAT">
+        <header class="topic-head">
+          <span class="topic-num">27</span>
+          <div><h2>When to quantize: PTQ or QAT</h2><p class="kicker">After training, or during it</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Post-training quantization is like shrinking a finished photo: quick and easy, and usually good enough. Quantization-aware training is like composing the photo knowing it will be printed small: more work, but it holds up much better when you shrink a lot.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Post-training quantization (PTQ)</strong>: simple to implement, does not require labelled data or training steps, few hyperparameters. A pre-trained model is calibrated on a small set of calibration data (to estimate ranges, scales and zero points) and then quantized.</li>
+                <li><strong>Quantization-aware training (QAT)</strong>: simulates the effect of quantization during training and adjusts the weights and quantization parameters. More effective at low bit-widths. The quantized model is retrained on training data.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/ptq-qat.png" alt="From a pre-trained model, QAT quantizes and retrains with training data; PTQ calibrates with calibration data and quantizes" width="873" height="474"></div>
+              <figcaption><b>Slide 42.</b> QAT and PTQ pipelines.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="ptq-qat"></div>
+      </section>
+
+      <!-- 28 -->
+      <section class="topic" id="deploy" data-part="Embedded AI" data-short="Convert and deploy">
+        <header class="topic-head">
+          <span class="topic-num">28</span>
+          <div><h2>Model conversion and deployment</h2><p class="kicker">From a compressed model to an executable binary</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A trained model is like a recipe written in one language; every chip family speaks a different one. Conversion translates it into a common format, and deployment either brings a small "interpreter" along on the chip, or translates the recipe directly into the chip's own instructions.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Conversion</strong>, the problem: different hardware targets (MCUs, SoCs, FPGAs) require different representations and compilation flows. The "solution": a few <strong>model exchange formats</strong> (ONNX, TFLite, NNEF) and many application-specific tools with different focuses.</li>
+                <li><strong>Inference engines</strong>: convert the model into an internal representation (offline) and execute it with a runtime integrated into the firmware. The most popular approach, with many runtimes available: TFLite/TFLM, ExecuTorch, ONNX Runtime, Tract.</li>
+                <li><strong>Compilers and code generators</strong>: generate optimised, target-specific machine code or native code (e.g. C/C++, Rust) for direct execution: TVM, XLA, IREE/MLIR, uTensor, onnx2c.</li>
+                <li>Most tools are a mix of both approaches. Vendors ship their own toolchains for their chips (the slide's table lists, among others, STM32Cube.AI, eIQ, Vela, ESP-NN, TensorRT, OpenVINO, Edge Impulse).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/tools.png" alt="Table of deployment tools with vendor, target and description" width="1000" height="694"></div>
+              <figcaption><b>Slide 45.</b> Vendor tools for converting and deploying models, plus many smaller players.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="deploy"></div>
+      </section>
+
+      <!-- 29 -->
+      <section class="topic" id="metrics-embedded" data-part="Embedded AI" data-short="Embedded metrics">
+        <header class="topic-head">
+          <span class="topic-num">29</span>
+          <div><h2>Evaluation, part 2: what embedded ML also cares about</h2><p class="kicker">Accuracy is not the only number</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A model that is right 99% of the time but needs a minute and drains the battery in a day is useless in a wearable. After compression, check that the model is still accurate, and then measure the things the device cares about: size, speed, memory and energy.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>After compression: check for performance degradation using task-specific metrics (e.g. accuracy, mean squared error).</li>
+                <li>In production: make sure the model performs as expected in real-world conditions (and potentially acquire new data).</li>
+              </ul>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Metric</th><th>Unit</th><th class="out">Meaning</th></tr></thead>
+                  <tbody>
+                    <tr><td>Model size</td><td>kB, MB</td><td class="out">Determined by parameter count and precision</td></tr>
+                    <tr><td>Operations</td><td>FLOPs, MACs</td><td class="out">Related to model size and architecture</td></tr>
+                    <tr><td>Inference time</td><td>µs, ms</td><td class="out">Duration of inference on a single sample</td></tr>
+                    <tr><td>Throughput</td><td>FPS</td><td class="out">Amount of data processed per unit of time</td></tr>
+                    <tr><td>Memory footprint</td><td>kB, MB</td><td class="out">Working memory for inference, including parameters and intermediate activations</td></tr>
+                    <tr><td>Energy consumption</td><td>µJ</td><td class="out">Energy required to perform one inference</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <div class="formula">model size = parameters × bytes per parameter &nbsp;&nbsp; energy per inference = power × inference time</div>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="metrics-embedded"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 4</span><h2>What if something changes after deployment?</h2></div>
+
+      <!-- 30 -->
+      <section class="topic" id="distribution-shift" data-part="After deployment" data-short="Distribution shift">
+        <header class="topic-head">
+          <span class="topic-num">30</span>
+          <div><h2>The standard TinyML framework and its limits</h2><p class="kicker">When deployment data comes from a different process</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>You learn to drive in a small town in summer, then move to a big city in winter. Your skills are still correct for the town, but the world you now drive in is different. A deployed model faces the same problem: the data it sees in the field no longer looks like the data it was trained on.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The standard framework trains once on a dataset from the data generating process P and then only runs inference.</li>
+                <li><strong>Problem</strong>: very often the statistical distribution of the data collected originally differs from the one collected during inference, which comes from a different process P¹. This is often called distribution shift.</li>
+                <li>Examples from the slide:
+                  <ul>
+                    <li>Training data comes from a few machines or users, but the algorithm has to work on many.</li>
+                    <li>The problem requires learning the characteristics of a specific machine or user that is unknown before deployment.</li>
+                    <li>Data distributions change over time; the algorithm should still work and adapt to these changes.</li>
+                  </ul></li>
+                <li>Since updating models after deployment is hard (topic 14), the answer explored next is to let the device learn by itself.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/drift.png" alt="Process P produces the training dataset for the ML model, but new inputs come from a different process P¹" width="1000" height="625"></div>
+              <figcaption><b>Slide 48.</b> The model learned from P, but at inference its inputs come from P¹.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="drift"></div>
+        <div class="quiz" data-quiz="distribution-shift"></div>
+      </section>
+
+      <!-- 31 -->
+      <section class="topic" id="odl" data-part="After deployment" data-short="On-device learning">
+        <header class="topic-head">
+          <span class="topic-num">31</span>
+          <div><h2>On-device learning: definition and motivations</h2><p class="kicker">Let the device keep learning where it lives</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Instead of sending the device back to school whenever its world changes, let it learn on the job, from the data it collects itself. It then learns from exactly the situations it will face, including some nobody could have collected in advance, such as one specific user's voice.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>On-device learning (ODL)</strong>: a "branch of (Tiny)ML enabling (at least part of) the learning phase of ML algorithms on devices constrained in terms of energy, memory and computation". It is the overlap of TinyML and model learning.</li>
+                <li>Great advantage: learning on data "closer" to real-world usage, so ML algorithms are less likely to fail in real-world conditions.</li>
+                <li>This can result in:
+                  <ul>
+                    <li><strong>Improved accuracy</strong>, by learning also on data collected on the device.</li>
+                    <li><strong>Improved computational efficiency</strong>, by learning only on data collected on the device.</li>
+                    <li><strong>Enabling otherwise impossible tasks</strong>, by learning on data available only on the device.</li>
+                  </ul></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/odl-venn.png" alt="Venn diagram: TinyML and model learning overlap in on-device learning" width="1000" height="656"></div>
+              <figcaption><b>Slide 49.</b> On-device learning is where TinyML and model learning meet.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="odl"></div>
+      </section>
+
+      <!-- 32 -->
+      <section class="topic" id="adaptation" data-part="After deployment" data-short="Single vs continuous">
+        <header class="topic-head">
+          <span class="topic-num">32</span>
+          <div><h2>Single-change and continuous adaptation</h2><p class="kicker">Learn once at start-up, or keep learning</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A new phone learns your face once during setup and then just recognises you: <strong>single-change</strong>. A thermostat that keeps adjusting as the seasons change, or as a sensor slowly ages, never stops learning: <strong>continuous</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Single-change adaptation</th><th class="out">Continuous adaptation</th></tr></thead>
+                  <tbody>
+                    <tr><td>1. On start-up, collect data on the device for a specific end user, device or environment</td><td class="out">1. Start from a (possibly pre-trained) model</td></tr>
+                    <tr><td>2. Learn a model from these data</td><td class="out">2. Collect new data, possibly different from the previous training data</td></tr>
+                    <tr><td>3. Execute inference</td><td class="out">3. Update the model, continue performing inference (and repeat)</td></tr>
+                    <tr><td>For tasks specific to one user, device or environment: recognising the speaker, "my bottle", a specific gauge</td><td class="out">For tasks whose data change over time: a voice that changes (e.g. with a sore throat), "my new bottle", pressure sensor drift over years</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p>The labs show both: in topic 30 a single adaptation fixes a shifted deployment; below, a drifting sensor needs repeated updates.</p>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/embedded-ai/single-change.jpg" alt="An audio signal assigned to one of several speakers, a highlighted 'my bottle' among three bottles, and a pressure gauge" width="900" height="217"></div>
+          <figcaption><b>Slide 51.</b> Single-change adaptation: tasks specific to one user, device or environment.</figcaption>
+        </figure>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/embedded-ai/continuous.jpg" alt="A person with a sore throat, a highlighted 'my new bottle', and a plot of pressure sensor drift over ten years" width="900" height="247"></div>
+          <figcaption><b>Slide 52.</b> Continuous adaptation: tasks whose data change over time.</figcaption>
+        </figure>
+        <div data-lab="continual"></div>
+        <div class="quiz" data-quiz="adaptation"></div>
+      </section>
+
+      <!-- 33 -->
+      <section class="topic" id="odl-challenges" data-part="After deployment" data-short="ODL challenges">
+        <header class="topic-head">
+          <span class="topic-num">33</span>
+          <div><h2>On-device learning: challenges</h2><p class="kicker">Learning on a budget, mostly unsupervised</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Learning on the device is like studying for an exam with a tiny notebook, little time, nobody to tell you the right answers, and no teacher checking whether what you learned is correct.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Limitations</strong> on time, memory, energy and computation: training needs far more of all of them than inference (for example, storing activations and gradients for backpropagation).</li>
+                <li><strong>Few data</strong>: only a small amount of memory to store them.</li>
+                <li><strong>Which data are relevant?</strong> The device has to choose what to keep.</li>
+                <li><strong>Few labels</strong>: nobody labels the data in the field.</li>
+                <li><strong>Little to no supervision</strong> on the learned model: a bad update may go unnoticed.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="odl-challenges"></div>
+      </section>
+
+      <!-- 34 -->
+      <section class="topic" id="tinysv" data-part="After deployment" data-short="TinySV example">
+        <header class="topic-head">
+          <span class="topic-num">34</span>
+          <div><h2>Task example: Tiny Speaker Verification (TinySV)</h2><p class="kicker">Personalisation with on-device learning</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A voice-controlled device that should only obey its owner. Out of the box it can hear the keyword, but it cannot know whose voice is the owner's. During a short enrolment the owner says the keyword a few times; the device learns that voice itself, and from then on it tells "keyword, by the owner" from "keyword, by someone else".</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Recognise whether the person pronouncing a specific keyword k is the previously enrolled speaker S<sub>E</sub> or a non-enrolled speaker S<sub>NE</sub>.</li>
+                <li>A <strong>personalisation</strong> task, solved with <strong>single-change adaptation</strong>: the enrolment phase collects the user's data on the device, the model is learned there, then inference runs.</li>
+              </ul>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Input</th><th class="out">TinySV output</th></tr></thead>
+                  <tbody>
+                    <tr><td>Other words (no keyword)</td><td class="out">0: k not detected</td></tr>
+                    <tr><td>Rose (not enrolled) says "Hi Sheila!"</td><td class="out">1: k detected, pronounced by an S<sub>NE</sub></td></tr>
+                    <tr><td>Bob (enrolled) says "Hi Sheila!"</td><td class="out">2: k pronounced by the S<sub>E</sub> Bob, detected</td></tr>
+                  </tbody>
+                </table>
+              </div>
+              <p class="aside-note">Reference on the slide: Pavan, M., Mombelli, G., Sinacori, F., and Roveri, M. (2024). TinySV: Speaker Verification in TinyML with On-device Learning. 4th International Conference on AI-ML Systems. The demo slide shows the enrolment phase running on a development board.</p>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/tinysv.png" alt="Three cases: other words give 0, Rose saying Hi Sheila gives 1, Bob saying Hi Sheila gives 2" width="1000" height="685"></div>
+              <figcaption><b>Slide 54.</b> TinySV's three outputs. Source named on the slide: Pavan et al. (2024), TinySV: Speaker Verification in TinyML with On-device Learning.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/embedded-ai/tinysv-demo.jpg" alt="A person speaking to a device on a desk, with a development board shown in the corner and the caption Enrollment Phase" width="900" height="514"></div>
+              <figcaption><b>Slide 55.</b> TinySV in action: the enrolment phase.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="tinysv"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="topic" id="cheat-sheet" data-toc-extra="Cheat sheet">
+        <header class="topic-head">
+          <span class="topic-num">&Sigma;</span>
+          <div><h2>Cheat sheet</h2><p class="kicker">The lecture on one card</p></div>
+        </header>
+        <div class="cheat">
+          <div class="cheat-item"><h3>BLERP</h3><div class="formula">Bandwidth, Latency, Economics, Reliability, Privacy</div><p>Why process on the device instead of streaming raw data to the cloud.</p></div>
+          <div class="cheat-item"><h3>Artificial neuron</h3><div class="formula">y = φ(Σ w<sub>i</sub>x<sub>i</sub> + b)</div><p>Weighted sum plus bias, then a non-linear activation (sigmoid, step, ReLU). One neuron = one straight boundary.</p></div>
+          <div class="cheat-item"><h3>Dense layer</h3><div class="formula">params = n<sub>in</sub>·n<sub>out</sub> + n<sub>out</sub>, &nbsp;MACs = n<sub>in</sub>·n<sub>out</sub></div><p>Output x̄ × W + b. 7 &rarr; 5 gives 40 parameters.</p></div>
+          <div class="cheat-item"><h3>Training</h3><div class="formula">w ← w - η · ∂L/∂w</div><p>Random init, compute outputs, loss, backpropagation + gradient descent, repeat.</p></div>
+          <div class="cheat-item"><h3>Evaluation</h3><div class="formula">MAE = (1/N) Σ |Y<sub>n</sub> - T<sub>n</sub>|, &nbsp;Acc = (1/N) Σ (Y<sub>n</sub> == T<sub>n</sub>)</div><p>Always on test data not used for training.</p></div>
+          <div class="cheat-item"><h3>Quantization</h3><div class="formula">q = round(x / scale) + zp, &nbsp;x = (q - zp) × scale</div><p>scale = (max - min) / (2<sup>b</sup> - 1). float32 &rarr; int8: ≈4x smaller, 2 to 4x faster.</p></div>
+          <div class="cheat-item"><h3>Budgets</h3><div class="formula">t = MACs / rate, &nbsp;E = P · t, &nbsp;size = params × bytes</div><p>Application &rarr; device &rarr; algorithm requirements.</p></div>
+          <div class="cheat-item"><h3>PTQ vs QAT</h3><div class="formula">PTQ: calibrate, quantize &nbsp;|&nbsp; QAT: quantize, retrain</div><p>PTQ needs no labels or training; QAT is better at low bit-widths.</p></div>
+          <div class="cheat-item"><h3>Workflow</h3><div class="formula">collect, pre-process, design, train, evaluate, convert, deploy, infer</div><p>Data engineering, model engineering, model deployment, product analytics.</p></div>
+          <div class="cheat-item"><h3>On-device learning</h3><div class="formula">single-change: learn once &nbsp;|&nbsp; continuous: keep updating</div><p>Answers distribution shift (P &rarr; P¹). Challenges: resources, few data and labels, little supervision.</p></div>
+        </div>
+      </section>
+
+      <p class="page-foot">Figures cropped from the lecture slides "Week 8: Embedded AI" by Massimo Pavan, DTU Compute, with their original sources noted. For personal study.</p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/embedded-ai.js"></script>
+</body>
+</html>

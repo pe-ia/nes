@@ -12,6 +12,8 @@ Each lecture page explains every concept twice, first in plain words and then te
 | 4 | [`mcu-io.html`](site/mcu-io.html) | MCU Input/Output |
 | 5 | [`serial-communication.html`](site/serial-communication.html) | Serial Communication |
 | 7 | [`wired-nes.html`](site/wired-nes.html) | Wired Networked Embedded Systems |
+| 8 | [`embedded-ai.html`](site/embedded-ai.html) | Embedded AI |
+| 9 | [`time-sync.html`](site/time-sync.html) | Time Synchronisation |
 
 ## Running it
 
@@ -46,6 +48,8 @@ All lecture content this site is based on, and every figure under `site/img/`, c
 | 4 | MCU Input/Output | Xenofon (Fontas) Fafoutis |
 | 5 | Week 5: Serial Communication | Xenofon (Fontas) Fafoutis and Massimo Pavan |
 | 7 | Wired Networked Embedded Systems | Xenofon (Fontas) Fafoutis |
+| 8 | Week 8: Embedded AI | Massimo Pavan |
+| 9 | Time Synchronisation | Xenofon (Fontas) Fafoutis |
 
 Xenofon (Fontas) Fafoutis is a Professor and Massimo Pavan a Postdoc at DTU Compute. The slides and their figures remain the property of their authors and of the original sources listed below. This site is an unofficial study aid; it is not affiliated with or endorsed by DTU or the lecturers.
 
@@ -91,6 +95,16 @@ Many slide figures are themselves taken from other sources, as credited on the s
 - Cypress Semiconductor, application note AN57294
 - Microchip, application note AN1120
 - University of Michigan, EECS 461 course notes on CAN (eecs.umich.edu)
+
+**Week 8: Embedded AI**
+- Riccardo Miccini, *Embedded Machine Learning Hardware* (neural network acceleration)
+- *Embedded Machine Learning Software* (model compression), as named on the slide
+- M. Pavan, G. Mombelli, F. Sinacori and M. Roveri, *TinySV: Speaker Verification in TinyML with On-device Learning*, 4th International Conference on AI-ML Systems, 2024
+
+**Week 9: Time Synchronisation**
+- Andrew S. Tanenbaum and Herbert Bos, *Modern Operating Systems*
+- University of Michigan, EECS 461 course notes on CAN (eecs.umich.edu)
+- Research paper: [10.1109/TII.2017.2778746](https://doi.org/10.1109/TII.2017.2778746)
 
 All trademarks and product names belong to their respective owners.
 

@@ -1,0 +1,871 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Time Synchronisation · NES Study</title>
+  <meta name="description" content="Interactive study page for the NES Week 9 lecture on time synchronisation: oscillators, programmable timers, clock drift, GPS, unidirectional and bidirectional synchronisation, NTP, PTP, reference-broadcast and periodic synchronisation.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3162b'/%3E%3Cpath d='M7 21h5V11h8v10h5' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/time-sync.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn" type="button" data-nav-toggle aria-label="Open contents">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Contents
+  </button>
+  <span class="topbar-progress"><span data-progress-answered>0 / 0</span> answered</span>
+</header>
+<div class="scrim"></div>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Lecture contents">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">NES</span>
+      <span class="brand-text"><b>NES Study</b><span>Networked Embedded Systems</span></span>
+    </a>
+
+    <div class="progress-card">
+      <div class="progress-row"><span>Questions answered</span><b data-progress-answered>0 / 0</b></div>
+      <div class="progress-bar"><span data-progress-bar></span></div>
+      <div class="progress-sub"><span>Right on first try: <b data-progress-first>0</b></span><button class="link-btn" type="button" data-quiz-reset>Reset</button></div>
+    </div>
+
+    <nav class="toc" data-toc></nav>
+
+    <div class="sidebar-foot">
+      <a class="icon-btn" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        All lectures
+      </a>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Theme
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+
+      <div class="hero">
+        <div class="crumbs"><a href="index.html">NES Study</a> / Week 9: Time Synchronisation</div>
+        <h1>Time Synchronisation</h1>
+        <p class="hero-lead">How an embedded device keeps time with a crystal and a counter, why every crystal drifts, and how distributed devices agree on the time: with GPS, with message exchanges such as NTP and PTP, or with a shared reference event.</p>
+        <div class="hero-meta">
+          <span class="chip">22 topics</span>
+          <span class="chip">15 interactive labs</span>
+          <span class="chip">45 questions</span>
+          <span class="chip">Slides: X. Fafoutis, DTU Compute</span>
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 1</span><h2>Keeping time on one device</h2></div>
+
+      <!-- 01 -->
+      <section class="topic" id="why-time" data-part="Time on one device" data-short="Why keep time?">
+        <header class="topic-head">
+          <span class="topic-num">01</span>
+          <div><h2>Time keeping in distributed embedded systems</h2><p class="kicker">When do embedded systems need to know the time?</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Almost everything an embedded device does is "at the right moment": wake up the radio, give up waiting for a reply, read a sensor every ten seconds, ring an alarm.</p>
+              <p>A car (slide 3) has dozens of such devices on its networks. As soon as one of them has to compare its events with another's, for example to combine sensor readings, they need to <strong>agree</strong> on the time, not just each keep their own.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>System-level functions:</strong> schedule periodic system events, schedule timeouts, schedule wake-up events, generate clock signals, and more.</li>
+                <li><strong>Application-level functions:</strong> schedule periodic events, timestamp distributed events or sensor data (<strong>data fusion</strong>), alarms, real-world time for the user, and more.</li>
+                <li>Some of these only need a local sense of time (a timeout), some need devices to agree with <em>each other</em> (fusing readings from several nodes), and some need agreement with <em>true time</em> (showing the user the time of day). The rest of the lecture follows that progression.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/car-network.png" alt="In-car networks: high-speed CAN for engine and transmission, low-speed CAN for body functions, MOST for infotainment" width="1300" height="1035"></div>
+              <figcaption><b>Slide 3.</b> A car is a distributed embedded system (the in-car networks from Week 7). Source: https://www.eecs.umich.edu/courses/eecs461/doc/CAN_notes.pdf</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="sort"></div>
+        <div class="quiz" data-quiz="why-time"></div>
+      </section>
+
+      <!-- 02 -->
+      <section class="topic" id="oscillators" data-part="Time on one device" data-short="Oscillators">
+        <header class="topic-head">
+          <span class="topic-num">02</span>
+          <div><h2>Oscillators</h2><p class="kicker">The heartbeat a device counts</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A device has no sense of time on its own. It needs something that ticks very regularly, like a pendulum in a grandfather clock, and then it counts the ticks.</p>
+              <p>In electronics the pendulum is a <strong>crystal oscillator</strong>: a tiny slice of quartz that vibrates at a precise frequency when it is placed in the right circuit.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A <strong>crystal oscillator</strong> is a component that generates a signal at a specific frequency, from kHz to GHz.</li>
+                <li>Oscillators are used to keep track of time: counting their periods measures time.</li>
+                <li>Oscillators can be <strong>internal</strong> (inside the MCU) or <strong>external</strong>. Slide 5 shows an external crystal between the MCU's <code>X32K1</code> and <code>X32K2</code> pins, with a load capacitor from each pin to ground.</li>
+                <li>A 32768 Hz oscillator completes one period every
+                  <div class="formula">T = 1 / f = 1 / 32768 Hz ≈ 30.518 µs</div>
+                  32768 = 2<sup>15</sup>, so a 15-bit binary counter driven by it overflows exactly once per second. That is why "watch crystals" use this frequency.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/osc-wiring.png" alt="External crystal connected between MCU pins X32K1 and X32K2 with two capacitors to ground" width="523" height="644"></div>
+              <figcaption><b>Slide 5.</b> An external crystal on the MCU's 32 kHz oscillator pins.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/osc-wave.png" alt="Sine wave of a 32768 Hz oscillator over 0.1 ms" width="891" height="728"></div>
+              <figcaption><b>Slide 5.</b> The 32768 Hz signal: about 3.3 periods in 0.1 ms.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="oscillators"></div>
+      </section>
+
+      <!-- 03 -->
+      <section class="topic" id="prog-timer" data-part="Time on one device" data-short="Programmable timer">
+        <header class="topic-head">
+          <span class="topic-num">03</span>
+          <div><h2>The programmable timer</h2><p class="kicker">Count pulses down to zero, then interrupt</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Think of a kitchen timer that counts down in clicks instead of seconds. Every tick of the crystal removes one click. When the counter hits zero, it rings: the CPU gets an interrupt.</p>
+              <p>How many clicks you load decides how long it takes. At 32768 clicks per second, 1000 clicks take about 30 ms.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The crystal oscillator generates pulses at a specific frequency. On each pulse a <strong>counter is decremented</strong>; when it reaches zero it generates an event: the <strong>clock interrupt</strong>.</li>
+                <li>The <strong>initial value</strong> of the counter controls the time until the event. It is kept in a <strong>holding register</strong>, which is used to load the counter.</li>
+                <li>Example from the slide: an initial value of 1000 generates the event after 1000 pulses, or with an f = 32768 Hz crystal after
+                  <div class="formula">t = N / f = 1000 / 32768 Hz ≈ 30.5 ms</div></li>
+                <li>This is the same timer peripheral that Week 3 used for the OS tick and for scheduling; here we look at what limits its accuracy.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/timer.png" alt="Crystal oscillator feeding a counter that is decremented at each pulse, loaded from a holding register" width="1166" height="405"></div>
+              <figcaption><b>Slide 6.</b> Crystal, counter and holding register. Source: Modern Operating Systems by Tanenbaum and Bos</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="prog-timer"></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="topic" id="timer-modes" data-part="Time on one device" data-short="Timer modes">
+        <header class="topic-head">
+          <span class="topic-num">04</span>
+          <div><h2>Timer configuration and modes</h2><p class="kicker">Prescaler, one-off and periodic</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A <strong>prescaler</strong> is a gearbox: it lets the counter take one step every N crystal ticks instead of every tick, so the same counter can measure much longer times.</p>
+              <p>Then you choose whether the kitchen timer rings once and stops (<strong>one-off</strong>), or resets itself and keeps ringing at a steady rhythm (<strong>periodic</strong>).</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Prescaler:</strong> decreases the timer frequency by decrementing the counter every N oscillator pulses:
+                  <div class="formula">f<sub>timer</sub> = f<sub>osc</sub> / N &nbsp;&nbsp; t<sub>event</sub> = initial value / f<sub>timer</sub></div></li>
+                <li><strong>One-off mode:</strong> the clock starts with the initial value and issues an interrupt when it reaches zero. Good for one-off timeouts and alarms.</li>
+                <li><strong>Periodic mode</strong> (or square-wave mode): the clock automatically restarts after the interrupt is issued. Good for periodic events. The period is controlled by the timer frequency and the initial counter value.</li>
+                <li>The trade-off: a larger prescaler reaches longer intervals with the same counter width, but each count becomes coarser.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="timer"></div>
+        <div class="quiz" data-quiz="timer-modes"></div>
+      </section>
+
+      <!-- 05 -->
+      <section class="topic" id="resolution" data-part="Time on one device" data-short="Time resolution">
+        <header class="topic-head">
+          <span class="topic-num">05</span>
+          <div><h2>Time resolution and two crystals</h2><p class="kicker">Clocks measure in ticks, not seconds</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A ruler with only centimetre marks cannot measure a millimetre. A clock is the same: it can only tell you how many ticks passed, so anything shorter than one tick is invisible.</p>
+              <p>Faster crystals give finer marks but use more energy. So devices often carry two: a fast one for when they are busy, and a slow, frugal one that keeps time while they sleep.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The resolution of timestamps, time intervals, etc. depends on the crystal frequency. Clocks measure time in <strong>ticks</strong>:
+                  <div class="formula">tick = 1 / f &nbsp;&nbsp; 32 kHz: 30.518 µs &nbsp;|&nbsp; 24 MHz: 41.667 ns</div>
+                  Slide 8 prints the 24 MHz tick as "41.667 ps"; the correct unit is nanoseconds (1 / 24 × 10<sup>6</sup> s = 41.667 × 10<sup>-9</sup> s).</li>
+                <li>Trade-off: <strong>higher frequency means higher energy consumption</strong>.</li>
+                <li>Embedded devices therefore often have two clocks, with two crystals:
+                  <ul>
+                    <li>a <strong>high-frequency</strong> crystal used in active modes to clock the CPU and high-speed peripherals and to measure time with high resolution;</li>
+                    <li>a <strong>low-power low-frequency</strong> crystal, typically 32 kHz, that keeps the real time even when the system is off and schedules wake-up events.</li>
+                  </ul></li>
+                <li>Slide 9: the CC2650 has exactly that pair, a 32.768 kHz crystal (X2) and a 24 MHz crystal (X1). Week 3's HF versus LF timer choice is the same trade-off seen from the software side.</li>
+                <li>A measured interval is always a whole number of ticks, so its error is up to one tick, depending on where the interval starts within a tick.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/cc2650-crystals.png" alt="Schematic detail: 32.768 kHz crystal X2 on the X32K pins and 24 MHz crystal X1 on the X24M pins, with their capacitors" width="765" height="283"></div>
+              <figcaption><b>Slide 9.</b> The two crystals of a CC2650 board: 32.768 kHz (X2) and 24 MHz (X1). Click to enlarge.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="resolution"></div>
+        <div class="quiz" data-quiz="resolution"></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="topic" id="uptime" data-part="Time on one device" data-short="Uptime counter">
+        <header class="topic-head">
+          <span class="topic-num">06</span>
+          <div><h2>Example: an uptime counter</h2><p class="kicker">Count the seconds since boot. How hard can it be?</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>We want to know how many seconds have passed since the device was switched on. Easy: set the timer to ring every second and add one to a counter each time it rings.</p>
+              <p>The slide then asks the trick question: after exactly one day, does the counter really say 86400? Only if the crystal is perfect, and no crystal is.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Implementation (slide 10): a timer based on a 32768 Hz crystal oscillator; on boot initialise a <code>uint32</code> <code>UPTIME</code> variable at 0; set a <strong>periodic</strong> timer with starting value 32768; on each timeout event, increment <code>UPTIME</code>.</li>
+                <li>Question: after exactly one day (86400 seconds), what is the value of the counter?</li>
+                <li>Nominally 32768 pulses take 1 s, so <code>UPTIME</code> = 86400. In reality the crystal runs slightly off its nominal frequency, so the count is off too: with a ±20 ppm crystal by up to about ±1.7 s per day (next topics).</li>
+                <li>A wrong start value is a systematic error of its own: loading 32767 makes every "second" one pulse short, about 30.5 ppm fast.</li>
+                <li>A <code>uint32</code> counting seconds overflows after 2<sup>32</sup> s, about 136 years, so overflow is not the issue here.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="uptime"></div>
+        <div class="quiz" data-quiz="uptime"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 2</span><h2>Clock drift</h2></div>
+
+      <!-- 07 -->
+      <section class="topic" id="drift" data-part="Clock drift" data-short="Clock drift and ppm">
+        <header class="topic-head">
+          <span class="topic-num">07</span>
+          <div><h2>Clock drift</h2><p class="kicker">Precise, but imperfect: parts per million</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Every crystal is made with a tiny manufacturing error, so it ticks a little too fast or a little too slow. "20 ppm" means at most 20 extra or missing ticks per million.</p>
+              <p>That sounds like nothing, but a clock runs all day, every day. Twenty millionths of a day is almost two seconds.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Production spread:</strong> all electronic components are manufactured with some error from their nominal value. The worst-case error is specified in the datasheet.</li>
+                <li>Crystal oscillators are precise but imperfect: they are produced with a frequency variance, so their actual frequency is slightly different from the nominal.</li>
+                <li>The error is measured in <strong>ppm</strong> (parts per million) or <strong>ppb</strong> (parts per billion):
+                  <div class="formula">1 ppm = 10<sup>-6</sup> = 0.0001% &nbsp;&nbsp; f<sub>actual</sub> = f<sub>nominal</sub> × (1 + drift)</div>
+                  The FC-135 crystal, for example, has a maximum drift of ±20 ppm.</li>
+                <li>Example: a 32768 Hz crystal with ±20 ppm maximum drift has an actual frequency somewhere between <strong>32767.34464 Hz and 32768.65536 Hz</strong>, so its period is between 30516.97 ns and 30518.19 ns. "It looks tiny, but it adds up!"</li>
+                <li>The accumulated error is the drift times the elapsed time:
+                  <div class="formula">error = drift × t &nbsp;&nbsp; 20 ppm × 86400 s ≈ 1.73 s per day</div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="ppm"></div>
+        <div class="quiz" data-quiz="drift"></div>
+      </section>
+
+      <!-- 08 -->
+      <section class="topic" id="error" data-part="Clock drift" data-short="Error adds up">
+        <header class="topic-head">
+          <span class="topic-num">08</span>
+          <div><h2>Error</h2><p class="kicker">Negligible in the short term, significant in the long term</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Error is how far the device's clock is from the real time. A slow clock falls behind (positive error), a fast one runs ahead (negative).</p>
+              <p>Like a watch that loses a few seconds a week: after a minute you cannot tell, after a month you can.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Error</strong> is defined as the difference between the true time passed and the value of <code>UPTIME</code>:
+                  <div class="formula">error = t<sub>true</sub> - UPTIME ≈ -drift × t<sub>true</sub></div></li>
+                <li>Error can be positive or negative: a negative drift (slow crystal) gives a positive error, which is why the -ppm curves on slide 12 rise.</li>
+                <li>Time error adds up: negligible in the short term, significant in the long term.</li>
+                <li>For a constant drift the error grows <strong>linearly</strong>. The curves on slide 12 bend upwards only because the time axis is logarithmic (1 m, 1 h, 1 d, 1 w). Switch the lab below between log and linear to see it.</li>
+                <li>Reading values off that chart: 20 ppm for one week is 20 × 10<sup>-6</sup> × 604800 s ≈ 12.1 s, while the ±20 ppm curves end near 8.7 s at the "1w" tick (about five days' worth). Use the formula rather than the chart for numbers.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/error-plot.png" alt="Error in seconds versus time on a log axis from 1 minute to 1 week for drifts from -20 to +20 ppm" width="1293" height="950"></div>
+              <figcaption><b>Slide 12.</b> Error versus time for drifts from -20 to +20 ppm (logarithmic time axis).</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="error"></div>
+        <div class="quiz" data-quiz="error"></div>
+      </section>
+
+      <!-- 09 -->
+      <section class="topic" id="other-drift" data-part="Clock drift" data-short="Ageing and temperature">
+        <header class="topic-head">
+          <span class="topic-num">09</span>
+          <div><h2>Other sources of clock drift</h2><p class="kicker">Ageing and temperature</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The manufacturing error is only the start. Crystals also slowly change as they age, and they tick slower when it is very cold or very hot, the way a guitar string goes out of tune with the weather.</p>
+              <p>All these effects pile on top of each other, so a sensor outside in winter drifts far more than the datasheet's headline number.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Ageing:</strong> systematic changes in frequency with time due to internal changes in the oscillator. The FC-135 ages at most ±3 ppm/year.</li>
+                <li><strong>Temperature:</strong> crystals are calibrated to yield the nominal frequency at room temperature. They slow down at very low and very high temperatures following a <strong>parabolic</strong> pattern. The FC-135 drifts at most
+                  <div class="formula">Δf / f = -0.04 ppm/°C² × (T - 25 °C)² &nbsp;&nbsp; at -5 °C: -36 ppm</div></li>
+                <li>Different sources of drift <strong>add up</strong>: total drift = production error + ageing + temperature term.</li>
+                <li>Slide 13's figure shows real measurements from a climate chamber: the drift of three nodes versus temperature follows the parabola, peaking near room temperature and falling off towards both ends.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/temp-curves.png" alt="Measured drift in ppm versus temperature for three nodes, each following a downward parabola" width="686" height="867"></div>
+              <figcaption><b>Slide 13.</b> Measured drift versus temperature for three nodes. Source: https://doi.org/10.1109/TII.2017.2778746</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/temp-chamber.jpg" alt="Climate test chamber used for the measurements" width="330" height="634"></div>
+              <figcaption><b>Slide 13.</b> The climate chamber. Source: https://doi.org/10.1109/TII.2017.2778746</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="temp"></div>
+        <div class="quiz" data-quiz="other-drift"></div>
+      </section>
+
+      <!-- 10 -->
+      <section class="topic" id="blink" data-part="Clock drift" data-short="Relative drift">
+        <header class="topic-head">
+          <span class="topic-num">10</span>
+          <div><h2>Synchronised blinking and relative clock drift</h2><p class="kicker">In sync with each other versus in sync with true time</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Press one button that starts two boards at once and let both blink once a second. A minute later they look identical, an hour later one is visibly ahead, and a day later they are seconds apart.</p>
+              <p>What matters here is not whether each board is right, but whether they <strong>agree</strong>. Two watches that are both five minutes fast still agree with each other.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Slide 14: start both MCUs at the same time with one button, blink an LED with a 1 s period using a timer, and observe them 1 minute, 1 hour and 1 day later.</li>
+                <li><strong>Clock drift:</strong> the rate at which a clock drifts from the true time. For the uptime application we care about being in sync with true time.</li>
+                <li><strong>Relative clock drift:</strong> the rate at which two clocks drift from each other. For the blinking application we care about the two devices being in sync with each other:
+                  <div class="formula">relative drift = MCU1 drift - MCU2 drift</div></li>
+                <li>Two clocks can be in sync with each other but drift from true time: if both drift +10 ppm, the relative drift is 0 ppm.</li>
+                <li>The worst-case relative drift is <strong>double</strong> the individual worst case: with two ±20 ppm oscillators it ranges from -40 ppm (MCU1 -20, MCU2 +20) to +40 ppm (MCU1 +20, MCU2 -20). That is 2.4 ms after a minute, 144 ms after an hour and 3.5 s after a day.</li>
+              </ul>
+              <p class="aside-note">Slide 16 is an in-class design quiz built around the ADXL362 accelerometer datasheet (https://www.analog.com/media/en/technical-documentation/data-sheets/adxl362.pdf); its questions were handed out through a QR code and are not part of the slides.</p>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/blink.png" alt="Two MCUs, each with a button and an LED" width="836" height="807"></div>
+              <figcaption><b>Slide 14.</b> Two MCUs, each with a start button and a blinking LED.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="blink"></div>
+        <div class="quiz" data-quiz="blink"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 3</span><h2>Synchronising with true time</h2></div>
+
+      <!-- 11 -->
+      <section class="topic" id="true-time" data-part="True time" data-short="What is true time?">
+        <header class="topic-head">
+          <span class="topic-num">11</span>
+          <div><h2>What is true time anyway?</h2><p class="kicker">Atomic clocks, TAI and UTC</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>"True time" comes from atomic clocks: the steadiest ticking we know how to build. Hundreds of them around the world are averaged into one official time.</p>
+              <p>Clock time on your phone also gets the occasional leap second, so that noon stays roughly when the Sun is highest even though the Earth's rotation is slowing. Atomic clocks are far too expensive for every sensor, so cheap clocks have to check in with a good one now and then.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Atomic clocks</strong> measure time by monitoring the resonant frequency of atoms. They are the most accurate means we have to measure time, and expensive: $30K+.</li>
+                <li><strong>International Atomic Time</strong> (the slide writes IAT; the official abbreviation is TAI, from the French <em>Temps Atomique International</em>) is a weighted average of over 450 atomic clocks at laboratories worldwide. It is continuous time without leap seconds.</li>
+                <li><strong>Coordinated Universal Time (UTC)</strong> includes leap seconds because of the Earth's slowing rotation. Local time zones are based on UTC (for example CET is UTC+1).</li>
+                <li>Slide 17 says "as of 2022, UTC is 37 seconds ahead of IAT". It is the other way round: each leap second holds UTC back, so <strong>TAI is 37 s ahead of UTC</strong> (TAI - UTC = 37 s, unchanged since the last leap second at the end of 2016).</li>
+                <li>It is too expensive to have an atomic clock in each embedded system, so we <strong>periodically synchronise</strong> the imperfect clocks, either to true time (GPS, NTP, PTP) or just to each other (reference-based synchronisation).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="true-time"></div>
+      </section>
+
+      <!-- 12 -->
+      <section class="topic" id="unidirectional" data-part="True time" data-short="Unidirectional sync">
+        <header class="topic-head">
+          <span class="topic-num">12</span>
+          <div><h2>Unidirectional synchronisation</h2><p class="kicker">Send your time; the receiver corrects for the delay</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Alice shouts "it is 10:00:00!" across a valley. By the time Bob hears it, the shout has travelled for a moment, so Bob has to add that travel time before setting his watch.</p>
+              <p>The catch: Bob cannot measure the travel time without already having a synchronised watch. He can only estimate it.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Alice takes a local timestamp T<sub>1</sub>, immediately puts it in a packet and sends it to Bob. Bob takes a local timestamp T<sub>2</sub> the moment he receives it:
+                  <div class="formula">T<sub>2</sub> = T<sub>1</sub> + D + o &nbsp;&nbsp; o = T<sub>2</sub> - T<sub>1</sub> - D</div>
+                  where D is the message delay and o the time offset (Bob's clock minus Alice's).</li>
+                <li>If we know the message delay, we can calculate the offset and synchronise the clocks. But it is <strong>impossible to measure</strong> the delay unless the two clocks are synchronised in the first place.</li>
+                <li>If the delay is relatively stable, it might be possible to <em>calculate</em> or <em>estimate</em> it. The more accurate the estimation, the more accurate the synchronisation: the offset error equals the delay estimation error.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/unidirectional.png" alt="Timeline: A sends message with T1, B receives at T2 after delay D" width="624" height="429"></div>
+              <figcaption><b>Slide 18.</b> A sends T<sub>1</sub>; B timestamps the arrival T<sub>2</sub> after delay D.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="oneway"></div>
+        <div class="quiz" data-quiz="unidirectional"></div>
+      </section>
+
+      <!-- 13 -->
+      <section class="topic" id="delay-parts" data-part="True time" data-short="Message delay">
+        <header class="topic-head">
+          <span class="topic-num">13</span>
+          <div><h2>Components of message delay</h2><p class="kicker">Some are easy to calculate, some are not</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Sending a letter takes time to write it, time in the post-office queue, time in the van and time for the recipient to open it. The van journey is predictable; the queues are not.</p>
+              <p>For synchronisation, the predictable parts are harmless because we can subtract them. It is the unpredictable waiting that causes errors.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Operating system delays at the sender:</strong>
+                  <ul>
+                    <li>scheduling delay: waiting for the OS to run other processes;</li>
+                    <li>processing delay: creating the message, copying it to the network interface's buffer, etc.;</li>
+                    <li>queuing delay: waiting for other messages to be sent first;</li>
+                    <li>access delay: waiting for the medium to be clear, backoffs (the CSMA of Week 7), the receiver waking up.</li>
+                  </ul></li>
+                <li><strong>Transmission delay:</strong> the time it takes to transmit all the bits. Easy to calculate:
+                  <div class="formula">t<sub>tx</sub> = L / R &nbsp;&nbsp; L: packet size, R: transmission rate</div></li>
+                <li><strong>Propagation delay:</strong> the time for the signal to reach the receiver. Easy to calculate:
+                  <div class="formula">t<sub>prop</sub> = d / s &nbsp;&nbsp; s ≈ c ≈ 3 × 10<sup>8</sup> m/s, about 3.3 µs per km</div>
+                  Negligible at short distances, considerable for satellite communications. (In copper cables signals travel at roughly two thirds of c.)</li>
+                <li><strong>Operating system delays at the receiver:</strong> more scheduling and processing.</li>
+                <li><strong>Multi-hop</strong> transmissions add up each link's delay.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="delay"></div>
+        <div class="quiz" data-quiz="delay-parts"></div>
+      </section>
+
+      <!-- 14 -->
+      <section class="topic" id="gps" data-part="True time" data-short="GPS">
+        <header class="topic-head">
+          <span class="topic-num">14</span>
+          <div><h2>Time synchronisation with GPS</h2><p class="kicker">One hop to an atomic clock</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>GPS is famous for telling you where you are, but to do that it has to know the time extremely well. Every satellite carries atomic clocks and keeps announcing the time.</p>
+              <p>So a GPS receiver gets time from an atomic clock almost for free. The catch: it needs to see the sky, and listening to satellites costs a battery-powered device a lot of energy.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>GPS</strong> (or equivalent systems such as Galileo) is known for localisation, but time synchronisation is integral to the process.</li>
+                <li><strong>24 satellites</strong> (the design baseline; more are usually in orbit) in predictable orbits, so that at least 4 are visible from anywhere on Earth. Each is equipped with an <strong>atomic clock</strong>, is an embedded system dedicated to GPS operations, and periodically broadcasts its time on a dedicated frequency. The delay is bounded by the propagation delay.</li>
+                <li>A GPS receiver receives the signals of 4 satellites and calculates its location (3D trilateration); in the process, it also synchronises with them.</li>
+                <li><strong>Advantages:</strong> an easy time synchronisation solution with high precision (1-hop access to an atomic clock); GPS receiver hardware is relatively cheap, depending on the use case.</li>
+                <li><strong>Disadvantages:</strong> requires line of sight (typically works only outdoors); consumes significant energy for battery-powered systems; GPS receiver hardware is required and is relatively costly, depending on the use case. A modern car has a GPS receiver, but not every single sensor or subsystem in the car has one.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="gps"></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="topic" id="gps-1d" data-part="True time" data-short="GPS 1D example">
+        <header class="topic-head">
+          <span class="topic-num">15</span>
+          <div><h2>How GPS finds the time: a 1D example and 3D trilateration</h2><p class="kicker">Position and clock offset from the same equations</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>If you know when a signal left and when it arrived, you know how far away its sender is. But if your own clock is wrong, every distance comes out wrong.</p>
+              <p>With satellites on both sides of you, a wrong clock pushes the two answers in opposite directions. The receiver shifts its clock until both satellites agree, and that shift is exactly its clock error.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>1D world</strong> (slide 21): S1 at 0 m, the receiver R at 200 m, signals at s = 1 m/s. R does not know its own location but knows S1's. S1 sends at T<sub>1</sub> = 0 and the signal arrives at T<sub>2</sub> = 200; R marks it with its local timestamp T<sub>2</sub>'.</li>
+                <li>If R is in sync (T<sub>2</sub>' = T<sub>2</sub>): d<sub>R-S1</sub> = (T<sub>2</sub>' - T<sub>1</sub>) · s = 200 m, correct. If R is 1 s off (T<sub>2</sub>' = T<sub>2</sub> + 1): d<sub>R-S1</sub> = 201 m, a 1 m error.</li>
+                <li>A second satellite S2 at 300 m (slide 22) sends at T<sub>3</sub> = 0; the signal arrives at T<sub>4</sub> = 100 s. With the same 1 s offset: d<sub>R-S2</sub> = 101 m, estimated location 300 - 101 = 199 m.</li>
+                <li>R applies a correction to its timestamps until the two estimates are equal. This identifies both the true location and the time offset from the satellite clocks:
+                  <div class="formula">o = ((T<sub>2</sub>' - T<sub>1</sub>) + (T<sub>4</sub>' - T<sub>3</sub>) - 300 m / s) / 2</div></li>
+                <li><strong>3D trilateration</strong> (slide 23): the first signal localises the receiver on a sphere, the second on a circle, the third on one of two points (only one of which is on Earth). The <strong>fourth</strong> signal is used for time synchronisation, and thus for reducing the localisation error: x, y, z and the clock offset are four unknowns.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/trilateration.jpg" alt="Three intersecting spheres around satellites P1, P2 and P3 meeting at points A and B" width="900" height="645"></div>
+              <figcaption><b>Slide 23.</b> Three spheres meet in two points, A and B.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/time-sync/gps-1d.png" alt="One-dimensional world with satellite S1 on the left, receiver R in the middle and satellite S2 on the right" width="1300" height="135"></div>
+          <figcaption><b>Slide 22.</b> The 1D world: S1 at 0 m, R at 200 m, S2 at 300 m.</figcaption>
+        </figure>
+        <div data-lab="gps"></div>
+        <div class="quiz" data-quiz="gps-1d"></div>
+      </section>
+
+      <!-- 16 -->
+      <section class="topic" id="bidirectional" data-part="True time" data-short="Bidirectional sync">
+        <header class="topic-head">
+          <span class="topic-num">16</span>
+          <div><h2>Bidirectional synchronisation</h2><p class="kicker">Measure the round trip, split it in half</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>You cannot time a one-way trip without a synchronised watch at the other end. But you can time a round trip on your own watch: throw a ball, it comes back, you know how long the whole trip took.</p>
+              <p>If the way there and the way back take equally long, half the round trip is the one-way delay, and the rest of the timestamps reveal the offset.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>We cannot measure the unidirectional delay unless sender and receiver are already synchronised, but we can measure the <strong>round-trip delay</strong>.</li>
+                <li>B sends T<sub>1</sub> (its clock); A records the arrival T<sub>2</sub> and replies at T<sub>3</sub> (its clock) with T<sub>1</sub>, T<sub>2</sub>, T<sub>3</sub>; B records T<sub>4</sub>.</li>
+                <li>Assumptions: the delay is <strong>identical in both directions</strong>, and the clock drift does not change between messages.</li>
+                <li>A simple system of linear equations:
+                  <div class="formula">T<sub>2</sub> = T<sub>1</sub> + D + o &nbsp;&nbsp; T<sub>4</sub> = T<sub>3</sub> + D - o</div>
+                  Solution:
+                  <div class="formula">o = ((T<sub>2</sub> - T<sub>1</sub>) - (T<sub>4</sub> - T<sub>3</sub>)) / 2 &nbsp;&nbsp; D = ((T<sub>2</sub> - T<sub>1</sub>) + (T<sub>4</sub> - T<sub>3</sub>)) / 2</div></li>
+                <li>If the delays differ, the formula silently returns o + (D<sub>B→A</sub> - D<sub>A→B</sub>) / 2: half of any asymmetry becomes offset error.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/bidirectional.png" alt="Timeline: B sends T1, A receives at T2, replies at T3, B receives at T4; delay D each way" width="1039" height="469"></div>
+              <figcaption><b>Slide 25.</b> Four timestamps, delay D in each direction.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="twoway"></div>
+        <div class="quiz" data-quiz="bidirectional"></div>
+      </section>
+
+      <!-- 17 -->
+      <section class="topic" id="ntp" data-part="True time" data-short="NTP and SNTP">
+        <header class="topic-head">
+          <span class="topic-num">17</span>
+          <div><h2>Network Time Protocol (NTP)</h2><p class="kicker">Bidirectional synchronisation over the internet</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>NTP is how your laptop knows the time: it asks a time server, using exactly the round-trip trick from the previous topic.</p>
+              <p>The internet is a busy road, so some answers come back late in one direction only. NTP asks several times and several servers and trusts the cleanest answers. SNTP, its little sibling, just asks once.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Client/server model: the system queries a <strong>time server</strong> that has access to a good clock (for example GPS).</li>
+                <li>Uses bidirectional synchronisation, and can synchronise systems over variable-latency networks.</li>
+                <li>Achieves <strong>ms accuracy over the public internet</strong> and <strong>&lt;ms accuracy over local networks</strong>.</li>
+                <li>Vulnerable to congestion, asymmetric routes and asymmetry in general (the bidirectional formula assumes equal delays).</li>
+                <li>NTP queries multiple time servers, keeps a history of clock drift and applies corrections. One of its filters prefers the samples with the smallest round-trip delay, since those had the least room for asymmetric queuing.</li>
+                <li><strong>Simple NTP (SNTP)</strong> is a simplified client that makes one query to a single time server: less accurate, but more lightweight, which suits small embedded devices.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="ntp"></div>
+        <div class="quiz" data-quiz="ntp"></div>
+      </section>
+
+      <!-- 18 -->
+      <section class="topic" id="ptp" data-part="True time" data-short="PTP">
+        <header class="topic-head">
+          <span class="topic-num">18</span>
+          <div><h2>Precision Time Protocol (PTP)</h2><p class="kicker">Same maths, better timestamps</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>PTP uses the same round-trip idea as NTP, but on a local network with a dedicated time master nearby, and with the stopwatch built into the network hardware itself.</p>
+              <p>Because the timestamp is taken the instant the message passes the wire, all the waiting inside the operating system no longer counts. That is how PTP reaches nanoseconds.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The time server (master) <strong>broadcasts</strong> a message with its timestamp T<sub>1</sub>; devices timestamp its arrival T<sub>2</sub>, then send a request at T<sub>3</sub> to identify the round-trip delay; the master returns its receive time T<sub>4</sub>. A variation of bidirectional synchronisation:
+                  <div class="formula">o = ((T<sub>2</sub> - T<sub>1</sub>) - (T<sub>4</sub> - T<sub>3</sub>)) / 2</div></li>
+                <li>Same assumptions as NTP: symmetric delay and constant offset.</li>
+                <li><strong>Better accuracy than NTP</strong> (ns or better):
+                  <ul>
+                    <li>a time master in the local network mitigates queuing and routing delays;</li>
+                    <li>more accurate timestamps at hardware level mitigate OS-related delays.</li>
+                  </ul></li>
+                <li>PTP is standardised as IEEE 1588.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/ptp.png" alt="Timeline: master A sends T1, device B receives at T2, sends request at T3, A receives at T4 and returns T4" width="1223" height="431"></div>
+              <figcaption><b>Slide 27.</b> The master's broadcast first, then the device's request.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="ptp"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 4</span><h2>Relative and periodic synchronisation</h2></div>
+
+      <!-- 19 -->
+      <section class="topic" id="reference" data-part="Relative and periodic" data-short="Reference-based sync">
+        <header class="topic-head">
+          <span class="topic-num">19</span>
+          <div><h2>Reference-based synchronisation</h2><p class="kicker">Agree with each other, not with the world</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>On a film set, the camera and the microphone record separately. The clapperboard makes one sharp event that both of them capture; lining up the clap in the picture with the clap in the sound synchronises them.</p>
+              <p>Nobody needs to know what time it actually was. They only need to agree with each other.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>GPS, NTP, SNTP and PTP provide synchronisation with <strong>true time</strong>.</li>
+                <li><strong>Relative synchronisation</strong> can be achieved by capturing a <strong>shared event</strong>, which can be natural or induced.</li>
+                <li>The relative offset between the clocks of two devices is the difference between their timestamps of the event.</li>
+                <li>Example: the cinema clapperboard creates a distinct audio-visual event used to synchronise the clocks of the camera and the microphone.</li>
+                <li>A <strong>packet broadcast</strong> can serve as a synchronisation event: that is the next topic.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="reference"></div>
+      </section>
+
+      <!-- 20 -->
+      <section class="topic" id="rbs" data-part="Relative and periodic" data-short="Reference broadcast (RBS)">
+        <header class="topic-head">
+          <span class="topic-num">20</span>
+          <div><h2>Reference-Broadcast Synchronisation</h2><p class="kicker">The beacon is the clapperboard</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A third device just shouts "beep!". A and B each note when they heard it on their own clock, then compare notes.</p>
+              <p>It does not matter how long the shouter took to get the beep out: that delay was the same for both listeners, so it cancels when they compare. Only small differences in how quickly each listener noticed the beep remain.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A reference device R broadcasts a synchronisation <strong>beacon</strong>.</li>
+                <li>Devices A and B take a local timestamp of the time they receive it, T<sub>1</sub> and T<sub>2</sub>.</li>
+                <li>A sends T<sub>1</sub> to B, which calculates its relative offset to A:
+                  <div class="formula">o = T<sub>2</sub> - T<sub>1</sub></div></li>
+                <li>Sender-related delays (scheduling, processing, queuing, access) affect the beacon the same for every receiver, and the propagation delay is almost the same at short distances.</li>
+                <li>Errors are limited to the <strong>differences in receiver-oriented delays</strong>. Compared with sender-receiver methods, the largest and most variable delays are removed from the critical path.</li>
+                <li>RBS was proposed by Elson, Girod and Estrin (2002) for wireless sensor networks.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/rbs.png" alt="Timeline: R broadcasts a beacon received by A at T1 and B at T2; A sends T1 to B" width="873" height="492"></div>
+              <figcaption><b>Slide 29.</b> R's beacon reaches A (T<sub>1</sub>) and B (T<sub>2</sub>); A then sends T<sub>1</sub> to B.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="rbs"></div>
+        <div class="quiz" data-quiz="rbs"></div>
+      </section>
+
+      <!-- 21 -->
+      <section class="topic" id="periodic" data-part="Relative and periodic" data-short="Periodic sync">
+        <header class="topic-head">
+          <span class="topic-num">21</span>
+          <div><h2>Periodic synchronisation</h2><p class="kicker">The sync interval bounds the error</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Synchronising once is not enough: the moment you stop, the clocks start drifting apart again. So you check in regularly, like resetting a cheap watch every Sunday.</p>
+              <p>Check in more often and the clocks never stray far, but every check-in costs messages and energy. The art is choosing the slowest rhythm that is still good enough.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Time error (offset) accumulates over time; a synchronisation event brings it (close to) zero.</li>
+                <li>Periodic synchronisation is required to maintain synchronicity. The time error is contained by the synchronisation frequency:
+                  <div class="formula">max error ≈ residual + relative drift × sync interval &nbsp;&nbsp; interval ≤ (tolerable error - residual) / drift</div></li>
+                <li>Trade-off: the cost of synchronisation versus the tolerance to synchronisation error.</li>
+                <li>Reading slide 30's chart: it is titled "10 ppm drift" and shows 12 ms after 2 minutes and 24 ms after 4 minutes. At 10 ppm the error after 2 minutes is 10 × 10<sup>-6</sup> × 120 s = 1.2 ms; the plotted values correspond to 100 ppm. The shape, a sawtooth whose peak grows with the interval, is the point of the figure.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/time-sync/periodic.png" alt="Sawtooth synchronisation error over 20 minutes with syncs every 2 or 4 minutes" width="1131" height="853"></div>
+              <figcaption><b>Slide 30.</b> Sawtooth error with syncs every 2 or 4 minutes.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="periodic"></div>
+        <div class="quiz" data-quiz="periodic"></div>
+      </section>
+
+      <!-- 22 -->
+      <section class="topic" id="trade-offs" data-part="Relative and periodic" data-short="Trade-offs">
+        <header class="topic-head">
+          <span class="topic-num">22</span>
+          <div><h2>Conclusion: the trade-offs</h2><p class="kicker">Only as much synchronisation as the application needs</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Every bit of synchronisation costs something: hardware, messages, battery. So ask what the application really needs. Do the devices need the time of day, or only to agree with each other? To the nanosecond, or to the second? Checked every minute, or every day?</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Time synchronisation might be necessary for applications and for system-level processes.</li>
+                <li>Trade-offs:
+                  <ul>
+                    <li><strong>real-time</strong> synchronisation requires more resources than <strong>relative</strong> synchronisation;</li>
+                    <li><strong>high-precision</strong> synchronisation requires more resources than <strong>loose</strong> synchronisation;</li>
+                    <li>the <strong>frequency</strong> of synchronisation bounds the sync error, but requires resources.</li>
+                  </ul></li>
+              </ul>
+              <div class="table-wrap">
+                <table class="tt">
+                  <thead><tr><th>Method</th><th>Gives</th><th>Typical accuracy</th><th class="out">Cost</th></tr></thead>
+                  <tbody>
+                    <tr><td>GPS</td><td>true time</td><td>high (1 hop to atomic clocks)</td><td class="out">receiver, energy, sky view</td></tr>
+                    <tr><td>NTP / SNTP</td><td>true time</td><td>ms (internet), &lt;ms (LAN)</td><td class="out">network access, messages</td></tr>
+                    <tr><td>PTP</td><td>true time</td><td>ns or better</td><td class="out">local master, hardware timestamps</td></tr>
+                    <tr><td>RBS</td><td>relative time</td><td>receiver-delay differences</td><td class="out">a broadcast plus timestamp exchange</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="trade-offs"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="topic" id="cheat-sheet" data-toc-extra="Cheat sheet">
+        <header class="topic-head">
+          <span class="topic-num">&Sigma;</span>
+          <div><h2>Cheat sheet</h2><p class="kicker">The formulas and numbers worth memorising</p></div>
+        </header>
+        <div class="cheat">
+          <div class="cheat-item"><h3>Timer</h3><div class="formula">f<sub>timer</sub> = f<sub>osc</sub> / N, &nbsp;t = initial value / f<sub>timer</sub></div><p>1000 at 32768 Hz: 30.5 ms. One-off: fires once. Periodic: reloads.</p></div>
+          <div class="cheat-item"><h3>Ticks</h3><div class="formula">tick = 1 / f &nbsp;|&nbsp; 32768 Hz: 30.518 µs &nbsp;|&nbsp; 24 MHz: 41.667 ns</div><p>Higher frequency: finer resolution, more energy.</p></div>
+          <div class="cheat-item"><h3>ppm</h3><div class="formula">1 ppm = 10<sup>-6</sup>, &nbsp;f<sub>actual</sub> = f × (1 + drift)</div><p>32768 Hz ±20 ppm: 32767.34464 to 32768.65536 Hz.</p></div>
+          <div class="cheat-item"><h3>Accumulated error</h3><div class="formula">error = true - clock ≈ -drift × t</div><p>20 ppm: 1.73 s/day, 12.1 s/week. Linear in time.</p></div>
+          <div class="cheat-item"><h3>Temperature and ageing</h3><div class="formula">Δf/f = -0.04 ppm/°C² × (T - 25)², ageing ±3 ppm/year</div><p>FC-135 worst cases. All sources add up.</p></div>
+          <div class="cheat-item"><h3>Relative drift</h3><div class="formula">rel = drift<sub>1</sub> - drift<sub>2</sub>, worst case 2 × tolerance</div><p>Two ±20 ppm clocks: up to 40 ppm apart.</p></div>
+          <div class="cheat-item"><h3>One-way</h3><div class="formula">T<sub>2</sub> = T<sub>1</sub> + D + o</div><p>Offset error = delay estimation error.</p></div>
+          <div class="cheat-item"><h3>Delay</h3><div class="formula">t<sub>tx</sub> = L / R, &nbsp;t<sub>prop</sub> = d / s (s ≈ c)</div><p>OS and access delays vary; multi-hop delays add up.</p></div>
+          <div class="cheat-item"><h3>Two-way (NTP, PTP)</h3><div class="formula">o = ((T<sub>2</sub> - T<sub>1</sub>) - (T<sub>4</sub> - T<sub>3</sub>)) / 2</div><p>Assumes symmetric delay; asymmetry error = (D<sub>fwd</sub> - D<sub>back</sub>) / 2.</p></div>
+          <div class="cheat-item"><h3>RBS</h3><div class="formula">o = T<sub>2</sub> - T<sub>1</sub> (receive times of one beacon)</div><p>Sender delays cancel; only receiver differences remain.</p></div>
+          <div class="cheat-item"><h3>Periodic sync</h3><div class="formula">max error ≈ drift × interval</div><p>10 ppm every 2 min: 1.2 ms. Interval ≤ tolerable error / drift.</p></div>
+          <div class="cheat-item"><h3>TAI and UTC</h3><div class="formula">TAI - UTC = 37 s</div><p>UTC has leap seconds; local time zones follow UTC (CET = UTC+1).</p></div>
+        </div>
+      </section>
+
+      <p class="page-foot">Figures cropped from the lecture slides "Time Synchronisation" by Xenofon Fafoutis, DTU Compute, with their original sources noted. For personal study.</p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/time-sync.js"></script>
+</body>
+</html>
