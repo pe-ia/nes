@@ -1,0 +1,92 @@
+/* Week 10, Wireless Networked Embedded Systems: lecture-specific styles (loaded after style.css). */
+
+/* Radio-state colours, matching the slide legends (blue transmit, green receive, yellow listen, grey sleep). */
+:root {
+  --wn-tx: #a9d3f5;
+  --wn-rx: #b5ecc6;
+  --wn-listen: #fbf4bd;
+  --wn-sleep: #dcdcdc;
+  --wn-hatch: #9a9a9a;
+  --wn-wtx: #b4f0f2;
+  --wn-wrx: #f7cfb0;
+  --wn-edge: #3a3833;
+  --wn-label: #1c1b19;
+  --wn-154: #c2185b;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --wn-tx: #2c5f8c;
+    --wn-rx: #2b7148;
+    --wn-listen: #6f6526;
+    --wn-sleep: #3a3d42;
+    --wn-hatch: #6b6f76;
+    --wn-wtx: #23787c;
+    --wn-wrx: #8c5530;
+    --wn-edge: #8d8b85;
+    --wn-label: #ecebe7;
+    --wn-154: #f06292;
+  }
+}
+:root[data-theme="dark"] {
+  --wn-tx: #2c5f8c;
+  --wn-rx: #2b7148;
+  --wn-listen: #6f6526;
+  --wn-sleep: #3a3d42;
+  --wn-hatch: #6b6f76;
+  --wn-wtx: #23787c;
+  --wn-wrx: #8c5530;
+  --wn-edge: #8d8b85;
+  --wn-label: #ecebe7;
+  --wn-154: #f06292;
+}
+
+/* full-width slide figures (timelines and wide strips) */
+.fig-wide .fig-frame { padding: 12px 14px; min-height: 0; }
+.fig-wide .fig-frame img { max-height: none; width: 100%; }
+.fig { min-width: 0; max-width: 100%; }
+.fig-wide .fig-zoom { width: 100%; }
+
+/* state swatches in legends */
+.wn-sw { width: 14px !important; height: 10px !important; border-radius: 2px !important; border: 1px solid var(--wn-edge); }
+.wn-sw-tx { background: var(--wn-tx); }
+.wn-sw-rx { background: var(--wn-rx); }
+.wn-sw-listen { background: var(--wn-listen); }
+.wn-sw-wtx { background: var(--wn-wtx); }
+.wn-sw-wrx { background: var(--wn-wrx); }
+.wn-sw-sleep { background: repeating-linear-gradient(135deg, var(--wn-sleep) 0 3px, var(--wn-hatch) 3px 4px); }
+
+/* scenario sorter */
+.wn-sort { display: flex; flex-direction: column; gap: 12px; padding: 14px; }
+.wn-sort-item { font-size: 15.5px; font-weight: 600; color: var(--ink); margin: 0; min-height: 2.6em; }
+.wn-choices { display: grid; gap: 8px; }
+.wn-choices-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.wn-choices-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.wn-choice.right { background: var(--ok-soft); border-color: var(--ok); color: var(--ink); }
+.wn-choice.wrong { background: var(--bad-soft); border-color: var(--bad); color: var(--ink); }
+.wn-choice:disabled { cursor: default; }
+
+/* decibel steps */
+.wn-steps { display: flex; flex-wrap: wrap; gap: 8px; padding: 6px; min-height: 58px; align-items: center; }
+.wn-step { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 10px; border-radius: 8px; border: 1px solid var(--line-2); background: var(--lab-bg); min-width: 62px; }
+.wn-step b { font-family: var(--mono); font-size: 13px; }
+.wn-step i { font-style: normal; font-size: 12px; color: var(--muted); }
+.wn-step.hi b { color: var(--hi); }
+.wn-step.lo b { color: var(--lo); }
+
+/* text input */
+.wn-text {
+  width: 100%; font-family: var(--mono); font-size: 14px; letter-spacing: 0.08em;
+  padding: 7px 10px; border-radius: 9px; border: 1px solid var(--line-2);
+  background: var(--card); color: var(--ink);
+}
+.wn-text:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.tech .formula { white-space: normal; }
+
+.lab-controls .seg button { padding-left: 4px; padding-right: 4px; }
+
+@media (max-width: 600px) {
+  .seg button { padding: 7px 4px; font-size: 12px; }
+  .wn-choices-2, .wn-choices-3 { grid-template-columns: minmax(0, 1fr); }
+  .meter-row { grid-template-columns: 88px minmax(0, 1fr) 70px; }
+}

@@ -14,6 +14,7 @@ Each lecture page explains every concept twice, first in plain words and then te
 | 7 | [`wired-nes.html`](site/wired-nes.html) | Wired Networked Embedded Systems |
 | 8 | [`embedded-ai.html`](site/embedded-ai.html) | Embedded AI |
 | 9 | [`time-sync.html`](site/time-sync.html) | Time Synchronisation |
+| 10 | [`wireless-nes.html`](site/wireless-nes.html) | Wireless Networked Embedded Systems |
 
 ## Running it
 
@@ -50,6 +51,7 @@ All lecture content this site is based on, and every figure under `site/img/`, c
 | 7 | Wired Networked Embedded Systems | Xenofon (Fontas) Fafoutis |
 | 8 | Week 8: Embedded AI | Massimo Pavan |
 | 9 | Time Synchronisation | Xenofon (Fontas) Fafoutis |
+| 10 | Wireless Networked Embedded Systems | Xenofon (Fontas) Fafoutis |
 
 Xenofon (Fontas) Fafoutis is a Professor and Massimo Pavan a Postdoc at DTU Compute. The slides and their figures remain the property of their authors and of the original sources listed below. This site is an unofficial study aid; it is not affiliated with or endorsed by DTU or the lecturers.
 
@@ -105,6 +107,12 @@ Many slide figures are themselves taken from other sources, as credited on the s
 - Andrew S. Tanenbaum and Herbert Bos, *Modern Operating Systems*
 - University of Michigan, EECS 461 course notes on CAN (eecs.umich.edu)
 - Research paper: [10.1109/TII.2017.2778746](https://doi.org/10.1109/TII.2017.2778746)
+
+**Week 10: Wireless Networked Embedded Systems**
+- Wikipedia (Wikimedia Commons)
+- STMicroelectronics, BALF-CC26-05D3 datasheet
+- Texas Instruments, CC2650 datasheet
+- Research papers: [10.1109/WF-IoT.2016.7845415](https://doi.org/10.1109/WF-IoT.2016.7845415), [10.4108/eai.1-12-2016.151713](https://doi.org/10.4108/eai.1-12-2016.151713), [10.1109/PIMRC.2017.8292262](https://doi.org/10.1109/PIMRC.2017.8292262)
 
 All trademarks and product names belong to their respective owners.
 

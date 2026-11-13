@@ -1,0 +1,1198 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Wireless Networked Embedded Systems · NES Study</title>
+  <meta name="description" content="Interactive study page for the NES Week 10 lecture on wireless networked embedded systems: decibels, link budgets, path loss, antennas, interference, frequency bands and channels, CSMA/CA, acknowledgements, radio duty cycling, multi-hop and asynchronous and synchronous MAC protocols.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%23a3162b'/%3E%3Cpath d='M7 21h5V11h8v10h5' stroke='white' stroke-width='3' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="assets/css/style.css">
+  <link rel="stylesheet" href="assets/css/wireless-nes.css">
+</head>
+<body>
+
+<header class="topbar">
+  <button class="icon-btn" type="button" data-nav-toggle aria-label="Open contents">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>
+    Contents
+  </button>
+  <span class="topbar-progress"><span data-progress-answered>0 / 0</span> answered</span>
+</header>
+<div class="scrim"></div>
+
+<div class="shell">
+  <aside class="sidebar" aria-label="Lecture contents">
+    <a class="brand" href="index.html">
+      <span class="brand-mark">NES</span>
+      <span class="brand-text"><b>NES Study</b><span>Networked Embedded Systems</span></span>
+    </a>
+
+    <div class="progress-card">
+      <div class="progress-row"><span>Questions answered</span><b data-progress-answered>0 / 0</b></div>
+      <div class="progress-bar"><span data-progress-bar></span></div>
+      <div class="progress-sub"><span>Right on first try: <b data-progress-first>0</b></span><button class="link-btn" type="button" data-quiz-reset>Reset</button></div>
+    </div>
+
+    <nav class="toc" data-toc></nav>
+
+    <div class="sidebar-foot">
+      <a class="icon-btn" href="index.html">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg>
+        All lectures
+      </a>
+      <button class="icon-btn" type="button" data-theme-toggle aria-label="Toggle dark mode">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+        Theme
+      </button>
+    </div>
+  </aside>
+
+  <main class="main">
+    <div class="content">
+      <div class="hero">
+        <div class="crumbs"><a href="index.html">NES Study</a> / Week 10: Wireless Networked Embedded Systems</div>
+        <h1>Wireless Networked Embedded Systems</h1>
+        <p class="hero-lead">How embedded devices talk without wires: radio waves and decibels, link budgets and the two requirements for reception, frequency bands and channels, and the medium access and radio duty cycling protocols that let battery-powered devices share a channel and still last for years.</p>
+        <div class="hero-meta">
+          <span class="chip">33 topics</span>
+          <span class="chip">24 interactive labs</span>
+          <span class="chip">70 questions</span>
+          <span class="chip">Slides: X. Fafoutis, DTU Compute</span>
+        </div>
+      </div>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 1</span><h2>Radio basics and the link budget</h2></div>
+
+      <!-- 01 -->
+      <section class="topic" id="wired-vs-wireless" data-part="Radio basics" data-short="Wired vs wireless">
+        <header class="topic-head">
+          <span class="topic-num">01</span>
+          <div><h2>Wireless vs wired embedded systems</h2><p class="kicker">Freedom versus reliability</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Cables are reliable: a signal in a wire mostly stays in the wire. But you cannot put a cable on a runner's wrist, on a delivery van, or across a farm with no infrastructure.</p>
+              <p>Wireless trades some reliability and security for freedom. Think of a landline versus a mobile phone: the landline almost never drops a call, but it cannot follow you around.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Wireless networked embedded systems are <strong>necessary</strong> in mobile embedded systems (wearables, vehicles) and in systems deployed in areas without easy access to infrastructure.</li>
+                <li>They are generally <strong>cheaper, more flexible and easier to install</strong>. They <em>can</em> be reliable and secure, "but...": that takes effort, and much of this lecture is about that effort.</li>
+                <li>Wired networked embedded systems (Week 7: CAN, Ethernet) are <strong>more reliable</strong>, being less vulnerable to interference and environmental noise, and <strong>more secure</strong>, being less vulnerable to physical attacks.</li>
+                <li>Every wireless signal is broadcast: anyone in range can receive it, and every other transmitter in range competes with it. That one fact drives the rest of the lecture: link budgets, interference, medium access and duty cycling.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="sort-wired"></div>
+        <div class="quiz" data-quiz="wired-vs-wireless"></div>
+      </section>
+
+      <!-- 02 -->
+      <section class="topic" id="radio-basics" data-part="Radio basics" data-short="Radio basics">
+        <header class="topic-head">
+          <span class="topic-num">02</span>
+          <div><h2>Basics of wireless communications</h2><p class="kicker">From current to wave and back</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A radio is a loudspeaker and an ear for electricity. The transmitter pushes a rapidly changing current into its antenna, which turns it into a wave travelling through space.</p>
+              <p>At the other end, the receiving antenna turns the tiny part of that wave that reaches it back into a current, and the receiver works out which bits were sent.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Transmission:</strong> the radio transmitter generates an electric current and supplies it to the antenna. The antenna radiates the energy as an electromagnetic wave (radio wave). Data are encoded in the physical properties of the radio wave (frequency, phase, etc.).</li>
+                <li><strong>Reception:</strong> the antenna produces an electric current based on the electromagnetic waves that reach it. The radio receiver filters and amplifies the signal and recovers the transmitted data via <strong>demodulation</strong>.</li>
+                <li>Unlike UART or SPI (Week 5) there is no shared ground and no clock wire: everything the receiver needs must be recovered from the wave itself. That is why every frame starts with a preamble (slide 20).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/tx-rx.png" alt="Transmitter Tx and receiver Rx, each with an antenna, arrow from Tx to Rx" width="794" height="320"></div>
+              <figcaption><b>Slide 4.</b> A transmitter (Tx) sends to a receiver (Rx) through the air.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="radio-basics"></div>
+      </section>
+
+      <!-- 03 -->
+      <section class="topic" id="decibels" data-part="Radio basics" data-short="Decibels">
+        <header class="topic-head">
+          <span class="topic-num">03</span>
+          <div><h2>Radio waves and decibels</h2><p class="kicker">Huge ratios as small numbers</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Radio power shrinks enormously on the way: a signal sent with 0.2 W can arrive with 0.1 pW, two million million times weaker. Writing such numbers is clumsy.</p>
+              <p>So radio engineers count in <strong>decibels</strong>, which turn huge ratios into small numbers and multiplications into additions. The slide's picture: a balloon whose rubber gets thinner and thinner as it expands.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>As a radio wave propagates through 3D space its power attenuates very fast. The slide's example: transmitted at 0.2 W, received at 0.1 pW. Radio signal power has a huge dynamic range.</li>
+                <li>Power is typically expressed in <strong>decibels (dB)</strong>, a relative unit on a logarithmic scale: how big or small something is with respect to a reference P<sub>0</sub>.<div class="formula">P<sub>dB</sub> = 10 log<sub>10</sub>(P / P<sub>0</sub>)</div></li>
+                <li><strong>dB arithmetic:</strong> addition in the logarithmic domain is multiplication in the linear domain. Rules of thumb: +3 dB ≈ ×2, -3 dB ≈ ÷2, +10 dB ≈ ×10, -10 dB ≈ ÷10.</li>
+                <li>The slide's question: +17 dB = +10 dB + 10 dB - 3 dB = ×10 ×10 ÷2 = <strong>×50</strong>. (Exactly 10<sup>1.7</sup> ≈ 50.1; +3 dB is really ×1.995.)</li>
+                <li>The balloon example in dB: 10 log<sub>10</sub>(0.2 W / 10<sup>-13</sup> W) ≈ <strong>123 dB</strong> of attenuation.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="db"></div>
+        <div class="quiz" data-quiz="decibels"></div>
+      </section>
+
+      <!-- 04 -->
+      <section class="topic" id="dbm" data-part="Radio basics" data-short="dBm">
+        <header class="topic-head">
+          <span class="topic-num">04</span>
+          <div><h2>Decibels: typical power references</h2><p class="kicker">dB relative to 1 mW</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A decibel on its own only says "bigger or smaller than something". To talk about actual power, pick a fixed reference: 1 milliwatt.</p>
+              <p>Power measured against 1 mW is in <strong>dBm</strong>: 0 dBm is 1 mW, 30 dBm is 1 W, -100 dBm is a ten-billionth of a milliwatt.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Amplification and attenuation</strong> are expressed relative to the input power. A 3 dB power amplifier doubles the power of the signal it receives.<div class="formula">P<sub>dB</sub> = 10 log<sub>10</sub>(P<sub>OUT</sub> / P<sub>IN</sub>)</div></li>
+                <li><strong>Absolute power</strong> is expressed relative to 1 mW (dBm). A -10 dBm signal has about 1/10 of the power of 1 mW, i.e. 0.1 mW.<div class="formula">P<sub>dBm</sub> = 10 log<sub>10</sub>(P / 1 mW)</div></li>
+                <li><strong>Combination:</strong> gains in dB add to levels in dBm. A -10 dBm signal through a 3 dB amplifier gives -10 dBm + 3 dB = <strong>-7 dBm</strong> (about 0.2 mW). Never add two dBm values: that would multiply milliwatts (slide 13 shows how powers add).</li>
+                <li>The table spans the sun (296 dBm) to thermal noise (-174 dBm). Small embedded systems transmit around 0 dBm, a phone up to 27 dBm, a WiFi router up to 30 dBm; WiFi can still receive down to about -100 dBm.</li>
+                <li>The slide lists thermal noise as -174 dBm. Strictly, that is -174 dBm <em>per hertz</em> of bandwidth at room temperature: a receiver listening to a 2 MHz channel collects about -174 + 10 log<sub>10</sub>(2 × 10<sup>6</sup>) ≈ -111 dBm of thermal noise.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/wireless-nes/dbm-table.png" alt="Table of powers in dBm from 296 dBm for the sun to -174 dBm for thermal noise" width="780" height="993"></div>
+              <figcaption><b>Slide 7.</b> Typical powers in dBm.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="dbm"></div>
+        <div class="quiz" data-quiz="dbm"></div>
+      </section>
+
+      <!-- 05 -->
+      <section class="topic" id="link-budget" data-part="Radio basics" data-short="Link budget">
+        <header class="topic-head">
+          <span class="topic-num">05</span>
+          <div><h2>Link budget</h2><p class="kicker">A bank statement for the signal</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A link budget is a bank statement for the signal. Start with the transmit power, add what the antennas give you, subtract what cables, connectors and the journey through the air take away, and see what is left at the receiver.</p>
+              <p>If what is left is more than the receiver needs, the link works. The surplus is your <strong>margin</strong>.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <p>A received signal power approximator, all terms in dB:</p><div class="formula">P<sub>RX</sub> = P<sub>TX</sub> + G<sub>TX</sub> - L<sub>TX</sub> - L<sub>P</sub> + G<sub>RX</sub> - L<sub>RX</sub></div><ul>
+                <li>P<sub>RX</sub>: the received power (dBm). P<sub>TX</sub>: the transmission power (dBm).</li>
+                <li>G<sub>TX</sub>, G<sub>RX</sub>: the transmitter and receiver antenna gains (dBi).</li>
+                <li>L<sub>TX</sub>, L<sub>RX</sub>: the transmitter and receiver losses: cables, connectors, etc. (dB).</li>
+                <li>L<sub>P</sub>: the <strong>path loss</strong> (dB). It depends on the distance between transmitter and receiver, the frequency of the signal and the propagation environment.</li>
+                <li>The <strong>Received Signal Strength Indicator (RSSI)</strong> can be used to estimate the path loss: L<sub>P</sub> ≈ P<sub>TX</sub> + G<sub>TX</sub> - L<sub>TX</sub> + G<sub>RX</sub> - L<sub>RX</sub> - RSSI.</li>
+                <li>Comparing P<sub>RX</sub> with the receiver's sensitivity (slide 12) gives the link margin, and turns the budget around into the largest path loss the link can survive:<div class="formula">margin = P<sub>RX</sub> - sensitivity <span class="eq-note">max L<sub>P</sub> = P<sub>TX</sub> + G<sub>TX</sub> - L<sub>TX</sub> + G<sub>RX</sub> - L<sub>RX</sub> - sensitivity</span></div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="budget"></div>
+        <div class="quiz" data-quiz="link-budget"></div>
+      </section>
+
+      <!-- 06 -->
+      <section class="topic" id="path-loss" data-part="Radio basics" data-short="Path loss">
+        <header class="topic-head">
+          <span class="topic-num">06</span>
+          <div><h2>Path loss</h2><p class="kicker">Predictable in space, dynamic on Earth</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>In empty space the loss is perfectly predictable: double the distance, lose a factor of four.</p>
+              <p>Indoors, the signal bounces off walls, floors and people, and the copies arrive slightly out of step. Sometimes they reinforce each other, sometimes they cancel. Move a person across the room and the received power jumps, although the distance never changed.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Path loss is very predictable in free space, but very dynamic down on Earth.</li>
+                <li><strong>Multipath fading:</strong> a wireless signal reflects on surfaces or the air, and multiple rays reach the receiver. Rays may arrive with small delays because of longer travel paths (phase shifts) and interfere constructively or destructively.</li>
+                <li><strong>Shadowing:</strong> obstacles in between attenuate signals; metallic objects block them completely.</li>
+                <li>Path loss is very dynamic even when the transmitter and receiver are static: the figure shows the RSSI of a static link in an office during working hours, varying by 20 dB and more.</li>
+                <li>A common model (beyond the slide): the free-space (Friis) loss at 1 m, plus 10·n·log<sub>10</sub>(d) with a path-loss exponent n: 2 in free space, about 3 indoors, 4 or more with obstructions.<div class="formula">L<sub>P</sub>(d) ≈ 20 log<sub>10</sub>(4π f / c) + 10 n log<sub>10</sub>(d / 1 m) <span class="eq-note">40.2 dB at 1 m and 2.44 GHz</span></div></li>
+                <li>In free space doubling the distance adds 20 log<sub>10</sub>(2) ≈ 6 dB (the inverse-square law); with n = 3 it adds 9 dB.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/rssi-trace.png" alt="RSSI of a static office link fluctuating between about -55 and -95 dBm" width="751" height="430"></div>
+              <figcaption><b>Slide 9.</b> RSSI of a static link in an office during working hours. Source: https://doi.org/10.1109/WF-IoT.2016.7845415</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="pathloss"></div>
+        <div class="quiz" data-quiz="path-loss"></div>
+      </section>
+
+      <!-- 07 -->
+      <section class="topic" id="antenna-gain" data-part="Radio basics" data-short="Antenna gain">
+        <header class="topic-head">
+          <span class="topic-num">07</span>
+          <div><h2>Antenna gain</h2><p class="kicker">Passive, but directional</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>An antenna is like the reflector of a torch. It cannot make the bulb brighter, but it can push the light in one direction.</p>
+              <p>A spotlight is very bright straight ahead and dark everywhere else; a bare bulb lights the whole room dimly. Antennas trade strength in one direction for weakness in the others.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Antennas are <strong>passive</strong> components: they do not amplify the signal; they reshape it, sending or receiving more energy in some directions than in others.</li>
+                <li><strong>Isotropic antenna:</strong> a theoretical antenna that emits and collects energy equally in all 3D directions, used as the reference for directivity.</li>
+                <li><strong>Directivity:</strong> real-world antennas emit and collect more energy in some directions. It is measured as the peak power gain relative to the isotropic antenna, in <strong>dBi</strong>. High directivity means high gain in one direction, but low gain in all others.</li>
+                <li>Low directivity is good when the source location is unknown (e.g. mobility). High directivity is good when the source location is known (e.g. point-to-point links).</li>
+                <li><strong>Antenna gain = directivity - losses.</strong> That gain is the G<sub>TX</sub> and G<sub>RX</sub> of the link budget.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/antenna-pattern.png" alt="A directional antenna pattern elongated along the z axis next to a spherical isotropic pattern" width="840" height="458"></div>
+              <figcaption><b>Slide 10.</b> A directional pattern (R) compared with the isotropic sphere (R<sub>iso</sub>). Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="antenna"></div>
+        <div class="quiz" data-quiz="antenna-gain"></div>
+      </section>
+
+      <!-- 08 -->
+      <section class="topic" id="antenna-radio" data-part="Radio basics" data-short="Antennas and radios">
+        <header class="topic-head">
+          <span class="topic-num">08</span>
+          <div><h2>Connecting antennas to radios</h2><p class="kicker">Connectors, traces, matching and baluns</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Getting the signal from the radio chip into the antenna is plumbing, and the pipe has to fit.</p>
+              <p>If the radio, the line and the antenna do not match, part of the power bounces back, like water hitting a narrowing in a hose. Small passive circuits make them fit.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>External antennas</strong> connect to the PCB via SMA or u.FL connectors.</li>
+                <li><strong>Printed antennas</strong> are a copper trace printed on the PCB.</li>
+                <li>A <strong>matching circuit</strong> maximises the power emitted and minimises the power reflected back.</li>
+                <li>A <strong>balun</strong> (balanced to unbalanced) is a chip that converts the balanced output of a specific radio into the unbalanced input of an antenna, with an integrated matching circuit. Some radios have an integrated balun, so you just connect the antenna.</li>
+                <li>Whatever these parts lose is the L<sub>TX</sub> and L<sub>RX</sub> of the link budget.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/pcb-antenna.png" alt="Photo of a densely populated green PCB" width="546" height="289"></div>
+              <figcaption><b>Slide 11.</b> A wireless sensor PCB.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/matching-circuit.png" alt="Schematic of a radio front end with a chain of capacitors and inductors to the antenna" width="1099" height="343"></div>
+              <figcaption><b>Slide 11.</b> A matching circuit between radio and antenna.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/balun.png" alt="CC26xx radio connected through a BALF-CC26-05 balun to a 50 ohm antenna" width="838" height="316"></div>
+              <figcaption><b>Slide 11.</b> A balun between a CC26xx radio and the antenna. Source: BALF-CC26-05D3 Datasheet by STMicroelectronics.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="antenna-radio"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 2</span><h2>Reception, interference and spectrum</h2></div>
+
+      <!-- 09 -->
+      <section class="topic" id="reception" data-part="Reception and spectrum" data-short="Reception">
+        <header class="topic-head">
+          <span class="topic-num">09</span>
+          <div><h2>Requirements for a successful reception</h2><p class="kicker">Loud enough, and louder than the rest</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Two things must be true to understand someone in a noisy bar. They must speak loudly enough for you to hear them at all, and they must be clearly louder than everyone else talking at the same time.</p>
+              <p>Radio reception has exactly these two requirements.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>There are two requirements for successful packet reception.</li>
+                <li><strong>1. The received signal must be powerful enough to be perceived.</strong> A radio receiver typically has a <strong>sensitivity</strong> threshold, e.g. -97 dBm: the lowest signal power from which it can extract information. A weaker signal is perceived as noise.</li>
+                <li><strong>2. The received signal must be sufficiently more powerful than the sum of any external interference</strong> captured by the receiver antenna. External interference can introduce bit errors in the decoding process.</li>
+                <li>Wireless environments are exposed to interference, so robust communication typically requires a received power higher than the sensitivity: a margin.</li>
+                <li>The second requirement is usually written as a ratio in dB, SIR = S - I or, including noise, SINR = S / (I + N). How large it must be depends on the radio's modulation and coding.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="reception"></div>
+        <div class="quiz" data-quiz="reception"></div>
+      </section>
+
+      <!-- 10 -->
+      <section class="topic" id="interference" data-part="Reception and spectrum" data-short="Interference">
+        <header class="topic-head">
+          <span class="topic-num">10</span>
+          <div><h2>Interference</h2><p class="kicker">Everyone shares the same air</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Radio is a room where everybody shouts into the same air. Your receiver hears every transmitter in range, not just the one it wants.</p>
+              <p>Whether a signal is "the message" or "noise" depends only on who is listening.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Wireless interference:</strong> all wireless signals are broadcast in the environment and receivers collect all of them. To decode a signal, it must be sufficiently stronger than all others received.</li>
+                <li><strong>Interference is subjective:</strong> a signal creates interference to others (analogy: speaking and listening). In the figure each receiver wants one transmitter (black arrows) and hears the other as interference (red).</li>
+                <li><strong>Sources:</strong> other transmitters of the same network, transmitters from overlapping networks, and other electronics (microwave ovens, lights, etc.).</li>
+                <li>Interfering powers add up in linear units, not in dBm: two -90 dBm interferers give 2 × 10<sup>-9</sup> mW, which is -87 dBm.<div class="formula">I<sub>total</sub> = 10 log<sub>10</sub>(Σ 10<sup>I<sub>k</sub>/10</sup>) dBm</div></li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/interference.png" alt="Two transmitter-receiver pairs; black arrows to the intended receivers, red crossing arrows to the other receivers" width="801" height="705"></div>
+              <figcaption><b>Slide 13.</b> Each receiver also hears the other transmitter (red).</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="interference"></div>
+      </section>
+
+      <!-- 11 -->
+      <section class="topic" id="capture" data-part="Reception and spectrum" data-short="Capture effect">
+        <header class="topic-head">
+          <span class="topic-num">11</span>
+          <div><h2>Capture effect</h2><p class="kicker">When a collision is not fatal</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>When two people talk to you at once, you can often still follow the one standing right next to you; the distant voice is just background.</p>
+              <p>A radio does the same: of two simultaneous transmissions, the much stronger one can still be decoded.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Assume two simultaneous packet transmissions from Tx1 and Tx2 with equal transmission power.</li>
+                <li>The closer transmission from Tx2 can be received without errors: from the perspective of Tx2 the interference is low, from the perspective of Tx1 it is high.</li>
+                <li>So a collision does not always destroy both packets. How much stronger the winner must be (the capture threshold) depends on the radio; a few dB is typical for narrowband radios.</li>
+                <li>With path-loss exponent n, a power advantage of X dB requires the winner to be 10<sup>X/(10n)</sup> times closer: about 1.41× for 3 dB in free space.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/capture.png" alt="Tx1 far from Rx and Tx2 close to Rx, both transmitting to Rx" width="1174" height="496"></div>
+              <figcaption><b>Slide 14.</b> Tx2 is closer to Rx than Tx1.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="capture"></div>
+        <div class="quiz" data-quiz="capture"></div>
+      </section>
+
+      <!-- 12 -->
+      <section class="topic" id="coverage" data-part="Reception and spectrum" data-short="Coverage and PER">
+        <header class="topic-head">
+          <span class="topic-num">12</span>
+          <div><h2>Wireless coverage</h2><p class="kicker">A fuzzy, moving edge</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Coverage maps draw a neat circle around an access point: inside it works, outside it does not.</p>
+              <p>Reality is a fuzzy, moving edge. Near it some packets get through and some do not, and the odds depend on more than the distance.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Coverage is often simplified as a circle or a cell. But the real world is not so simple: RSSI is very dynamic due to multipath fading and shadowing, and the bit error rate (BER) is very dynamic due to interference.</li>
+                <li>The <strong>packet error rate (PER)</strong> depends on transmission power and antennas, distance, environment, interference, transmission rate and packet size.</li>
+                <li>The figure: PER versus RSSI for BLE and IEEE 802.15.4 with 21 B and 39 B packets. PER falls from almost 1 to around 10<sup>-3</sup> within roughly 10 dB of RSSI, and longer packets fail more often.</li>
+                <li>With independent bit errors and no error correction, a packet of L bytes fails if any bit fails:<div class="formula">PER = 1 - (1 - BER)<sup>8·L</sup></div></li>
+                <li>Why 802.15.4 copes with weaker signals in this figure (beyond the slide): it sends at 250 kbit/s against BLE's 1 Mbit/s, and spreads every 4-bit symbol over 32 chips (DSSS), so each bit carries more energy. A lower transmission rate is one of the slide's PER factors.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/per-rssi.png" alt="Packet error rate versus RSSI from -104 to -90 dBm for BLE and IEEE 802.15.4 with 39 and 21 byte packets" width="1026" height="726"></div>
+              <figcaption><b>Slide 15.</b> PER versus RSSI. Source: http://dx.doi.org/10.4108/eai.1-12-2016.151713</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="per"></div>
+        <div class="quiz" data-quiz="coverage"></div>
+      </section>
+
+      <!-- 13 -->
+      <section class="topic" id="carrier" data-part="Reception and spectrum" data-short="Carrier wave">
+        <header class="topic-head">
+          <span class="topic-num">13</span>
+          <div><h2>Carrier wave</h2><p class="kicker">Bits on top of a steady tone</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A carrier wave is a steady hum at one precise pitch. To send data you bend the hum slightly: a bit higher for '1', a bit lower for '0'.</p>
+              <p>A receiver tuned to that pitch ignores everything else, which is how many radios can share the air without hearing each other.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Information is encoded in the physical properties of a radio wave (amplitude, frequency, phase, etc.).</li>
+                <li>The modifications that represent '0' and '1' are done on top of a <strong>carrier wave</strong> with frequency f<sub>c</sub>.</li>
+                <li>Example: <strong>BFSK</strong> (Binary Frequency Shift Keying): '0' is represented as f<sub>c</sub> - f<sub>0</sub>, '1' as f<sub>c</sub> + f<sub>0</sub>.</li>
+                <li>Advantages: the receiver can use a <strong>bandpass filter</strong> to filter out all signals that are not near the carrier; interference is limited to signals close to the carrier frequency; parallel interference-free transmissions are possible on different frequencies.</li>
+                <li>Related schemes (beyond the slide): amplitude-shift keying changes the amplitude (on-off keying in the extreme), phase-shift keying changes the phase. BLE uses a smoothed form of frequency shift keying (GFSK).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/bfsk.png" alt="Data square wave, a constant carrier sine, and the frequency-modulated signal" width="654" height="783"></div>
+              <figcaption><b>Slide 16.</b> Data, carrier and the BFSK signal. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="bfsk"></div>
+        <div class="quiz" data-quiz="carrier"></div>
+      </section>
+
+      <!-- 14 -->
+      <section class="topic" id="bands" data-part="Reception and spectrum" data-short="Frequency bands">
+        <header class="topic-head">
+          <span class="topic-num">14</span>
+          <div><h2>Frequency band: trade-offs</h2><p class="kicker">Bass note or whistle</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Low radio frequencies are like a bass note: they carry far and pass through walls, but you cannot play fast melodies with them.</p>
+              <p>High frequencies are like a whistle: fast and precise, but easily blocked. Choosing a band is choosing your trade-off.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Lower frequency band:</strong> lower path loss, more obstacle penetration, more coverage; but more interference, less capacity for data, lower bitrate and bigger antennas.</li>
+                <li>Above visible light, EM radiation is dangerous (ultraviolet, X-rays and gamma rays are ionising).</li>
+                <li>Digital systems typically communicate with radio waves and microwaves, 300 MHz to 300 GHz: 300 MHz to 1 GHz (sub-GHz): UHF radar band; 1 GHz to 30 GHz: UHF and SHF bands; 30 GHz to 300 GHz (millimetre wave): EHF band.</li>
+                <li>Antenna size scales with the wavelength λ = c / f. A quarter-wave antenna is about 17 cm at 433 MHz and about 3 cm at 2.4 GHz.<div class="formula">λ = c / f <span class="eq-note">2.4 GHz: 12.5 cm</span></div></li>
+                <li>Beyond the slide: with fixed-gain antennas, free-space path loss grows with f<sup>2</sup> (+6 dB per doubling of frequency), because the receiving antenna's effective area shrinks with λ<sup>2</sup>. For the same link budget, free-space range scales with 1/f.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/spectrum.png" alt="Electromagnetic spectrum from radio to gamma rays with wavelength scale and examples" width="1300" height="516"></div>
+              <figcaption><b>Slide 17.</b> The electromagnetic spectrum. Source: Wikipedia.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="band"></div>
+        <div class="quiz" data-quiz="bands"></div>
+      </section>
+
+      <!-- 15 -->
+      <section class="topic" id="band-rules" data-part="Reception and spectrum" data-short="Band rules">
+        <header class="topic-head">
+          <span class="topic-num">15</span>
+          <div><h2>Frequency bands: rules</h2><p class="kicker">Licensed and unlicensed spectrum</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>The radio spectrum is like land: there is only so much, so governments zone it.</p>
+              <p>Some plots are private (licensed: you pay, often a lot, for exclusive use); some are public parks (unlicensed: anyone may use them, as long as they follow the park rules).</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Frequency bands are limited and therefore regulated by governments: who can use them, how often they can be used, and the maximum transmission power.</li>
+                <li><strong>Licensed bands:</strong> illegal to transmit in unless you have a license. Used by government, aviation, military, etc., and rented to telecom providers (cellular).</li>
+                <li><strong>Unlicensed bands:</strong> OK to use without a license: the <strong>ISM</strong> (industrial, scientific and medical) bands defined by the ITU (International Telecommunication Union), and regional bands such as 863 to 870 MHz in Europe.</li>
+                <li>In the table some ISM bands are worldwide (for example 13.56 MHz, 2.4 GHz, 5.8 GHz, 24 GHz), others regional (433 MHz for Europe, Africa and the Middle East; 902 to 928 MHz for the Americas) or subject to local acceptance.</li>
+                <li>"How often" is meant literally (beyond the slide): parts of the European 868 MHz band limit each device to a duty cycle such as 1% of the time.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame tall"><img src="img/wireless-nes/ism-table.png" alt="Table of ISM frequency ranges and their availability" width="967" height="1106"></div>
+              <figcaption><b>Slide 18.</b> ISM bands and where they are available.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="band-rules"></div>
+      </section>
+
+      <!-- 16 -->
+      <section class="topic" id="channels" data-part="Reception and spectrum" data-short="Channels">
+        <header class="topic-head">
+          <span class="topic-num">16</span>
+          <div><h2>Wireless channels</h2><p class="kicker">Lanes on a motorway</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A band is a motorway and channels are its lanes. If lanes are painted too close together, cars in neighbouring lanes bump into each other: overlapping channels.</p>
+              <p>With enough space between them, traffic flows side by side without trouble: orthogonal channels.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A band can be further split into <strong>channels</strong>.</li>
+                <li><strong>Overlapping channels</strong> interfere with each other. <strong>Orthogonal channels</strong> do not.</li>
+                <li><strong>FDMA</strong> (Frequency Division Multiple Access): transmitters can transmit in parallel on different orthogonal channels without interfering with each other.</li>
+                <li>2.4 GHz WiFi channel n is centred at 2407 + 5n MHz but is about 22 MHz wide, so only channels at least 25 MHz apart, such as 1, 6 and 11, are orthogonal.</li>
+                <li>IEEE 802.15.4 (Zigbee, Thread) has 16 channels of 2 MHz, 5 MHz apart, from 2405 MHz (channel 11) to 2480 MHz (channel 26); channels 15, 20, 25 and 26 fall outside WiFi channels 1, 6 and 11. BLE has 40 channels of 2 MHz between 2402 and 2480 MHz, with its three advertising channels (2402, 2426, 2480 MHz) chosen to stay mostly clear of WiFi 1, 6 and 11.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/wifi-channels.png" alt="WiFi channels 1 to 14 drawn as overlapping arcs, 22 MHz wide" width="1205" height="256"></div>
+              <figcaption><b>Slide 19, top.</b> 2.4 GHz WiFi channels 1 to 14. Source: Wikipedia.</figcaption>
+            </figure>
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/ble-154-channels.png" alt="WiFi channels 1, 6 and 11 drawn over the narrow BLE and IEEE 802.15.4 channels from 2405 to 2480 MHz" width="1230" height="417"></div>
+              <figcaption><b>Slide 19, bottom.</b> WiFi 1, 6 and 11 over BLE (blue) and IEEE 802.15.4 (pink) channels. Source: https://doi.org/10.1109/PIMRC.2017.8292262</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="channels"></div>
+        <div class="quiz" data-quiz="channels"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 3</span><h2>Sharing a channel in a star</h2></div>
+
+      <!-- 17 -->
+      <section class="topic" id="radio-states" data-part="Star MAC" data-short="Radio states">
+        <header class="topic-head">
+          <span class="topic-num">17</span>
+          <div><h2>Radio states</h2><p class="kicker">Talk or listen, never both</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A radio is a walkie-talkie, not a telephone: it can talk or listen, but never both at once.</p>
+              <p>And to notice that someone starts talking, it has to be listening already.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The receiver filters, amplifies and decodes the incoming signal. Each frame starts with a <strong>preamble</strong>, a synchronisation phrase that lets the receiver lock on to it.</li>
+                <li><strong>Receive</strong> (receiving data) and <strong>listen</strong> (receiving noise) are the same state, electrically and energetically.</li>
+                <li>Wireless radios have two modes, transmit and receive. Devices cannot receive while they transmit, so <strong>collisions cannot be detected as they happen</strong> (unlike wired CSMA/CD in Week 7).</li>
+                <li>Devices need to be in receive mode when idle to detect incoming frames: <strong>idle listening</strong>.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/radio-states-ab.png" alt="Two devices A and B with a double arrow between their antennas" width="758" height="279"></div>
+              <figcaption><b>Slide 20.</b> A and B take turns.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/radio-states-timeline.png" alt="Timeline: A transmits a frame that B receives, then B transmits a frame that A receives; idle time is listening" width="1300" height="114"></div>
+          <figcaption><b>Slide 20.</b> Each frame is transmitted by one side and received by the other. Blue: transmit, green: receive, yellow: listen.</figcaption>
+        </figure>
+        <div class="quiz" data-quiz="radio-states"></div>
+      </section>
+
+      <!-- 18 -->
+      <section class="topic" id="star" data-part="Star MAC" data-short="Star topology">
+        <header class="topic-head">
+          <span class="topic-num">18</span>
+          <div><h2>Medium access control: sharing a channel</h2><p class="kicker">One teacher, many pupils</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A star network is a classroom with one teacher: every pupil talks only to the teacher, never directly to each other.</p>
+              <p>Simple, but if two pupils speak at once, the teacher understands neither.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Star topology</strong> around an <strong>Access Point (AP)</strong>: one node collects the data or bridges the wireless network to the wired one. Also known as sink or gateway (GW).</li>
+                <li>Wireless devices talk directly to the AP.</li>
+                <li>The star is vulnerable to collisions and interference: all devices share one channel.</li>
+                <li>Overlapping networks can use a different channel to mitigate interference (FDMA, slide 19).</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/star.png" alt="Devices D1, D2 and D3 each sending to a central AP" width="1154" height="626"></div>
+              <figcaption><b>Slide 21.</b> Devices D1 to D3 talk directly to the AP.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="star"></div>
+      </section>
+
+      <!-- 19 -->
+      <section class="topic" id="csma-ca" data-part="Star MAC" data-short="CSMA/CA">
+        <header class="topic-head">
+          <span class="topic-num">19</span>
+          <div><h2>CSMA/CA</h2><p class="kicker">Listen before you talk</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Polite conversation: before you speak, you listen. If someone is talking, you wait a random moment before trying again, so that two polite people do not keep starting together.</p>
+              <p>That is CSMA/CA. It cannot stop two people from starting at exactly the same moment, though.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>CSMA/CA</strong> (Carrier Sense Multiple Access with Collision Avoidance): sense the channel before transmitting (<strong>Clear Channel Assessment, CCA</strong>). If the channel is free, transmit. If it is busy, wait some time randomly before attempting transmission.</li>
+                <li>The waiting uses <strong>binary exponential backoff</strong> (as in Week 7): after each failure the random waiting window doubles, which spreads waiting devices out when the channel is busy.</li>
+                <li>Used by IEEE 802.11 (WiFi).</li>
+                <li>Collision avoidance reduces collisions but cannot eliminate them: two devices that sense the channel in the same moment both find it free and transmit together.</li>
+                <li>In the timeline: Dev 1 senses a free channel and transmits; Dev 3 and Dev 2 find it busy and back off. Dev 3 later finds it free and transmits; Dev 2 finds it busy again and transmits last. The AP receives the three frames one after the other.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/csma-timeline.png" alt="Timeline of Dev 1 to Dev 3 performing CCA, backing off and transmitting frames that the AP receives in turn" width="1300" height="192"></div>
+          <figcaption><b>Slide 22.</b> CSMA/CA with three devices and an AP. Blue: transmit, green: receive, yellow: listen.</figcaption>
+        </figure>
+        <div data-lab="csmaca"></div>
+        <div class="quiz" data-quiz="csma-ca"></div>
+      </section>
+
+      <!-- 20 -->
+      <section class="topic" id="acks" data-part="Star MAC" data-short="Acknowledgements">
+        <header class="topic-head">
+          <span class="topic-num">20</span>
+          <div><h2>Acknowledgements</h2><p class="kicker">"Got it?" after every frame</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>On a bad phone line you ask "got it?" after every sentence, and if you hear nothing back, you repeat yourself.</p>
+              <p>Radio links do the same: the receiver confirms every frame, and silence means "say that again".</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Channel errors are more likely than in wired networks. Collision avoidance reduces the probability of collisions, but collisions can still happen; there is interference from other nodes of the same network and from overlapping networks; and a signal might arrive weaker because of environmental issues, such as an obstacle.</li>
+                <li><strong>Acknowledgements (ACK)</strong> at the end of each frame: if no ACK arrives, retransmit; if the maximum number of retransmission attempts is reached, drop the frame.</li>
+                <li>The missing ACK is how a sender learns about a collision, since it cannot listen while transmitting.</li>
+                <li>If each attempt succeeds with probability p, independently, and up to R retransmissions are allowed:<div class="formula">P(delivered) = 1 - (1 - p)<sup>R+1</sup> <span class="eq-note">p = 70%, R = 3: 99.2%</span></div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/ack-timeline.png" alt="Timeline where Dev 1 and Dev 2 send frames to the AP and each frame is followed by an ACK from the AP" width="1300" height="166"></div>
+          <figcaption><b>Slide 23.</b> Each frame is followed by an ACK from the AP. Blue: transmit, green: receive, yellow: listen.</figcaption>
+        </figure>
+        <div data-lab="retx"></div>
+        <div class="quiz" data-quiz="acks"></div>
+      </section>
+
+      <!-- 21 -->
+      <section class="topic" id="duty-cycle" data-part="Star MAC" data-short="Radio duty cycle">
+        <header class="topic-head">
+          <span class="topic-num">21</span>
+          <div><h2>Radio duty cycle</h2><p class="kicker">Switch the radio off</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Leaving the radio on is like leaving the fridge door open: nothing seems to happen, but the energy drains away.</p>
+              <p>Listening for messages costs as much as receiving them, so a battery device must switch its radio off whenever it can, and wake it up at the right moments.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Devices often have energy constraints: they are battery-powered or rely on energy harvesting.</li>
+                <li>The radio consumes a lot of energy when active (TX or RX mode). <strong>Listening requires the same power as receiving</strong>, so idle listening wastes energy. The CC2650 excerpt: 5.9 to 6.1 mA in RX, 6.1 mA transmitting at 0 dBm, 9.1 mA at 5 dBm.</li>
+                <li>Solution: <strong>radio duty cycle</strong>: turn the radio off when it is not used. The radio then has three states: TX, RX and sleep.<div class="formula">I<sub>avg</sub> = D · I<sub>on</sub> + (1 - D) · I<sub>sleep</sub> <span class="eq-note">battery life ≈ capacity / I<sub>avg</sub></span></div></li>
+                <li>Always in RX, a 225 mAh coin cell lasts 225 / 5.9 ≈ 38 hours. At a 1% duty cycle (1 µA sleep) the average drops to about 0.06 mA: roughly 5 months.</li>
+                <li><strong>Challenge:</strong> how does the receiver know when the transmitter is about to transmit, so it can wake up and put its radio in RX mode? The rest of the lecture gives different answers.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/cc2650-currents.png" alt="Table: radio RX 5.9 and 6.1 mA, radio TX 6.1 mA at 0 dBm and 9.1 mA at 5 dBm" width="1213" height="207"></div>
+              <figcaption><b>Slide 24.</b> CC2650 radio currents. Source: CC2650 Datasheet by Texas Instruments.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <div data-lab="dutycycle"></div>
+        <div class="quiz" data-quiz="duty-cycle"></div>
+      </section>
+
+      <!-- 22 -->
+      <section class="topic" id="asymmetric" data-part="Star MAC" data-short="Asymmetric energy">
+        <header class="topic-head">
+          <span class="topic-num">22</span>
+          <div><h2>Asymmetric energy availability</h2><p class="kicker">An always-open shop</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A shop that is always open lets customers come whenever it suits them.</p>
+              <p>The mains-powered access point is that shop: it listens all the time, so the battery-powered devices can sleep and only wake up when they have something to deliver.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Star topology: the AP/GW is <strong>mains-powered</strong> (no energy limitations); the wireless devices are energy-constrained and need to be duty cycled.</li>
+                <li>MAC protocol: <strong>duty-cycled CSMA</strong>. The AP/GW is always in RX mode unless it transmits (no duty cycle). Nodes wake up when they have data to transmit.</li>
+                <li>If CCA succeeds, the node transmits the packet and switches to RX mode, waiting for the ACK. If CCA fails, it goes to sleep and tries again later.</li>
+                <li><strong>Challenge</strong> (slide 26): this is OK for uplink, but how does the AP send data to the devices? It cannot know when a sleeping device will listen.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/dc-csma-timeline.png" alt="Timeline where Dev 1 and Dev 2 sleep, wake up for CCA, frame and ACK, while the AP listens continuously" width="1300" height="171"></div>
+          <figcaption><b>Slides 25 and 26.</b> Duty-cycled CSMA: devices sleep between transmissions, the AP always listens. Blue: transmit, green: receive, yellow: listen, grey (hatched): sleep.</figcaption>
+        </figure>
+        <div data-lab="uplink"></div>
+        <div class="quiz" data-quiz="asymmetric"></div>
+      </section>
+
+      <!-- 23 -->
+      <section class="topic" id="downlink" data-part="Star MAC" data-short="Downlink traffic">
+        <header class="topic-head">
+          <span class="topic-num">23</span>
+          <div><h2>Downlink traffic</h2><p class="kicker">"Stay on the line, I have something for you"</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>You cannot call someone who keeps their phone switched off. You wait until they call you.</p>
+              <p>Then you say: "stay on the line, I have something for you too".</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>MAC protocol: <strong>duty-cycled CSMA downlink</strong>. The AP/GW cannot initiate a data transfer to duty-cycled nodes.</li>
+                <li>The AP/GW can request, in the ACK, that the node remains awake in RX mode: a <strong>receive window</strong>. In the timeline, the AP's ACK to Dev 2 announces a frame, which Dev 2 receives and acknowledges before going back to sleep.</li>
+                <li>Downlink data therefore wait at the AP for the node's next uplink. With uplinks every T and downlink messages arriving at random times:<div class="formula">average wait = T / 2, worst case = T</div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/downlink-timeline.png" alt="Timeline where the AP answers Dev 2's frame with an ACK, then sends Dev 2 a downlink frame inside a receive window" width="1300" height="169"></div>
+          <figcaption><b>Slide 27.</b> Downlink inside the receive window after an uplink. Blue: transmit, green: receive, yellow: listen, grey (hatched): sleep.</figcaption>
+        </figure>
+        <div data-lab="downlink"></div>
+        <div class="quiz" data-quiz="downlink"></div>
+      </section>
+
+      <!-- 24 -->
+      <section class="topic" id="contention" data-part="Star MAC" data-short="Contention vs contention-free">
+        <header class="topic-head">
+          <span class="topic-num">24</span>
+          <div><h2>Contention-based vs contention-free MAC</h2><p class="kicker">Car lanes and bus lanes</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Car lanes are open to everyone: great when traffic is light, a jam when everyone drives at once.</p>
+              <p>Bus lanes are reserved: a bus always gets through, but the lane sits empty most of the time. Contention-based MACs are car lanes; contention-free MACs are bus lanes.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>CSMA/CA is a <strong>contention-based</strong> MAC: devices compete for the medium. It is efficient at low to medium traffic and with sporadic traffic, gives no guarantee that important devices will find the medium free, and suffers many collisions at high traffic.</li>
+                <li>In a <strong>contention-free</strong> MAC, transmission slots are allocated to specific devices. It is efficient at high traffic, and important devices are guaranteed to find the medium free (still vulnerable to external interference).</li>
+                <li>But contention-free MACs are inefficient with unpredictable traffic (when there is nothing to transmit, the allocated slots are wasted), and less flexible to changes, with overhead for making the slot allocation.</li>
+                <li>Analogy: car lanes versus bus lanes.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="contention"></div>
+        <div class="quiz" data-quiz="contention"></div>
+      </section>
+
+      <!-- 25 -->
+      <section class="topic" id="gts" data-part="Star MAC" data-short="Guaranteed time slots">
+        <header class="topic-head">
+          <span class="topic-num">25</span>
+          <div><h2>Guaranteed time slots</h2><p class="kicker">Everyone speaks in turn</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A timetable: the teacher reads out the order at the start of the lesson, and each pupil speaks only in their own turn.</p>
+              <p>Nobody interrupts anyone, but a pupil with nothing to say still has a silent turn.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>The AP/GW transmits a <strong>beacon</strong> with a schedule indicating when each device can transmit. Devices transmit in their dedicated transmit slot; if a device has nothing to transmit, its slot stays idle.</li>
+                <li>This is <strong>TDMA</strong> (Time Division Multiple Access).</li>
+                <li>When joining the network, a device needs to stay in RX mode until it gets the first beacon. After that it can sleep between the beacons and its own slot.</li>
+                <li>Waking up on time needs a common notion of time. The drift between beacons is handled by Week 9's synchronisation and guard times.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/gts-timeline.png" alt="Timeline with beacons from the AP, Dev 1 and Dev 2 transmitting in their own slots and idle in between" width="1300" height="167"></div>
+          <figcaption><b>Slide 29.</b> Beacons (bcn) and dedicated transmit slots. Blue: transmit, green: receive, yellow: listen, grey (hatched): idle.</figcaption>
+        </figure>
+        <div class="quiz" data-quiz="gts"></div>
+      </section>
+
+      <!-- 26 -->
+      <section class="topic" id="asym-summary" data-part="Star MAC" data-short="Asymmetric: pros and cons">
+        <header class="topic-head">
+          <span class="topic-num">26</span>
+          <div><h2>Radio duty cycling with asymmetric energy availability</h2><p class="kicker">Simple, efficient, and limited to stars</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Letting a mains-powered access point do all the listening is simple and saves the devices a lot of energy.</p>
+              <p>But it only works when such an always-on partner exists, and the devices can only talk to it, not to each other.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Advantages:</strong> simple to implement and maintain; very energy-efficient for end devices; the overhead of synchronisation falls on the AP/GW.</li>
+                <li><strong>Disadvantages:</strong> can only be used when the receiver has no energy constraints; cannot support device-to-device and multi-hop topologies (mesh networks); delay for downlink traffic.</li>
+                <li><strong>Variations of the paradigm are used by</strong> IEEE 802.15.4 (Zigbee, Thread), BLE (Bluetooth Low Energy), LoRaWAN and low-power WiFi.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="asym-summary"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <div class="part-head"><span class="part-label">Part 4</span><h2>Multi-hop and symmetric duty cycling</h2></div>
+
+      <!-- 27 -->
+      <section class="topic" id="multi-hop" data-part="Symmetric MAC" data-short="Multi-hop">
+        <header class="topic-head">
+          <span class="topic-num">27</span>
+          <div><h2>Multi-hop topology</h2><p class="kicker">Pass the message along</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>If you cannot shout across a field, pass the message along a line of people. Each one only needs to reach the next.</p>
+              <p>More people means the message is repeated more often, but each short shout is easy to hear.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>A device may not have direct access to the gateway: it is too far away, or its signal is too weak (e.g. in a basement).</li>
+                <li>Coverage can be extended using <strong>multi-hop topologies</strong>: normal nodes forward frames to the gateway on behalf of other nodes.</li>
+                <li><strong>Cost increase:</strong> a frame is transmitted and received multiple times to reach the GW. <strong>Cost decrease:</strong> short links are more robust than long links, so retransmissions are reduced.</li>
+                <li>Multi-hop topologies come as a <strong>line</strong>, a <strong>tree</strong> or a <strong>mesh</strong> (slide 32). A mesh offers alternative paths around a weak or failed link.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/multihop-line.png" alt="D1 sends to D2, which forwards to the gateway GW" width="1149" height="292"></div>
+              <figcaption><b>Slide 31.</b> D1 reaches the gateway through D2.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/topologies.png" alt="Line, tree and mesh topologies of green nodes" width="1300" height="321"></div>
+          <figcaption><b>Slide 32.</b> Line, tree and mesh topologies. Source: Wikipedia.</figcaption>
+        </figure>
+        <div data-lab="multihop"></div>
+        <div class="quiz" data-quiz="multi-hop"></div>
+      </section>
+
+      <!-- 28 -->
+      <section class="topic" id="symmetric" data-part="Symmetric MAC" data-short="Symmetric energy">
+        <header class="topic-head">
+          <span class="topic-num">28</span>
+          <div><h2>Symmetric energy limitations</h2><p class="kicker">Nobody can listen all the time</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Two campers with walkie-talkies want their batteries to last the whole trip, so they keep the radios off most of the time.</p>
+              <p>But a message sent while the other radio is off is simply lost. Before they separate, they must agree on a plan for when to listen.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li><strong>Both the transmitter and the receiver</strong> need to duty cycle their radios to preserve energy.</li>
+                <li>Typical in multi-hop topologies (line, tree or mesh), and also in star topologies when the GW is battery-powered.</li>
+                <li><strong>Example: walkie-talkies.</strong> Alice and Bob want to communicate with two battery-powered walkie-talkies. When powered on, a walkie-talkie is in listen mode, and the user presses a button to speak. Both want to keep them off as much as possible. Before they separate, they can agree on a radio duty cycle strategy: how can they synchronise their transmissions and receptions?</li>
+                <li>The next slides give the answers: <strong>asynchronous</strong> duty cycles, where nodes keep independent schedules (sender-initiated, receiver-initiated, wakeup radio), and <strong>synchronous</strong> duty cycles, where they agree on a shared one.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div class="quiz" data-quiz="symmetric"></div>
+      </section>
+
+      <!-- 29 -->
+      <section class="topic" id="sender-initiated" data-part="Symmetric MAC" data-short="Sender-initiated MAC">
+        <header class="topic-head">
+          <span class="topic-num">29</span>
+          <div><h2>Sender-initiated asynchronous MAC</h2><p class="kicker">Knock until they open</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Imagine a door behind which someone naps but checks the door every ten minutes. A visitor knocks and keeps knocking until the sleeper peeks out, then hands over the parcel.</p>
+              <p>The sleeper only spends a moment every ten minutes; the visitor pays with knocking and waiting.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Also known as <strong>preamble sampling</strong> or <strong>low-power listening (LPL)</strong>.</li>
+                <li>Nodes do not synchronise their duty cycles (asynchronous). When idle, nodes periodically turn their radios to RX mode and sample the channel: if nothing is detected, they go back to sleep; if a preamble is detected, they send a CTS (clear to send) message and receive the frame.</li>
+                <li>Nodes with data to send transmit a preamble (or RTS, ready to send) and listen for a CTS. If a CTS is received, they transmit the frame; if not, they send the preamble again and repeat.</li>
+                <li>The listening <strong>PERIOD</strong> bounds idle listening and defines the sender's delay and energy costs. A sender waits for the receiver's next sample: half a PERIOD on average, a full PERIOD in the worst case.<div class="formula">idle listening ≈ t<sub>sample</sub> / PERIOD <span class="eq-note">delay and strobing ≈ PERIOD / 2</span></div></li>
+                <li>In the timeline Dev 1 strobes RTS after RTS, listening in between; Dev 2 wakes up for its next sample, hears an RTS, answers with a CTS, and the frame and ACK follow.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/lpl-timeline.png" alt="Timeline: Dev 2 samples the channel periodically; Dev 1 repeats RTS until Dev 2 replies with CTS, then sends the frame and receives an ACK" width="1300" height="124"></div>
+          <figcaption><b>Slide 34.</b> Low-power listening: RTS repeated until the receiver's next channel sample. Blue: transmit, green: receive, yellow: listen, grey (hatched): sleep.</figcaption>
+        </figure>
+        <div data-lab="async-lpl"></div>
+        <div class="quiz" data-quiz="sender-initiated"></div>
+      </section>
+
+      <!-- 30 -->
+      <section class="topic" id="receiver-initiated" data-part="Symmetric MAC" data-short="Receiver-initiated MAC">
+        <header class="topic-head">
+          <span class="topic-num">30</span>
+          <div><h2>Receiver-initiated asynchronous MAC</h2><p class="kicker">"Anything for me?"</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Now the sleeper takes the initiative: every ten minutes they open the door briefly and call "anything for me?".</p>
+              <p>A visitor with a parcel waits at the door until it opens.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Nodes do not synchronise their duty cycles (asynchronous).</li>
+                <li>When idle, nodes periodically transmit a beacon (or CTS, clear to send) and put their radios in RX mode for a while: if nothing is detected, they go back to sleep; if a preamble is detected, they stay in RX mode and receive the whole frame.</li>
+                <li>Nodes with data to send put their radio in RX mode and listen until they get the CTS of their destination.</li>
+                <li>The listening PERIOD again bounds idle listening and defines the sender's delay and energy costs: here the sender listens for half a PERIOD on average.</li>
+                <li>The performance of receiver-initiated and sender-initiated approaches is <strong>comparable</strong>; only who pays for the waiting differs.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/rimac-timeline.png" alt="Timeline: Dev 2 sends periodic CTS beacons; Dev 1 listens until it hears Dev 2's CTS, then sends the frame and gets an ACK" width="1300" height="124"></div>
+          <figcaption><b>Slide 35.</b> Receiver-initiated: the sender listens for the receiver's periodic CTS. Blue: transmit, green: receive, yellow: listen, grey (hatched): sleep.</figcaption>
+        </figure>
+        <div data-lab="async-ri"></div>
+        <div class="quiz" data-quiz="receiver-initiated"></div>
+      </section>
+
+      <!-- 31 -->
+      <section class="topic" id="wakeup-radio" data-part="Symmetric MAC" data-short="Wakeup radio">
+        <header class="topic-head">
+          <span class="topic-num">31</span>
+          <div><h2>Asynchronous MAC with wakeup radio</h2><p class="kicker">A doorbell that never sleeps</p></div>
+        </header>
+        <div class="topic-grid">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>A doorbell: the house can be dark and asleep, but the tiny bell circuit is always on and costs almost nothing.</p>
+              <p>Ring it, and the inhabitants wake up and open the door.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Devices employ an extra radio, the <strong>wakeup radio</strong>: very low power, so it can stay in listen mode continuously; very low data rates (just enough to send an ID); typically limited coverage.</li>
+                <li>When idle, the main radio is off and the wakeup radio is in RX mode.</li>
+                <li>A node with data to transmit sends an RTS message via the wakeup radio, then puts its main radio in TX mode and sends the frame. The receiver of the RTS puts its main radio in RX mode and waits for the frame.</li>
+                <li>The delay is just the wakeup message (milliseconds) and idle listening is cheap, because a wakeup receiver draws microwatts. The costs: extra hardware, and the wakeup radio's limited range limits the network.</li>
+              </ul>
+            </div>
+          </div>
+          <div class="figs">
+            <figure class="fig">
+              <div class="fig-frame"><img src="img/wireless-nes/wakeup-radios.png" alt="Devices A and B each with a main antenna and a separate wakeup antenna" width="829" height="279"></div>
+              <figcaption><b>Slide 36.</b> Main radio and wakeup radio on each device.</figcaption>
+            </figure>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/wakeup-timeline.png" alt="Timeline: Dev 1 sends RTS on the wakeup radio, Dev 2 receives it, then the frame and ACK use the main radios" width="1300" height="162"></div>
+          <figcaption><b>Slide 36.</b> RTS over the wakeup radio, frame and ACK over the main radio. Blue: transmit (main), green: receive (main), light blue: transmit (wakeup), orange: receive (wakeup), yellow: listen (wakeup).</figcaption>
+        </figure>
+        <div data-lab="async-wur"></div>
+        <div class="quiz" data-quiz="wakeup-radio"></div>
+      </section>
+
+      <!-- 32 -->
+      <section class="topic" id="synchronous" data-part="Symmetric MAC" data-short="Synchronous MAC">
+        <header class="topic-head">
+          <span class="topic-num">32</span>
+          <div><h2>Synchronous MAC</h2><p class="kicker">Agreed office hours</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>Office hours: everyone agrees to be at their desks from 10 to 11 and away otherwise. Inside office hours they talk as usual; outside they are free.</p>
+              <p>It only works if everyone's watch shows the same time.</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <ul>
+                <li>Devices <strong>synchronise their duty cycles</strong>: they switch between active and sleep periods together. During the active period they use any MAC scheme, like CSMA/CA or guaranteed time slots.</li>
+                <li>The duty cycle is controlled by the duration of the active and sleep periods.</li>
+                <li>Idle listening is reduced but not eliminated: nodes listen through the whole active period even when nothing arrives.</li>
+                <li>It requires a common notion of time: <strong>periodic time synchronisation</strong> (Week 9). Because clocks drift, nodes wake up a <strong>guard time</strong> early.<div class="formula">guard ≈ relative drift × time since last sync <span class="eq-note">2 × 20 ppm × 10 s = 0.4 ms</span></div></li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <figure class="fig fig-wide">
+          <div class="fig-frame"><img src="img/wireless-nes/sync-timeline.png" alt="Timeline where all three devices sleep, wake together for an active period with CCA, frames and ACKs, and sleep again" width="1300" height="127"></div>
+          <figcaption><b>Slide 37.</b> Shared active periods between sleep periods. Blue: transmit, green: receive, yellow: listen, grey (hatched): sleep.</figcaption>
+        </figure>
+        <div data-lab="async-sync"></div>
+        <div class="quiz" data-quiz="synchronous"></div>
+      </section>
+
+      <!-- 33 -->
+      <section class="topic" id="mac-classes" data-part="Symmetric MAC" data-short="Classifying MACs">
+        <header class="topic-head">
+          <span class="topic-num">33</span>
+          <div><h2>Classification of MAC protocols</h2><p class="kicker">Who duty cycles, and how they share</p></div>
+        </header>
+        <div class="topic-grid" style="grid-template-columns:minmax(0,1fr)">
+          <div class="explain">
+            <div class="plain">
+              <div class="block-label">In plain words</div>
+              <p>All the protocols in this lecture answer two questions.</p>
+              <p>Who can afford to keep the radio on? And how do the devices avoid talking over each other?</p>
+            </div>
+            <div class="tech">
+              <div class="block-label">Under the hood</div>
+              <p><strong>Duty cycle:</strong></p><ul>
+                <li>No energy constraints: no duty cycle (plain CSMA/CA, slide 22).</li>
+                <li>Energy constraints only on end devices: the end devices duty cycle (duty-cycled CSMA, guaranteed time slots, slides 25 to 30).</li>
+                <li>Energy constraints on all devices: all devices duty cycle, with <strong>synchronous</strong> duty cycles (slide 37) or <strong>asynchronous</strong> ones: sender-initiated (slide 34), receiver-initiated (slide 35) or wakeup radio (slide 36).</li>
+              </ul><p><strong>Contention handling:</strong></p><ul>
+                <li>Contention-free: allocated slots (TDMA, guaranteed time slots).</li>
+                <li>Contention-based: devices compete (CSMA/CA).</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+        <div data-lab="sort-mac"></div>
+        <div class="quiz" data-quiz="mac-classes"></div>
+      </section>
+
+      <!-- ================================================================ -->
+      <section class="topic" id="cheat-sheet" data-toc-extra="Cheat sheet">
+        <header class="topic-head">
+          <span class="topic-num">&Sigma;</span>
+          <div><h2>Cheat sheet</h2><p class="kicker">The formulas and numbers worth memorising</p></div>
+        </header>
+        <div class="cheat">
+          <div class="cheat-item"><h3>Decibels</h3><div class="formula">P<sub>dB</sub> = 10 log<sub>10</sub>(P / P<sub>0</sub>)</div><p>+3 dB ≈ ×2, +10 dB ≈ ×10. +17 dB ≈ ×50; -6 dB ≈ ÷4.</p></div>
+          <div class="cheat-item"><h3>dBm</h3><div class="formula">P<sub>dBm</sub> = 10 log<sub>10</sub>(P / 1 mW)</div><p>0 dBm = 1 mW, 30 dBm = 1 W. -10 dBm + 3 dB = -7 dBm ≈ 0.2 mW.</p></div>
+          <div class="cheat-item"><h3>Adding powers</h3><div class="formula">convert to mW, add, convert back</div><p>Two equal powers: +3 dB. Never add dBm values.</p></div>
+          <div class="cheat-item"><h3>Link budget</h3><div class="formula">P<sub>RX</sub> = P<sub>TX</sub> + G<sub>TX</sub> - L<sub>TX</sub> - L<sub>P</sub> + G<sub>RX</sub> - L<sub>RX</sub></div><p>Margin = P<sub>RX</sub> - sensitivity. RSSI estimates L<sub>P</sub>.</p></div>
+          <div class="cheat-item"><h3>Path loss</h3><div class="formula">L<sub>P</sub>(d) ≈ L(1 m) + 10 n log<sub>10</sub>(d)</div><p>Free space n = 2: +6 dB per doubling. L(1 m) ≈ 40 dB at 2.4 GHz.</p></div>
+          <div class="cheat-item"><h3>Antennas</h3><div class="formula">gain (dBi) = directivity - losses</div><p>Passive: high gain in one direction means low gain in all others.</p></div>
+          <div class="cheat-item"><h3>Reception</h3><div class="formula">P<sub>RX</sub> ≥ sensitivity AND S ≫ Σ interference</div><p>Sensitivity e.g. -97 dBm. Capture: the clearly stronger packet survives.</p></div>
+          <div class="cheat-item"><h3>Packet errors</h3><div class="formula">PER = 1 - (1 - BER)<sup>bits</sup></div><p>Longer packets fail more often at the same BER.</p></div>
+          <div class="cheat-item"><h3>Wavelength</h3><div class="formula">λ = c / f</div><p>2.4 GHz: 12.5 cm, λ/4 antenna ≈ 3 cm. Lower band: more range, bigger antenna, lower bitrate.</p></div>
+          <div class="cheat-item"><h3>2.4 GHz channels</h3><div class="formula">WiFi: 2407 + 5n MHz, 22 MHz wide</div><p>Orthogonal: 1, 6, 11. 802.15.4: 2405 + 5(k - 11) MHz, 2 MHz wide.</p></div>
+          <div class="cheat-item"><h3>Retransmissions</h3><div class="formula">P(delivered) = 1 - (1 - p)<sup>R+1</sup></div><p>No ACK means retransmit; the ACK is the only collision detector.</p></div>
+          <div class="cheat-item"><h3>Duty cycle</h3><div class="formula">I<sub>avg</sub> = D · I<sub>on</sub> + (1 - D) · I<sub>sleep</sub></div><p>CC2650 RX 5.9 mA: 38 h on 225 mAh always on; about 5 months at 1%.</p></div>
+          <div class="cheat-item"><h3>Asynchronous MAC</h3><div class="formula">idle ∝ t<sub>sample</sub> / PERIOD, delay ≈ PERIOD / 2</div><p>Sender- and receiver-initiated are comparable; a wakeup radio removes the PERIOD.</p></div>
+          <div class="cheat-item"><h3>Synchronous MAC</h3><div class="formula">guard ≈ relative drift × sync interval</div><p>40 ppm × 10 s = 0.4 ms. Needs periodic time synchronisation.</p></div>
+        </div>
+      </section>
+
+      <p class="page-foot">Figures cropped from the lecture slides "Wireless Networked Embedded Systems" by Xenofon Fafoutis, DTU Compute, with their original sources noted. For personal study.</p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/js/core.js"></script>
+<script src="assets/js/wireless-nes.js"></script>
+</body>
+</html>
