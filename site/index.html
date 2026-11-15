@@ -26,6 +26,8 @@
       <p>Each lecture page explains every concept twice, first in plain words and then technically, with the slide figures, hands-on labs and questions that explain every answer.</p>
     </div>
 
+    <div data-search></div>
+
     <div class="hub-grid">
       <a class="lecture-card" href="nes-intro.html" data-summary="nes-intro">
         <div class="lc-top"><span class="lc-num">Week 1</span><span class="lc-status ready">Ready</span></div>
@@ -93,7 +95,16 @@
   </div>
 
   <script src="assets/js/core.js"></script>
+  <script src="assets/js/search.js"></script>
   <script>
+    /* Search: runs in the browser. The index (assets/js/search-index.js, built by
+       tools/build-search-index.js) is loaded on first use of the search box. */
+    StudySearch.mount(document.querySelector("[data-search]"), {
+      placeholder: "Search all lectures, for example: open drain, clock drift, CAN arbitration",
+      load: function () {
+        return StudySearch.loadScripts(["assets/js/search-index.js"]).then(function () { return window.STUDY_SEARCH_INDEX; });
+      }
+    });
     document.querySelectorAll("[data-theme-toggle]").forEach(function (b) { b.addEventListener("click", NES.toggleTheme); });
     document.querySelectorAll("[data-summary]").forEach(function (card) {
       var s = NES.store.get("nes-summary-" + card.dataset.summary, null);
