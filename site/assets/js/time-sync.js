@@ -491,7 +491,7 @@
       const p = Math.max(0, d - 1 - Math.floor(Math.log10(Math.abs(v) || 1)));
       return v.toFixed(Math.min(p, 6));
     };
-    if (a === 0) return "0 s";
+    if (a < 1e-15) return "0 s"; // zero, or the float residue of subtracting two equal times
     if (a < 1e-6) return sig(s * 1e9) + " ns";
     if (a < 1e-3) return sig(s * 1e6) + " µs";
     if (a < 1) return sig(s * 1e3) + " ms";
@@ -681,7 +681,9 @@
     const verdict = verdictBox(view);
     function calc() {
       const T = 1 / f.value, n = Math.floor(phase.value + dur.value * f.value);
-      return { T, n, meas: n * T, err: n * T - dur.value };
+      // n * T and the true interval can differ by float noise (1e-19 s) when they are really equal.
+      const raw = n * T - dur.value;
+      return { T, n, meas: n * T, err: Math.abs(raw) < 1e-9 * dur.value ? 0 : raw };
     }
     const draw = NES.canvas(cv, (ctx, w, hh) => {
       const { T, n } = calc(), D = dur.value, ph = phase.value;

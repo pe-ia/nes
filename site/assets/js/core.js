@@ -127,6 +127,39 @@
     return { controls, view };
   };
 
+  /* ---------- Floating-point noise ----------
+     Binary floats cannot hold most decimals exactly, so 14 * 0.1 is 1.4000000000000001.
+     NES.num rounds a number to 12 significant digits, which removes that noise and nothing else.
+     NES.tidy does the same for numbers inside a piece of text. */
+  NES.num = function (x) {
+    return typeof x === "number" && isFinite(x) ? parseFloat(x.toPrecision(12)) : x;
+  };
+  NES.tidy = function (text) {
+    return String(text).replace(/-?\d+\.\d{9,}(?:e[-+]?\d+)?/gi, function (m) { return String(NES.num(Number(m))); });
+  };
+  /* Safety net for lab read-outs that print a computed number directly: clean the text
+     whenever a lab or an <output> changes. Code samples and typeset math are left alone. */
+  (function () {
+    if (!window.MutationObserver || !document.body) return;
+    const NOISE = /\d\.\d{9,}/;
+    function fix(node) {
+      if (node.nodeType === 3) {
+        const p = node.parentElement;
+        if (!p || !NOISE.test(node.nodeValue) || !p.closest(".lab, output") || p.closest("pre, code, .katex, textarea")) return;
+        const t = NES.tidy(node.nodeValue);
+        if (t !== node.nodeValue) node.nodeValue = t;
+      } else if (node.nodeType === 1 && NOISE.test(node.textContent)) {
+        node.childNodes.forEach(fix);
+      }
+    }
+    new MutationObserver(function (muts) {
+      muts.forEach(function (m) {
+        if (m.type === "characterData") fix(m.target);
+        else m.addedNodes.forEach(fix);
+      });
+    }).observe(document.body, { childList: true, subtree: true, characterData: true });
+  })();
+
   let ctlId = 0;
   NES.slider = function (parent, o) {
     const id = "ctl-" + ++ctlId;
@@ -142,12 +175,12 @@
       wrap,
       get value() {
         const raw = parseFloat(input.value);
-        return o.map ? o.map(raw) : raw;
+        return NES.num(o.map ? o.map(raw) : raw);
       },
       set(v) { input.value = o.unmap ? o.unmap(v) : v; sync(); },
       onchange: null,
     };
-    function sync() { out.textContent = o.fmt ? o.fmt(api.value) : String(api.value); }
+    function sync() { out.textContent = NES.tidy(o.fmt ? o.fmt(api.value) : String(api.value)); }
     input.addEventListener("input", () => { sync(); api.onchange && api.onchange(); });
     sync();
     return api;

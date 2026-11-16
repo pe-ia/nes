@@ -773,7 +773,7 @@
      Shared helpers
      ===================================================================== */
   // log-slider value snapped to 2 significant digits, so the shown and the used value agree
-  const nice = (e) => { const v = Math.pow(10, e); const p = Math.pow(10, Math.floor(Math.log10(v)) - 1); return Math.round(v / p) * p; };
+  const nice = (e) => { const v = Math.pow(10, e); const p = Math.pow(10, Math.floor(Math.log10(v)) - 1); return NES.num(Math.round(v / p) * p); };
   const fmtNum = (n) => Math.round(n).toLocaleString("en-US");
   function fmtBytes(b) {
     if (b >= 1e12) return (b / 1e12).toFixed(2) + " TB";
